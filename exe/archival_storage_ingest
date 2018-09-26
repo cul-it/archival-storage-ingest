@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'archival_storage_ingest'
+
+ingest_manager = ArchivalStorageIngest::IngestManager.new
+ingest_manager.queue_ingest(1)

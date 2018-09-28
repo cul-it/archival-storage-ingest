@@ -2,43 +2,38 @@
 require 'optparse'
 require 'archival_storage_ingest'
 
-COMMAND_INGEST = 'ingest'
-COMMAND_SERVER = 'server'
+COMMAND_SERVER_START = 'start'.freeze
+COMMAND_SERVER_STATUS = 'status'.freeze
+COMMAND_SERVER_STOP = 'stop'.freeze
 
 options = {}
 OptionParser.new do |opts|
-  opts.banner = "Usage: archival_storage_ingest [options]"
+  opts.banner = 'Usage: archival_storage_ingest [options]'
 
-  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
-    options[:verbose] = v
-  end
-
-  opts.on("-c COMMAND", "--command COMMAND", "COMMAND, either server or ingest, defaults to ingest") do |c|
-    if COMMAND_INGEST == c || COMMAND_SERVER == c
-      options[:command] = c
+  opts.on('-s COMMAND', '--server COMMAND', 'COMMAND, one of start, status, stop, defaults to status') do |s|
+    if [COMMAND_SERVER_START, COMMAND_SERVER_STATUS, COMMAND_SERVER_STOP].include?(s)
+      options[:server] = s
     else
-      raise "Invalid command #{c} given. Valid commands are " + COMMAND_INGEST + " and " + COMMAND_SERVER
+      raise "Invalid server command #{s} given. Valid commands are " +
+                COMMAND_SERVER_START + ', ' +
+                COMMAND_SERVER_STATUS + ' and ' +
+                COMMAND_SERVER_STOP
     end
   end
 
-  opts.on("-i", "--ingest_config INGEST_CONFIG", "Ingest config file for ingest command") do |i|
+  opts.on('-i INGEST_CONFIG', '--ingest_config INGEST_CONFIG', 'Ingest config file') do |i|
     options[:ingest_config] = i
   end
 end.parse!
 
-if options[:command].nil?
-  puts "Default command " + COMMAND_INGEST + " will be used."
-  options[:command] = COMMAND_INGEST
-end
-
-if options[:command] == COMMAND_INGEST && options[:ingest_config].nil?
-  raise "Ingest command requires ingest_config"
+if options[:server].nil? && options[:ingest_config].nil?
+  raise 'One of -s or -i flag is required'
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new
-if options[:command] == COMMAND_SERVER
+if !options[:server].nil?
   ingest_manager.server
 else
-  puts "Ingest called!"
-#  ingest_manager.queue_ingest(options[:ingest_config])
+  puts 'Ingest called!'
+  #  ingest_manager.queue_ingest(options[:ingest_config])
 end

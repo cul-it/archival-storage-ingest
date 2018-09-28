@@ -28,9 +28,7 @@ module ArchivalStorageIngest
         config_file = default_config_path
       end
 
-      if !File.exists?(config_file)
-        raise "Configuration file #{config_file} does not exist!"
-      end
+      raise "Configuration file #{config_file} does not exist!" if !File.exists?(config_file)
 
       @config = YAML.load_file(config_file)
       @queuer = Queuer::SQSQueuer.new
@@ -66,7 +64,7 @@ module ArchivalStorageIngest
     def initialize_server
       sqs = Aws::SQS::Client.new
       subscribed_queues = {}
-      @config['subscribed_queues'].each do | queue_name |
+      @config['subscribed_queues'].each do |queue_name|
         queue_url = sqs.get_queue_url(queue_name: queue_name).queue_url
         subscribed_queues[queue_name] = queue_url
       end
@@ -100,12 +98,12 @@ module ArchivalStorageIngest
     end
 
     def process_finished_job
-      @worker_pool.active.each do | worker |
+      @worker_pool.active.each do |worker|
         if worker.status == false
           ## it worked!
           result = worker.value
           ## do work
-        elsif worker.status == nil
+        elsif worker.status.nil?
           ## it died unexpectedly
           ## move to error queue
         end

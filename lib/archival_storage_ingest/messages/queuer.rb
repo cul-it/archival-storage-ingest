@@ -1,8 +1,10 @@
 require 'aws-sdk-sqs'
 
+# Message queuer implementations, currently supports SQS
 module Queuer
+  # SQS message queuer implementation
   class SQSQueuer
-    def initialize()
+    def initialize
       @known_queues = {}
     end
 

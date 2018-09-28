@@ -1,7 +1,9 @@
 require 'aws-sdk-sqs'
 require 'archival_storage_ingest/messages/ingest_message'
 
+# Poller implementations, currently supports SQS poller
 module Poller
+  # SQS poller implementation
   class SQSPoller
     def initialize(subscribed_queues)
       @subscribed_queues = subscribed_queues
@@ -25,8 +27,6 @@ module Poller
           end
         end
       end
-
-      return nil
     end
   end
 end

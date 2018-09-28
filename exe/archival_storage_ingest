@@ -1,6 +1,44 @@
 #!/usr/bin/env ruby
-
+require 'optparse'
 require 'archival_storage_ingest'
 
+COMMAND_INGEST = 'ingest'
+COMMAND_SERVER = 'server'
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: archival_storage_ingest [options]"
+
+  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+    options[:verbose] = v
+  end
+
+  opts.on("-c COMMAND", "--command COMMAND", "COMMAND, either server or ingest, defaults to ingest") do |c|
+    if COMMAND_INGEST == c || COMMAND_SERVER == c
+      options[:command] = c
+    else
+      raise "Invalid command #{c} given. Valid commands are " + COMMAND_INGEST + " and " + COMMAND_SERVER
+    end
+  end
+
+  opts.on("-i", "--ingest_config INGEST_CONFIG", "Ingest config file for ingest command") do |i|
+    options[:ingest_config] = i
+  end
+end.parse!
+
+if options[:command].nil?
+  puts "Default command " + COMMAND_INGEST + " will be used."
+  options[:command] = COMMAND_INGEST
+end
+
+if options[:command] == COMMAND_INGEST && options[:ingest_config].nil?
+  raise "Ingest command requires ingest_config"
+end
+
 ingest_manager = ArchivalStorageIngest::IngestManager.new
-ingest_manager.queue_ingest(1)
+if options[:command] == COMMAND_SERVER
+  ingest_manager.server
+else
+  puts "Ingest called!"
+#  ingest_manager.queue_ingest(options[:ingest_config])
+end

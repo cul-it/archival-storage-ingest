@@ -9,10 +9,11 @@ module IngestMessage
   TYPE_FIXITY_SFS     = 'Fixity SFS'.freeze
   TYPE_FIXITY_COMPARE = 'Fixity Compare'.freeze
 
-  def to_sqs_message(json)
+  def self.to_sqs_message(sqs_message_body)
+    json = JSON.parse(sqs_message_body)
     SQSMessage.new(
-      ingest_id: json[:ingest_id],
-      type: json[:type]
+      ingest_id: json['ingest_id'],
+      type: json['type']
     )
   end
 

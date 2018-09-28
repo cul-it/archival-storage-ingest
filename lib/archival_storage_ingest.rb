@@ -82,10 +82,10 @@ module ArchivalStorageIngest
     def do_work
       # process_finished_job()
 
-      if !@worker_pool.is_available?
-        # do nothing
-        return
-      end
+      # if !@worker_pool.is_available?
+      #   # do nothing
+      #   return
+      # end
 
       msg = @poller.get_message()
       if msg.nil?

@@ -23,10 +23,12 @@ module Poller
 
         if !resp.messages.empty?
           resp.messages.each do |m|
-            return IngestMessage::to_sqs_message(m)
+            return IngestMessage.to_sqs_message(m.body)
           end
         end
       end
+
+      nil
     end
   end
 end

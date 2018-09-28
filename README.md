@@ -1,35 +1,46 @@
-# ArchivalStorageIngest
+# Archival Storage Ingest
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/archival_storage_ingest`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Archival storage ingest is a ruby gem for automating parts of the ingest process. 
 
 ## Installation
 
-Add this line to your application's Gemfile:
+After cloning from GitHub repository (https://github.com/cul-it/archival-storage-ingest), run the following command.
 
 ```ruby
-gem 'archival_storage_ingest'
+$ rake install
 ```
 
-And then execute:
+It is recommended to install the gem under a local Ruby installation via RVM rather than the system Ruby.
 
-    $ bundle
+It uses AWS Ruby SDK.
+As per the installation guide (https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-install.html),
+run the following command.
 
-Or install it yourself as:
+    $ gem install aws-sdk
 
-    $ gem install archival_storage_ingest
+After the installation, credentials should be configured.
+(https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
+
+Either correct environment variables must be set or ~/.aws/credentials file must be created.
+
+If you already have AWS CLI installed, you could run the following command for the configuration.
+
+    $ aws configure
+
+The region must be set to us-east-1.
 
 ## Usage
 
-TODO: Write usage instructions here
+    $ archival_storage_ingest -s [SERVER_COMMAND]
+    $ archival_storage_ingest -i [PATH_TO_INGEST_CONFIG_FILE]
+
+-s flag will start the ingest server.
+Available server commands are start, status and stop.
+
+-i flag will queue a new ingest as described in the ingest config file.
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+For development, you could also create a test gemset via RVM as well with the following command before installation.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/archival_storage_ingest.
+    $ rvm gemset create archival-storage-ingest-gemset

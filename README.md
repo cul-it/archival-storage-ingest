@@ -4,6 +4,8 @@ Archival storage ingest is a ruby gem for automating parts of the ingest process
 
 ## Installation
 
+#### Archival storage ingest installation
+
 After cloning from GitHub repository (https://github.com/cul-it/archival-storage-ingest), run the following command.
 
 ```ruby
@@ -11,6 +13,23 @@ $ rake install
 ```
 
 It is recommended to install the gem under a local Ruby installation via RVM rather than the system Ruby.
+
+After the gem is installed, you need to set up a configuration YAML file.
+
+It looks for archival_storage_ingest_config environment variable for the configuration file path.
+If it is not set, it uses a default value of /cul/app/ingest/archival_storage/conf/settings.yaml.
+Following is an example configuration file.
+
+```settings.yaml
+--- # Subscribed queues
+subscribed_queues:
+  - cular_development_comparison
+  - cular_development_fixity_sfs
+  - cular_development_transfer_sfs
+  - cular_development_ingest
+```
+
+#### AWS Configuration
 
 It uses AWS Ruby SDK.
 As per the installation guide (https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-install.html),
@@ -28,6 +47,8 @@ If you already have AWS CLI installed, you could run the following command for t
     $ aws configure
 
 The region must be set to us-east-1.
+
+
 
 ## Usage
 
@@ -97,3 +118,13 @@ A new fixity compare (type sfs) is put to fixity compare queue.
 8. Ingest manager receives fixity compare message twice.
 It will only invoke fixity compare worker if both s3 and sfs manifests are available in the s3 bucket.
 9. Ingest manager puts a done message to done queue.
+
+## Error handling
+
+The ingest manager will need to keep an activity log to log each event, normal and errors.
+
+The ingest manager will be able to catch any worker failure and notify admins accordingly.
+
+For the ingest manager crashes, we will need a separate monitor to check the status.
+
+The logs should contain enough information for the admins to fix any problems.

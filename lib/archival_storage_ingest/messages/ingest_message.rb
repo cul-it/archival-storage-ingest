@@ -29,8 +29,8 @@ module IngestMessage
 
     def to_json
       JSON.generate(
-        ingest_id: @ingest_id,
-        type:      @type
+        ingest_id: ingest_id,
+        type:      type
       )
     end
   end

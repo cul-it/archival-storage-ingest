@@ -5,8 +5,9 @@ require 'archival_storage_ingest/messages/ingest_message'
 module Poller
   # SQS poller implementation
   class SQSPoller
-    def initialize(subscribed_queues)
+    def initialize(subscribed_queues, logger)
       @subscribed_queues = subscribed_queues
+      @logger = logger
     end
 
     # http://ruby-doc.org/core-2.5.0/Hash.html
@@ -23,11 +24,13 @@ module Poller
 
         if !resp.messages.empty?
           resp.messages.each do |m|
+            @logger.debug('Poller successfully received message from SQS: ' + m.body)
             return IngestMessage.to_sqs_message(m.body)
           end
         end
       end
 
+      @logger.debug('Poller received no message from SQS')
       nil
     end
   end

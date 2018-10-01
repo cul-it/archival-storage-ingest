@@ -4,28 +4,29 @@ require 'archival_storage_ingest/messages/ingest_message'
 module MessageProcessor
   # SQS message processor
   class SQSMessageProcessor
-    def initialize(queuer)
+    def initialize(queuer, logger)
       @queuer = queuer
+      @logger = logger
     end
 
     def process_message(msg)
+      @logger.info('Received ingest message ' + msg.to_json)
       case msg.type
       when IngestMessage::TYPE_INGEST
-        puts 'ingest_message.rb:14 Message ' + IngestMessage::TYPE_INGEST + ' received!'
+        @logger.info('Put transfer s3 and sfs messages')
       when IngestMessage::TYPE_TRANSFER_S3
-        puts 'ingest_message.rb:16 Message ' + IngestMessage::TYPE_TRANSFER_S3 + ' received!'
+        @logger.info('Invoke transfer S3 worker')
       when IngestMessage::TYPE_TRANSFER_SFS
-        puts 'ingest_message.rb:18 Message ' + IngestMessage::TYPE_TRANSFER_SFS + ' received!'
+        @logger.info('Invoke transfer SFS worker')
       when IngestMessage::TYPE_FIXITY_S3
-        puts 'ingest_message.rb:20 Message ' + IngestMessage::TYPE_FIXITY_S3 + ' received!'
+        @logger.info('Invoke fixity s3 worker')
       when IngestMessage::TYPE_FIXITY_SFS
-        puts 'ingest_message.rb:22 Message ' + IngestMessage::TYPE_FIXITY_SFS + ' received!'
+        @logger.info('Invoke fixity sfs worker')
       when IngestMessage::TYPE_FIXITY_COMPARE
-        puts 'ingest_message.rb:24 Message ' + IngestMessage::TYPE_FIXITY_COMPARE + ' received!'
+        @logger.info('Invoke fixity compare worker')
       else
-        warn 'Unknown message type: ' + msg.type
+        @logger.info('Invalid message received, doing nothing')
       end
-      puts 'ingest_message.rb:28 ' + msg.inspect
     end
   end
 end

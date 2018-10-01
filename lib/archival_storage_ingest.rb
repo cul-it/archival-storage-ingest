@@ -1,4 +1,5 @@
 require 'archival_storage_ingest/version'
+require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
 require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/messages/poller'
 require 'archival_storage_ingest/messages/queuer'
@@ -31,7 +32,8 @@ module ArchivalStorageIngest
       raise "Configuration file #{config_file} does not exist!" if !File.exists?(config_file)
 
       @config = YAML.load_file(config_file)
-      @queuer = Queuer::SQSQueuer.new
+      @logger = ArchivalStorageIngestLogger.get_file_logger(@config)
+      @queuer = Queuer::SQSQueuer.new(@logger)
     end
 
     def queue_ingest(ingest_config)
@@ -69,14 +71,14 @@ module ArchivalStorageIngest
         subscribed_queues[queue_name] = queue_url
       end
 
-      puts 'Subscribed to the following queues:'
+      @logger.debug 'Subscribed to the following queues:'
       subscribed_queues.each do |queue_name, queue_url|
-        puts "  name: #{queue_name}, url: #{queue_url}"
+        @logger.debug "  name: #{queue_name}, url: #{queue_url}"
       end
 
-      @poller = Poller::SQSPoller.new(subscribed_queues)
+      @poller = Poller::SQSPoller.new(subscribed_queues, @logger)
       @worker_pool = WorkerPool::CWorkerPool.new
-      @message_processor = MessageProcessor::SQSMessageProcessor.new(@queuer)
+      @message_processor = MessageProcessor::SQSMessageProcessor.new(@queuer, @logger)
     end
 
     def do_work
@@ -90,7 +92,6 @@ module ArchivalStorageIngest
       msg = @poller.get_message()
       if msg.nil?
         # do nothing
-        puts 'No message received'
         return
       end
 

@@ -17,16 +17,17 @@ module Poller
     def get_message
       sqs = Aws::SQS::Client.new
 
-      @subscribed_queues.each do |queue_name, queue_url|
+      @subscribed_queues.each do |_queue_name, queue_url|
         resp = sqs.receive_message(
-          queue_url: queue_url,
-          max_number_of_messages: 1)
+            queue_url: queue_url,
+            max_number_of_messages: 1
+        )
 
-        if !resp.messages.empty?
-          resp.messages.each do |m|
-            @logger.debug('Poller successfully received message from SQS: ' + m.body)
-            return IngestMessage.to_sqs_message(m.body)
-          end
+        next if resp.messages.empty
+
+        resp.messages.each do |m|
+          @logger.debug("Poller successfully received message from SQS: #{m.body}")
+          return IngestMessage.to_sqs_message(m.body)
         end
       end
 

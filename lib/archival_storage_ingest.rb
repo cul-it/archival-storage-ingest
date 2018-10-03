@@ -21,22 +21,12 @@ module ArchivalStorageIngest
   # Ingest manager to either start the server or queue new ingest.
   class IngestManager
     def initialize
-      default_config_path = '/cul/app/ingest/archival_storage/conf/settings.yaml'
-      env_config_path = 'archival_storage_ingest_config'
-      config_file = ENV[env_config_path]
-      if config_file.nil?
-        warn "#{env_config_path} env variable is not set, using default config file path #{default_config_path}"
-        config_file = default_config_path
-      end
-
-      raise "Configuration file #{config_file} does not exist!" if !File.exists?(config_file)
-
-      @config = YAML.load_file(config_file)
+      load_configuration
       @logger = ArchivalStorageIngestLogger.get_file_logger(@config)
       @queuer = Queuer::SQSQueuer.new(@logger)
     end
 
-    def queue_ingest(ingest_config)
+    def queue_ingest(_ingest_config)
       msg = IngestMessage::SQSMessage.new(
         ingest_id: SecureRandom.uuid,
         type: IngestMessage::TYPE_INGEST
@@ -51,12 +41,7 @@ module ArchivalStorageIngest
       end
 
       if command == COMMAND_SERVER_START
-        puts 'Start implementation needs to be daemon-ized'
-        initialize_server
-        0..3.each do |x|
-          do_work()
-          sleep(30) # get this value from config
-        end
+        start_server
       else
         puts 'Stop implementation missing'
         # gracefully stop server
@@ -97,7 +82,7 @@ module ArchivalStorageIngest
 
     def process_finished_job
       @worker_pool.active.each do |worker|
-        if worker.status == false
+        if !worker.status
           ## it worked!
           result = worker.value
           ## do work
@@ -107,6 +92,32 @@ module ArchivalStorageIngest
         end
       end
       @worker_pool.clear_inactive_jobs
+    end
+
+    private
+
+    def start_server
+      puts 'Start implementation needs to be daemon-ized'
+      initialize_server
+
+      begin # while true
+        do_work
+        # sleep(30) # get this value from config
+      end
+    end
+
+    def load_configuration
+      default_config_path = '/cul/app/ingest/archival_storage/conf/settings.yaml'
+      env_config_path = 'archival_storage_ingest_config'
+      config_file = ENV[env_config_path]
+      if config_file.nil?
+        warn "#{env_config_path} env variable is not set, using default config file path #{default_config_path}"
+        config_file = default_config_path
+      end
+
+      raise "Configuration file #{config_file} does not exist!" unless File.exist?(config_file)
+
+      @config = YAML.load_file(config_file)
     end
   end
 end

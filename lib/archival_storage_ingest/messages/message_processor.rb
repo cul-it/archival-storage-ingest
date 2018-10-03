@@ -9,13 +9,16 @@ module MessageProcessor
       @logger = logger
     end
 
+
     def process_message(msg)
       @logger.info('Received ingest message ' + msg.to_json)
+
       case msg.type
       when IngestMessage::TYPE_INGEST
         process_ingest(msg)
       when IngestMessage::TYPE_TRANSFER_S3
         @logger.info('Invoke transfer S3 worker')
+
       when IngestMessage::TYPE_TRANSFER_SFS
         @logger.info('Invoke transfer SFS worker')
       when IngestMessage::TYPE_FIXITY_S3
@@ -27,17 +30,27 @@ module MessageProcessor
       else
         @logger.info('Invalid message received, doing nothing')
       end
+    rescue StandardError => e # TODO: flesh out error handling
+      puts e.message
+      puts e.backtrace.inspect
+      @queuer.put_message(Queues::QUEUE_ERROR, msg)
+    else # TODO: figure out how to delete message.
+      # @queuer.delete_message(msg.queue, msg)
     end
 
     private
 
     def process_ingest(msg)
       @logger.info('Put transfer s3 and sfs messages')
-      msg_s3 = SQSMessage.new(ingest_id: msg.ingest_id, type: TYPE_TRANSFER_S3)
-      msg_sfs = SQSMessage.new(ingest_id: msg.ingest_id, type: TYPE_TRANSFER_SFS)
 
-      @queuer.put_message(QUEUE_TRANSFER_S3, msg_s3)
-      @queuer.put_message(QUEUE_TRANSFER_SFS, msg_sfs)
+      send_message(msg, IngestMessage::TYPE_TRANSFER_S3)
+      send_message(msg, IngestMessage::TYPE_TRANSFER_SFS)
+
+    end
+
+    def send_message(msg, type)
+      msg_s3 = IngestMessage::SQSMessage.new(ingest_id: msg.ingest_id, type: type)
+      @queuer.put_message(Queues::TYPE2QUEUE[type], msg_s3)
     end
   end
 end

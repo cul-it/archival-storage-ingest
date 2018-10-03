@@ -4,9 +4,9 @@ require 'archival_storage_ingest/version'
 
 Gem::Specification.new do |spec|
   spec.name = 'archival_storage_ingest'
-  spec.version       = ArchivalStorageIngest::VERSION
-  spec.authors = ['Shinwoo Kim']
-  spec.email = ['sk274@cornell.edu']
+  spec.version = ArchivalStorageIngest::VERSION
+  spec.authors = %w['Shinwoo Kim', 'Buddha Buck']
+  spec.email = %w['sk274@cornell.edu', 'bb233@cornell.edu']
 
   spec.summary = 'Archival storage ingest.'
   spec.description = 'Archival storage ingest.'
@@ -28,8 +28,8 @@ Gem::Specification.new do |spec|
     end
   end
   spec.bindir = 'exe'
-  # spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
-  spec.executables = ['archival_storage_ingest']
+  # spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
+  spec.executables = %w[archival_storage_ingest archival_storage_ingest_server]
   spec.require_paths = ['lib']
 
   spec.add_development_dependency 'bundler', '~> 1.16'

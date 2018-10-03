@@ -8,27 +8,23 @@ module Poller
     def initialize(subscribed_queues, logger)
       @subscribed_queues = subscribed_queues
       @logger = logger
+      @sqs = Aws::SQS::Client.new
     end
 
     # http://ruby-doc.org/core-2.5.0/Hash.html
     # Hashes enumerate their values in the order that the corresponding keys were inserted.
-    # It will traverse list of subscribed queues in the order defined in the configuration
-    # until a valid message is retrieved.
-    def get_message
-      sqs = Aws::SQS::Client.new
+    #
+    # It will traverse the subscribed queues in order and return the fist valid message.
+    def retrieve_single_message
+      @subscribed_queues.each do |queue_name, queue_url|
+        resp = @sqs.receive_message(queue_url: queue_url,
+                                    max_number_of_messages: 1)
 
-      @subscribed_queues.each do |_queue_name, queue_url|
-        resp = sqs.receive_message(
-            queue_url: queue_url,
-            max_number_of_messages: 1
-        )
+        next if resp.messages.empty?
 
-        next if resp.messages.empty
-
-        resp.messages.each do |m|
-          @logger.debug("Poller successfully received message from SQS: #{m.body}")
-          return IngestMessage.to_sqs_message(m.body)
-        end
+        m = resp.messages[0]
+        @logger.debug('Poller successfully received message from SQS: ' + m.body)
+        return IngestMessage.to_sqs_message(m)
       end
 
       @logger.debug('Poller received no message from SQS')

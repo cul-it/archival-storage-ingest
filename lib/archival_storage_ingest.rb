@@ -42,7 +42,6 @@ module ArchivalStorageIngest
 
       if command == COMMAND_SERVER_START
         start_server
-
       else
         puts 'Stop implementation missing'
         # gracefully stop server
@@ -75,11 +74,8 @@ module ArchivalStorageIngest
       #   return
       # end
 
-      msg = @poller.get_message
-      if msg.nil?
-        # do nothing
-        return
-      end
+      msg = @poller.retrieve_single_message
+      return if msg.nil?
 
       @message_processor.process_message(msg)
     end

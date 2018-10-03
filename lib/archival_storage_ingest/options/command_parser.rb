@@ -9,7 +9,7 @@ module CommandParser
       @ingest_config = nil
     end
 
-    def self.parse!(args)
+    def parse!(args)
       options = {}
       OptionParser.new do |opts|
         opts.banner = 'Usage: archival_storage_ingest -i [ingest_config_path]'

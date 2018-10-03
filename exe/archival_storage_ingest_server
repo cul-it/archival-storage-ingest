@@ -2,8 +2,8 @@
 
 require 'archival_storage_ingest/options/command_parser'
 
-option_parser = CommandParser::IngestCommandParser.new
+option_parser = CommandParser::ServerCommandParser.new
 option_parser.parse!(ARGV)
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new
-ingest_manager.queue_ingest(option_parser.ingest_config)
+ingest_manager.server(option_parser.server_command)

@@ -52,11 +52,11 @@ module ArchivalStorageIngest
 
       if command == COMMAND_SERVER_START
         puts 'Start implementation needs to be daemon-ized'
-        initialize_server()
-        # while true
+        initialize_server
+        0..3.each do |x|
           do_work()
-          # sleep(30) # get this value from config
-        # end
+          sleep(30) # get this value from config
+        end
       else
         puts 'Stop implementation missing'
         # gracefully stop server
@@ -89,11 +89,8 @@ module ArchivalStorageIngest
       #   return
       # end
 
-      msg = @poller.get_message()
-      if msg.nil?
-        # do nothing
-        return
-      end
+      msg = @poller.retrieve_single_message
+      return if msg.nil?
 
       @message_processor.process_message(msg)
     end

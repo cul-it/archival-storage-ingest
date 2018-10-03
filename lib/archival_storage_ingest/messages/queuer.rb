@@ -1,4 +1,5 @@
 require 'aws-sdk-sqs'
+require 'archival_storage_ingest/messages/ingest_message'
 
 # Message queuer implementations, currently supports SQS
 module Queuer
@@ -34,6 +35,16 @@ module Queuer
       end
 
       @known_queues[queue_name]
+    end
+
+    # Currently, delete message is in queuer for convenience.
+    # Move it to another place if needed.
+    def delete_message(msg)
+      queue = IngestMessage.queue_name_from_work_type(msg.type)
+      @sqs.delete_message(
+        queue_url: get_queue_url(queue),
+        receipt_handle: msg.original_msg.receipt_handle
+      )
     end
   end
 end

@@ -24,7 +24,7 @@ module Poller
 
         m = resp.messages[0]
         @logger.debug('Poller successfully received message from SQS: ' + m.body)
-        return IngestMessage.to_sqs_message(m.body)
+        return IngestMessage.to_sqs_message(m)
       end
 
       @logger.debug('Poller received no message from SQS')

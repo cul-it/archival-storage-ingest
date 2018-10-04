@@ -3,7 +3,7 @@ subscribed_queues:
   - cular_development_fixity_s3
 
 --- # log config
-log_path: /cul/app/ingest/archival_storage_ingest/logs/fixity_check_s3.log
+log_path: /cul/app/archival_storage_ingest/logs/fixity_check_s3.log
 
 --- # debug setting
 debug: 0

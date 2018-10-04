@@ -3,8 +3,8 @@ Description=Archival Storage Ingest Server
 
 [Service]
 Type=simple
-WorkingDirectory=/cul/app/archival_storage_ingest/archival-storage-ingest
-ExecStart=/cul/app/archival_storage_ingest/archival-storage-ingest/systemd/scripts/ingest.sh
+WorkingDirectory=/cul/app/archival_storage_ingest
+ExecStart=/cul/app/archival_storage_ingest/scripts/ingest.sh
 ExecStop=/bin/kill -WINCH ${MAINPID}
 # We want systemd to give httpd some time to finish gracefully, but still want
 # it to kill httpd after TimeoutStopSec if something went wrong during the

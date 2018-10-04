@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export archival_storage_ingest_config=/cul/app/archival_storage_ingest/archival-storage-ingest/systemd/conf/fixity_comparison.yaml
+export archival_storage_ingest_config=/cul/app/archival_storage_ingest/conf/fixity_comparison.yaml
 
 export PATH="$PATH:/cul/app/archival_storage_ingest/rvm"
 source /cul/app/archival_storage_ingest/rvm/scripts/rvm

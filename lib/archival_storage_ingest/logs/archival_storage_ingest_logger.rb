@@ -2,16 +2,12 @@ require 'logger'
 
 # Archival storage ingest loggers
 module ArchivalStorageIngestLogger
-  DEFAULT_LOG_PATH = '/cul/app/ingest/archival_storage/logs/archival_storage_ingest_activity.log'.freeze
+  DEFAULT_LOG_PATH = '/cul/app/archival_storage_ingest/logs/default.log'.freeze
 
   def self.get_file_logger(config)
-    log_path = DEFAULT_LOG_PATH if config['log_path'].nil?
+    log_path = config['log_path'].nil? ? DEFAULT_LOG_PATH : config['log_path']
     logger = Logger.new(log_path)
-    logger.level = if config['debug'] == 1
-                     Logger::DEBUG
-                   else
-                     Logger::INFO
-                   end
-    return logger
+    logger.level = config['debug'] == 1 ? Logger::DEBUG : Logger::INFO
+    logger
   end
 end

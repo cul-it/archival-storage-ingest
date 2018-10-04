@@ -94,8 +94,6 @@ module ArchivalStorageIngest
       @worker_pool.clear_inactive_jobs
     end
 
-    private
-
     def start_server
       puts 'Start implementation needs to be daemon-ized'
       initialize_server
@@ -105,6 +103,8 @@ module ArchivalStorageIngest
         # sleep(30) # get this value from config
       end
     end
+
+    private
 
     def load_configuration
       default_config_path = '/cul/app/ingest/archival_storage/conf/settings.yaml'

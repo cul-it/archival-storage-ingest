@@ -1,0 +1,9 @@
+--- # Subscribed queues
+subscribed_queues:
+  - cular_development_transfer_sfs
+
+--- # log config
+log_path: /cul/app/ingest/archival_storage_ingest/logs/transfer_sfs.log
+
+--- # debug setting
+debug: 0

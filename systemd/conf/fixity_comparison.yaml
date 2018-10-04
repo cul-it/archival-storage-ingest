@@ -1,0 +1,9 @@
+--- # Subscribed queues
+subscribed_queues:
+  - cular_development_comparison
+
+--- # log config
+log_path: /cul/app/ingest/archival_storage_ingest/logs/fixity_comparison.log
+
+--- # debug setting
+debug: 0

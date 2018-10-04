@@ -6,6 +6,7 @@ Type=simple
 WorkingDirectory=/cul/app/archival_storage_ingest
 ExecStart=/cul/app/archival_storage_ingest/scripts/fixity_check_s3.sh
 ExecStop=/bin/kill -WINCH ${MAINPID}
+Restart=on-failure
 # We want systemd to give httpd some time to finish gracefully, but still want
 # it to kill httpd after TimeoutStopSec if something went wrong during the
 # graceful stop. Normally, Systemd sends SIGTERM signal right after the

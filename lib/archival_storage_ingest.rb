@@ -107,7 +107,7 @@ module ArchivalStorageIngest
     private
 
     def load_configuration
-      default_config_path = '/cul/app/ingest/archival_storage/conf/settings.yaml'
+      default_config_path = '/cul/app/archival_storage_ingest/conf/queue_ingest.yaml'
       env_config_path = 'archival_storage_ingest_config'
       config_file = ENV[env_config_path]
       if config_file.nil?

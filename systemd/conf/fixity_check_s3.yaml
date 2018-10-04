@@ -3,4 +3,4 @@ subscribed_queues:
 
 log_path: /cul/app/archival_storage_ingest/logs/fixity_check_s3.log
 
-debug: 1
+debug: 0

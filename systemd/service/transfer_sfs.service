@@ -1,5 +1,5 @@
 [Unit]
-Description=Archival Storage Ingest Server
+Description=Archival Storage Transfer SFS Server
 
 [Service]
 Type=simple

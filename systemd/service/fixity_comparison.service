@@ -1,5 +1,5 @@
 [Unit]
-Description=Archival Storage Ingest Server
+Description=Archival Storage Fixity Comparison Server
 
 [Service]
 Type=simple

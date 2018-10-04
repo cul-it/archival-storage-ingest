@@ -1,5 +1,5 @@
 [Unit]
-Description=Archival Storage Ingest Server
+Description=Archival Storage Transfer S3 Server
 
 [Service]
 Type=simple

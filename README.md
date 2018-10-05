@@ -1,32 +1,37 @@
 # Archival Storage Ingest
 
-Archival storage ingest is a ruby gem for automating parts of the ingest process. 
+Archival storage ingest is a ruby gem for automating parts of the ingest process.
 
 ## Installation
 
 #### Archival storage ingest installation
 
+This guide assumes that rvm is installed under /cul/app/archival_storage_ingest/rvm.
+
+```bash
+curl -sSL https://get.rvm.io | bash -s -- --path /cul/app/archival_storage_ingest/rvm
+```
+
+If it is installed at a different location, make a symlink to above path.
+
 After cloning from GitHub repository (https://github.com/cul-it/archival-storage-ingest), run the following command.
 
 ```ruby
+$ bundle install
 $ rake install
 ```
-
-It is recommended to install the gem under a local Ruby installation via RVM rather than the system Ruby.
 
 After the gem is installed, you need to set up a configuration YAML file.
 
 It looks for archival_storage_ingest_config environment variable for the configuration file path.
-If it is not set, it uses a default value of /cul/app/ingest/archival_storage/conf/settings.yaml.
+If it is not set, it uses a default value of /cul/app/archival_storage_ingest/conf/queue_ingest.yaml.
 Following is an example configuration file.
 
 ```settings.yaml
---- # Subscribed queues
 subscribed_queues:
-  - cular_development_comparison
   - cular_development_fixity_sfs
-  - cular_development_transfer_sfs
-  - cular_development_ingest
+log_path: /cul/app/archival_storage_ingest/logs/fixity_check_sfs.log
+debug: 0
 ```
 
 #### AWS Configuration
@@ -48,15 +53,62 @@ If you already have AWS CLI installed, you could run the following command for t
 
 The region must be set to us-east-1.
 
+#### Systemd service setup
 
+For production environments, the gem should be set to run as service.
+We may implement a runnable command to handle this part in the future.
+
+Inside the systemd directory of this project, there are conf, scripts and service directory.
+- service directory contains systemd service files.
+- conf directory contains YAML config files for each of the services.
+- scripts directory contains shell scripts used by the systemd service.
+
+As cular user, make symlinks of conf and scripts directory and create log directory.
+```bash
+$ ln -s PROJECT_DIR/systemd/conf /cul/app/archival_storage_ingest/conf
+$ ln -s PROJECT_DIR/systemd/scripts /cul/app/archival_storage_ingest/scripts
+$ mkdir /cul/app/archival_storage_ingest/logs
+```
+
+Copy service files to a location systemd can recognize.
+```bash
+$ cp PROJECT_DIR/systemd/service/*.service /etc/systemd/system/
+```
+
+Testing
+```bash
+$ systemctl status fixity_check_s3
+```
+
+Above command should display message similar to the following.
+```bash
+● fixity_check_s3.service - Archival Storage Fixity Check S3 Server
+   Loaded: loaded (/etc/systemd/system/fixity_check_s3.service; disabled; vendor preset: disabled)
+   Active: failed (Result: exit-code) since ...
+ Main PID: ... (code=exited, status=0/SUCCESS)
+ ...
+```
+
+If you get "Unit fixity_check_s3 could not be found.", check for your OS systemd manual for where to put the service files.
+
+Enabling service
+```bash
+$ systemctl enable SERVICE
+```
+
+On cular-ingest server, you should enable the following services.
+- fixity_check_sfs
+- fixity_comparison
+- ingest
+- transfer_s3
+- transfer_sfs
+
+On S3 fixity checking VM, enable the following service.
+- fixity_check_s3
 
 ## Usage
 
-    $ archival_storage_ingest -s [SERVER_COMMAND]
     $ archival_storage_ingest -i [PATH_TO_INGEST_CONFIG_FILE]
-
--s flag will start the ingest server.
-Available server commands are start, status and stop.
 
 -i flag will queue a new ingest as described in the ingest config file.
 
@@ -64,7 +116,7 @@ Available server commands are start, status and stop.
 
 For development, you could also create a test gemset via RVM as well with the following command before installation.
 
-    $ rvm gemset create archival-storage-ingest-gemset
+    $ rvm gemset create archival_storage_ingest
 
 ## Message
 
@@ -85,46 +137,29 @@ Any information needed for the ingest should be included here.
 
 Here is are the behaviors of this ingest manager.
 
-* cular-ingest server subscribes to ingest, transfer s3, transfer sfs, fixity check sfs and fixity compare queues.
-* AWS fixity checking VM subscribes to fixity check s3 queue.
-* The ingest server only polls for new message if it has available worker slot in the worker pool.
-* Upon receiving a message from SQS, ingest manager will log the contents of the message and remove it from SQS before working on it.
-* During any phase, if it fails, it will put the original message with error message to error queue.
-* On top of the error queue, each queue has corresponding dead-letter queue. If it fails to manipulate the queue unexpected such as network outage, the message will be put to this dead-letter queue.
+* Each service is run as a systemd service and has its own logs.
+* Each service works on a dedicated queue.
+* Each service will try to poll one message from its designated queue periodically.
+* Each service is set to restart on failures. This means that if the service exits normally, systemd won't restart it automatically.
+* cular-ingest server uses ingest, transfer s3, transfer sfs, fixity check sfs and fixity compare services.
+* AWS fixity checking VM uses fixity check s3 service only.
 
 ## Workflow
 
-The following describes the workflow of a single ingest job.
-This workflow assumes ingest server is running and polling SQS every 30 seconds.
-Also, if not specified, the ingest manager in question is running on cular-ingest.
+1. Each service polls for a message from SQS periodically (in progress then work queue).
+2. If a message from in progress queue is received, exit normally. *
+3. When a service receives a message from the work queue, it logs the contents of the message.
+4. The message is put to "in progress" queue of the same work type.
+5. The original message is deleted from the work queue.
+6. The service completes work task.
+7. Send message for next work. E.g. Upon completing transfer s3 task, send new message to fixity check s3 queue with same ingest_id.
+8. The message put to in progress queue earlier in this process is deleted.
 
-P.S. Due to implementation details, we may put new message to SQS from ingest manager or workers from steps 4 and on.
+- If a message is received from in progress queue, it means the service did not complete the job. It will notify admins and exit normally which would make the systemd to not start the service again.
+When the problem is resolved, admins should start the service manually.
 
-1. User queues new ingest using -i flag.
-2. Ingest manager puts new ingest message to ingest queue.
-3. Ingest manager receives new ingest message from SQS and puts a message to each of transfer s3 and transfer sfs queues.
-4. Ingest manager receives transfer s3 message and invokes transfer s3 worker.
-When this work is complete, put fixity check s3 message to fixity check s3 queue.
-5. Ingest manager receives transfer sfs message and invokes transfer sfs worker.
-When this work is complete, put fixity check sfs message to fixity check sfs queue.
-6. The cular-ingest server receives fixity check sfs message and invokes fixity check sfs worker.
-When this work is complete, it stores resulting manifest to S3 bucket (.manifest prefix).
-The filename of the manifest is derived from the ingest_id and work type (s3 vs sfs).
-A new fixity compare (type sfs) is put to fixity compare queue.
-7. The fixity VM receives fixity check s3 message and invokes fixity check s3 worker.
-When this work is complete, it stores resulting manifest to S3 bucket (.manifest prefix).
-The filename of the manifest is derived from the ingest_id and work type (s3 vs sfs).
-A new fixity compare (type sfs) is put to fixity compare queue.
-8. Ingest manager receives fixity compare message twice.
-It will only invoke fixity compare worker if both s3 and sfs manifests are available in the s3 bucket.
-9. Ingest manager puts a done message to done queue.
+- Each SQS request would have up to 3 retries. If it still fails after the retries, the service should notify admins and exit normally.
 
-## Error handling
+Following diagram describes the work flow.
 
-The ingest manager will need to keep an activity log to log each event, normal and errors.
-
-The ingest manager will be able to catch any worker failure and notify admins accordingly.
-
-For the ingest manager crashes, we will need a separate monitor to check the status.
-
-The logs should contain enough information for the admins to fix any problems.
+![Worker Communication] (images/worker_communication.png)

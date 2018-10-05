@@ -27,9 +27,8 @@ It looks for archival_storage_ingest_config environment variable for the configu
 If it is not set, it uses a default value of /cul/app/archival_storage_ingest/conf/queue_ingest.yaml.
 Following is an example configuration file.
 
-```settings.yaml
-subscribed_queues:
-  - cular_development_fixity_sfs
+```fixity_check_sfs.yaml
+subscribed_queue: cular_development_fixity_sfs
 log_path: /cul/app/archival_storage_ingest/logs/fixity_check_sfs.log
 debug: 0
 ```
@@ -77,19 +76,18 @@ $ cp PROJECT_DIR/systemd/service/*.service /etc/systemd/system/
 
 Testing
 ```bash
-$ systemctl status fixity_check_s3
+$ systemctl status fixity_check_sfs
 ```
 
 Above command should display message similar to the following.
 ```bash
-● fixity_check_s3.service - Archival Storage Fixity Check S3 Server
-   Loaded: loaded (/etc/systemd/system/fixity_check_s3.service; disabled; vendor preset: disabled)
-   Active: failed (Result: exit-code) since ...
- Main PID: ... (code=exited, status=0/SUCCESS)
- ...
+● fixity_check_sfs.service - Archival Storage Fixity Check SFS Server
+   Loaded: loaded (/etc/systemd/system/fixity_check_sfs.service; disabled; vendor preset: disabled)
+   Active: inactive (dead)
+   ...
 ```
 
-If you get "Unit fixity_check_s3 could not be found.", check for your OS systemd manual for where to put the service files.
+If you get "Unit fixity_check_sfs could not be found.", check for your OS systemd manual for where to put the service files.
 
 Enabling service
 ```bash

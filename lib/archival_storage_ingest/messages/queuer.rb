@@ -37,6 +37,10 @@ module Queuer
       @known_queues[queue_name]
     end
 
+    # This method expects to find original SQS message in msg as original_msg.
+    # It must be able to get receipt_handle from SQS get message.
+    # That is the only way to delete a message in SQS.
+    #
     # Currently, delete message is in queuer for convenience.
     # Move it to another place if needed.
     def delete_message(msg)

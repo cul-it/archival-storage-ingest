@@ -1,5 +1,4 @@
-subscribed_queues:
-  - cular_development_fixity_s3
+subscribed_queue: cular_development_fixity_s3
 
 log_path: /cul/app/archival_storage_ingest/logs/fixity_check_s3.log
 

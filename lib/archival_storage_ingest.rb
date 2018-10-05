@@ -34,34 +34,8 @@ module ArchivalStorageIngest
       @queuer.put_message(Queues::QUEUE_INGEST, msg)
     end
 
-    def server(command)
-      if command == COMMAND_SERVER_STATUS
-        puts 'Status implementation missing.'
-        return
-      end
-
-      if command == COMMAND_SERVER_START
-        start_server
-      else
-        puts 'Stop implementation missing'
-        # gracefully stop server
-      end
-    end
-
     def initialize_server
-      sqs = Aws::SQS::Client.new
-      subscribed_queues = {}
-      @config['subscribed_queues'].each do |queue_name|
-        queue_url = sqs.get_queue_url(queue_name: queue_name).queue_url
-        subscribed_queues[queue_name] = queue_url
-      end
-
-      @logger.debug 'Subscribed to the following queues:'
-      subscribed_queues.each do |queue_name, queue_url|
-        @logger.debug "  name: #{queue_name}, url: #{queue_url}"
-      end
-
-      @poller = Poller::SQSPoller.new(subscribed_queues, @logger)
+      @poller = Poller::SQSPoller.new(@config['subscribed_queue'], @logger)
       @worker_pool = WorkerPool::CWorkerPool.new
       @message_processor = MessageProcessor::SQSMessageProcessor.new(@queuer, @logger)
     end
@@ -95,7 +69,6 @@ module ArchivalStorageIngest
     end
 
     def start_server
-      puts 'Start implementation needs to be daemon-ized'
       initialize_server
 
       begin # while true

@@ -127,15 +127,13 @@ For development, you could also create a test gemset via RVM as well with the fo
 }
 ```
 
-ingest_id is generated when a new ingest is queued by a user and persists through all the steps of that ingest.
+ingest_id is generated when a new ingest is queued by a user and persists through all of the steps for that ingest.
 
 type designates the work that needs to be done upon reception.
 
-Any information needed for the ingest should be included here.
+Any other information needed for the ingest should be included to this JSON.
 
 ## Behavior
-
-Here is are the behaviors of this ingest manager.
 
 * Each service is run as a systemd service and has its own logs.
 * Each service works on a dedicated queue.

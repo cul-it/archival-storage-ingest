@@ -162,4 +162,4 @@ When the problem is resolved, admins should start the service manually.
 
 Following diagram describes the work flow.
 
-![Worker Communication] (images/worker_communication.png)
+![Worker Communication](images/worker_communication.png)

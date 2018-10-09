@@ -61,7 +61,7 @@ module MessageProcessor
 
     def send_message(msg, type)
       msg_s3 = IngestMessage::SQSMessage.new(ingest_id: msg.ingest_id, type: type)
-      @queuer.put_message((IngestMessage::queue_name_from_work_type type), msg_s3)
+      @queuer.put_message((IngestMessage.queue_name_from_work_type type), msg_s3)
     end
   end
 end

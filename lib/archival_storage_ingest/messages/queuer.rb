@@ -23,9 +23,21 @@ module Queuer
           }
         }
       )
-      @logger.debug('Queuer successfully sent message to SQS with message id ' + send_message_result.message_id)
+      @logger.debug("Queuer successfully sent message to SQS with message id #{send_message_result.message_id}")
 
       send_message_result
+    end
+
+    def retrieve_single_message(queue_name)
+      queue_url = get_queue_url(queue_name)
+      resp = @sqs.receive_message(queue_url: queue_url,
+                                  max_number_of_messages: 1)
+
+      return nil if resp.messages.empty?
+
+      m = resp.messages[0]
+      @logger.debug("Queuer successfully received message from SQS: #{m.body}")
+      m
     end
 
     def get_queue_url(queue_name)
@@ -49,6 +61,25 @@ module Queuer
         queue_url: get_queue_url(queue),
         receipt_handle: msg.original_msg.receipt_handle
       )
+    end
+  end
+
+  class SQSQueue
+    def initialize(queue_name, queuer)
+      @queuer = queuer
+      @queue_name = queue_name
+    end
+
+    def send_message(msg)
+      @queuer.put_message(@queue_name, msg)
+    end
+
+    def retrieve_message
+      IngestMessage.new(@queuer.retrieve_single_message(@queue_name))
+    end
+
+    def delete_message(msg)
+      @queuer.delete_message(msg)
     end
   end
 end

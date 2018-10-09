@@ -17,7 +17,9 @@ module Poller
     #
     # It will traverse the subscribed queues in order and return the fist valid message.
     def retrieve_single_message
-      resp = @sqs.receive_message(queue_url: @queue_url,
+      queue_url = @queue_url
+
+      resp = @sqs.receive_message(queue_url: queue_url,
                                   max_number_of_messages: 1)
 
       return nil if resp.messages.empty?

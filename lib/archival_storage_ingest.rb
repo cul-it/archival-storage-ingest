@@ -18,12 +18,54 @@ module ArchivalStorageIngest
   COMMAND_SERVER_STATUS = 'status'.freeze
   COMMAND_SERVER_STOP = 'stop'.freeze
 
+  class Configuration
+    attr_accessor :subscribed_queue_name, :in_progress_queue_name, :log_path, :debug
+    attr_accessor :message_queue_name, :worker, :dest_queue_names
+
+    attr_accessor :msg_q, :dest_qs, :wip_q
+
+    # for use in tests
+    attr_accessor :logger, :queuer
+
+    def logger
+      @logger ||= ArchivalStorageIngestLogger.get_file_logger(self)
+    end
+
+    def queuer
+      @queuer ||= Queuer::SQSQueuer.new(logger)
+    end
+
+    def msg_q
+      @msg_q ||= Queuer::SQSQueue.new(message_queue_name, queuer)
+    end
+
+    def dest_qs
+      @dest_qs ||= dest_queue_names.each {|qn| Queuer::SQSQueue.new(qn, queuer)}
+    end
+  end
+
+  class << self
+    attr_writer :configuration
+  end
+
+  def self.configure
+    yield(configuration)
+  end
+
+  def self.configuration
+    @configuration ||= Configuration.new
+  end
+
   # Ingest manager to either start the server or queue new ingest.
   class IngestManager
-    def initialize
-      load_configuration
-      @logger = ArchivalStorageIngestLogger.get_file_logger(@config)
-      @queuer = Queuer::SQSQueuer.new(@logger)
+    attr_reader :state
+
+    def initialize()
+
+      @logger = ArchivalStorageIngest.configuration.logger
+      @queuer = ArchivalStorageIngest.configuration.queuer
+
+      @state = 'uninitialized'
     end
 
     def queue_ingest(_ingest_config)
@@ -35,23 +77,30 @@ module ArchivalStorageIngest
     end
 
     def initialize_server
-      @poller = Poller::SQSPoller.new(@config['subscribed_queue'], @logger)
-      @worker_pool = WorkerPool::CWorkerPool.new
-      @message_processor = MessageProcessor::SQSMessageProcessor.new(@queuer, @logger)
+
+      @msg_q = ArchivalStorageIngest.configuration.msg_q
+      @wip_q = ArchivalStorageIngest.configuration.wip_q
+      @dest_qs = ArchivalStorageIngest.configuration.dest_qs
+      @worker = ArchivalStorageIngest.configuration.worker
+      @state = 'started'
+
     end
 
-    def do_work
-      # process_finished_job()
+    # To test do_work, I need to pass in the queues, logger, and worker for it to use
+    def do_work(msg_q: @msg_q, worker: @worker, dest_qs: @dest_qs)
 
-      # if !@worker_pool.is_available?
-      #   # do nothing
-      #   return
-      # end
+      # work is to get a message from msgq,
+      # process it, and pass it along to the next queue
 
-      msg = @poller.retrieve_single_message
+      msg = msg_q.retrieve_message
       return if msg.nil?
 
-      @message_processor.process_message(msg)
+      worker.work(msg)
+
+      dest_qs.each do |queue|
+        queue.send_message(msg)
+
+      end
     end
 
     def process_finished_job
@@ -90,7 +139,7 @@ module ArchivalStorageIngest
 
       raise "Configuration file #{config_file} does not exist!" unless File.exist?(config_file)
 
-      @config = YAML.load_file(config_file)
+      @configuration = YAML.load_file(config_file)
     end
   end
 end

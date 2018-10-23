@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 require 'archival_storage_ingest/workers/worker'
 
 module FixityCompareWorker
   class ManifestComparator < Workers::Worker
-    def start
+    def start;
     end
 
-    def status
+    def status;
     end
   end
 end

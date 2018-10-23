@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'aws-sdk-sqs'
 require 'archival_storage_ingest/messages/ingest_message'
 

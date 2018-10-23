@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'rspec/mocks'
 
-RSpec.describe 'IngestManager' do
+RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
   before(:each) do
     ArchivalStorageIngest.configure do |config|
       config.logger = spy('logger')
@@ -21,7 +23,7 @@ RSpec.describe 'IngestManager' do
     expect(@manager.state).to eq('started')
   end
 
-  context 'when doing work' do
+  context 'when doing work' do # rubocop:disable BlockLength
     it 'will poll message queue' do
       msgq = instance_double('Queuer::SQSQueue')
       expect(msgq).to receive(:retrieve_message).once

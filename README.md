@@ -16,7 +16,7 @@ If it is installed at a different location, make a symlink to above path.
 
 After cloning from GitHub repository (https://github.com/cul-it/archival-storage-ingest), run the following command.
 
-```ruby
+```bash
 $ bundle install
 $ rake install
 ```

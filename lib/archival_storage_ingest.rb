@@ -1,11 +1,12 @@
+# frozen_string_literal: true
+
 require 'archival_storage_ingest/version'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
 require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/messages/poller'
-require 'archival_storage_ingest/messages/queuer'
+require 'archival_storage_ingest/messages/ingest_queue'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/messages/message_processor'
-require 'archival_storage_ingest/workers/worker_pool'
 require 'archival_storage_ingest/workers/fixity_compare_worker'
 require 'archival_storage_ingest/workers/fixity_worker'
 require 'archival_storage_ingest/workers/transfer_worker'
@@ -14,33 +15,37 @@ require 'aws-sdk-sqs'
 
 # Main archival storage ingest server module
 module ArchivalStorageIngest
-  COMMAND_SERVER_START = 'start'.freeze
-  COMMAND_SERVER_STATUS = 'status'.freeze
-  COMMAND_SERVER_STOP = 'stop'.freeze
+  COMMAND_SERVER_START = 'start'
+  COMMAND_SERVER_STATUS = 'status'
+  COMMAND_SERVER_STOP = 'stop'
 
   class Configuration
     attr_accessor :subscribed_queue_name, :in_progress_queue_name, :log_path, :debug
     attr_accessor :message_queue_name, :worker, :dest_queue_names
 
-    attr_accessor :msg_q, :dest_qs, :wip_q
+    attr_writer :msg_q, :dest_qs, :wip_q
 
     # for use in tests
-    attr_accessor :logger, :queuer
+    attr_writer :logger, :queuer
 
     def logger
       @logger ||= ArchivalStorageIngestLogger.get_file_logger(self)
     end
 
     def queuer
-      @queuer ||= Queuer::SQSQueuer.new(logger)
+      @queuer ||= IngestQueue::SQSQueuer.new(logger)
     end
 
     def msg_q
-      @msg_q ||= Queuer::SQSQueue.new(message_queue_name, queuer)
+      @msg_q ||= IngestQueue::SQSQueue.new(message_queue_name, queuer)
     end
 
     def dest_qs
-      @dest_qs ||= dest_queue_names.each {|qn| Queuer::SQSQueue.new(qn, queuer)}
+      @dest_qs ||= dest_queue_names.each {|qn| IngestQueue::SQSQueue.new(qn, queuer)}
+    end
+
+    def wip_q
+      @wip_q ||= IngestQueue::SQSQueue.new(in_progress_queue_name, queuer)
     end
   end
 
@@ -60,8 +65,7 @@ module ArchivalStorageIngest
   class IngestManager
     attr_reader :state
 
-    def initialize()
-
+    def initialize
       @logger = ArchivalStorageIngest.configuration.logger
       @queuer = ArchivalStorageIngest.configuration.queuer
 
@@ -77,18 +81,15 @@ module ArchivalStorageIngest
     end
 
     def initialize_server
-
       @msg_q = ArchivalStorageIngest.configuration.msg_q
       @wip_q = ArchivalStorageIngest.configuration.wip_q
       @dest_qs = ArchivalStorageIngest.configuration.dest_qs
       @worker = ArchivalStorageIngest.configuration.worker
       @state = 'started'
-
     end
 
     # To test do_work, I need to pass in the queues, logger, and worker for it to use
     def do_work(msg_q: @msg_q, worker: @worker, dest_qs: @dest_qs)
-
       # work is to get a message from msgq,
       # process it, and pass it along to the next queue
 
@@ -99,30 +100,14 @@ module ArchivalStorageIngest
 
       dest_qs.each do |queue|
         queue.send_message(msg)
-
       end
-    end
-
-    def process_finished_job
-      @worker_pool.active.each do |worker|
-        if !worker.status
-          ## it worked!
-          result = worker.value
-          ## do work
-        elsif worker.status.nil?
-          ## it died unexpectedly
-          ## move to error queue
-        end
-      end
-      @worker_pool.clear_inactive_jobs
     end
 
     def start_server
       initialize_server
 
-      begin # while true
+      begin
         do_work
-        # sleep(30) # get this value from config
       end
     end
 

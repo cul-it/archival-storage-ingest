@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'archival_storage_ingest/messages/ingest_message'
 
 # Message processor implementation
@@ -8,7 +10,6 @@ module MessageProcessor
       @queuer = queuer
       @logger = logger
     end
-
 
     def process_message(msg)
       @logger.info('Received ingest message ' + msg.to_json)
@@ -56,7 +57,6 @@ module MessageProcessor
 
       send_message(msg, IngestMessage::TYPE_TRANSFER_S3)
       send_message(msg, IngestMessage::TYPE_TRANSFER_SFS)
-
     end
 
     def send_message(msg, type)

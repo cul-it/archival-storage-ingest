@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require 'aws-sdk-sqs'
 require 'archival_storage_ingest/messages/ingest_message'
 
 # Message queuer implementations, currently supports SQS
-module Queuer
+module IngestQueue
   # SQS message queuer implementation
   class SQSQueuer
     def initialize(logger)

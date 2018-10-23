@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/version'
+require 'archival_storage_ingest/exception/ingest_exception'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
 require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/messages/poller'
@@ -80,6 +81,22 @@ module ArchivalStorageIngest
       @queuer.put_message(Queues::QUEUE_INGEST, msg)
     end
 
+    def start_server
+      initialize_server
+
+      begin
+        do_work
+      rescue IngestException => ex
+        notify_and_quit(ex)
+      end
+    end
+
+    def notify_and_quit(exception)
+      # notify admins!
+      @logger.fatal(exception)
+      exit(0)
+    end
+
     def initialize_server
       @msg_q = ArchivalStorageIngest.configuration.msg_q
       @wip_q = ArchivalStorageIngest.configuration.wip_q
@@ -90,41 +107,57 @@ module ArchivalStorageIngest
 
     # To test do_work, I need to pass in the queues, logger, and worker for it to use
     def do_work(msg_q: @msg_q, worker: @worker, dest_qs: @dest_qs)
-      # work is to get a message from msgq,
+      # work is to get a message from msg_q,
       # process it, and pass it along to the next queue
+
+      check_wip
 
       msg = msg_q.retrieve_message
       return if msg.nil?
+
+      @logger.info("Message received: #{msg}")
+
+      move_msg_to_wip(msg)
 
       worker.work(msg)
 
       dest_qs.each do |queue|
         queue.send_message(msg)
       end
+
+      remove_wip_msg
     end
 
-    def start_server
-      initialize_server
-
-      begin
-        do_work
-      end
+    def check_wip
+      msg = @wip_q.retrieve_message
+      raise IngestException unless msg.nil?
     end
 
-    private
-
-    def load_configuration
-      default_config_path = '/cul/app/archival_storage_ingest/conf/queue_ingest.yaml'
-      env_config_path = 'archival_storage_ingest_config'
-      config_file = ENV[env_config_path]
-      if config_file.nil?
-        warn "#{env_config_path} env variable is not set, using default config file path #{default_config_path}"
-        config_file = default_config_path
-      end
-
-      raise "Configuration file #{config_file} does not exist!" unless File.exist?(config_file)
-
-      @configuration = YAML.load_file(config_file)
+    def move_msg_to_wip(msg)
+      @wip_q.send_message(msg)
+      @msg_q.delete_message(msg)
     end
+
+    def remove_wip_msg
+      msg = @wip_q.retrieve_message
+      # report error if this in nil?
+      @wip_q.delete_message(msg)
+    end
+
+    # private
+    #
+    # def load_configuration
+    #   default_config_path = '/cul/app/archival_storage_ingest/conf/queue_ingest.yaml'
+    #   env_config_path = 'archival_storage_ingest_config'
+    #   config_file = ENV[env_config_path]
+    #   if config_file.nil?
+    #     warn "#{env_config_path} env variable is not set, using default config file path #{default_config_path}"
+    #     config_file = default_config_path
+    #   end
+    #
+    #   raise "Configuration file #{config_file} does not exist!" unless File.exist?(config_file)
+    #
+    #   @configuration = YAML.load_file(config_file)
+    # end
   end
 end

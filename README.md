@@ -1,5 +1,8 @@
 # Archival Storage Ingest
 
+[![Coverage Status](https://coveralls.io/repos/github/cul-it/archival-storage-ingest/badge.svg?branch=master)](https://coveralls.io/github/cul-it/archival-storage-ingest?branch=master)
+[![Build Status](https://travis-ci.org/cul-it/archival-storage-ingest.svg?branch=master)](https://travis-ci.org/cul-it/archival-storage-ingest)
+
 Archival storage ingest is a ruby gem for automating parts of the ingest process.
 
 ## Installation

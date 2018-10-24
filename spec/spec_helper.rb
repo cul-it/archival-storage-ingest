@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
+require 'coveralls'
+Coveralls.wear!
+
 require 'bundler/setup'
 require 'archival_storage_ingest'
+
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

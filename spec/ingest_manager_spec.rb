@@ -70,6 +70,5 @@ RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
       expect(@dest1_q).to have_received(:send_message).with(message)
       expect(@dest2_q).to have_received(:send_message).with(message)
     end
-
   end
 end

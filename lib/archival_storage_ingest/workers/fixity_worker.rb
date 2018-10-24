@@ -4,18 +4,10 @@ require 'archival_storage_ingest/workers/worker'
 
 module FixityWorker
   class S3FixityGenerator < Workers::Worker
-    def start;
-    end
-
-    def status;
-    end
+    def work(msg) end
   end
 
   class SFSFixityGenerator < Workers::Worker
-    def start;
-    end
-
-    def status;
-    end
+    def work(msg) end
   end
 end

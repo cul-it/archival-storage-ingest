@@ -4,18 +4,10 @@ require 'archival_storage_ingest/workers/worker'
 
 module TransferWorker
   class S3Transferer < Workers::Worker
-    def start;
-    end
-
-    def status;
-    end
+    def work(msg) end
   end
 
   class SFSTransferer < Workers::Worker
-    def start;
-    end
-
-    def status;
-    end
+    def work(msg) end
   end
 end

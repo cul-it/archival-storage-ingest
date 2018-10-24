@@ -71,8 +71,5 @@ RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
       expect(@dest2_q).to have_received(:send_message).with(message)
     end
 
-    it 'will fail to validate Travis working' do
-      expect(true).to be_falsey
-    end
   end
 end

@@ -5,79 +5,71 @@ require 'rspec/mocks'
 
 RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
   before(:each) do
+    @logger = spy('logger')
+    @queuer = spy('queuer')
+    @msg_q = spy('message q')
+    @wip_q = spy('wip q')
+    @dest1_q = spy('dest1 q')
+    @dest2_q = spy('dest2 q')
+    @worker = spy('worker')
+
     ArchivalStorageIngest.configure do |config|
-      config.logger = spy('logger')
-      config.queuer = spy('queuer')
-      config.message_queue_name = 'incoming'
-      config.dest_queue_names = %w[next1 next2]
+      config.logger = @logger
+      config.queuer = @queuer
+      config.msg_q = @msg_q
+      config.wip_q = @wip_q
+      config.dest_qs = [@dest1_q, @dest2_q]
+      config.worker = @worker
     end
+
+    allow(@wip_q).to receive(:retrieve_message).and_return nil
 
     @manager = ArchivalStorageIngest::IngestManager.new
   end
 
-  it 'will start up' do
-    expect(@manager.state).to eq('uninitialized')
-
-    @manager.initialize_server
-
-    expect(@manager.state).to eq('started')
-  end
-
   context 'when doing work' do # rubocop:disable BlockLength
     it 'will poll message queue' do
-      msgq = instance_double('Queuer::SQSQueue')
-      expect(msgq).to receive(:retrieve_message).once
-      worker = double('worker')
+      @manager.do_work
 
-      @manager.do_work(msg_q: msgq, worker: worker, dest_qs: [])
+      expect(@msg_q).to have_received(:retrieve_message).once
     end
 
     it 'will do nothing if no message in queue' do
-      msgq = instance_double('queuer::SQSQueue')
-      worker = double('worker')
-      expect(msgq).to receive(:retrieve_message).and_return nil
+      allow(@msg_q).to receive(:retrieve_message).and_return nil
 
-      @manager.do_work(msg_q: msgq, worker: worker, dest_qs: [])
+      @manager.do_work
+
+      expect(@worker).to have_received(:work).exactly(0).times
+
     end
 
     it 'will pass message to worker' do
       message = {id: 5, type: 'test'}
-      msgq = instance_double('Queuer::SQSQueue',
-                             retrieve_message: message)
-      expect(msgq).to receive(:retrieve_message).and_return message
-      worker = double('worker')
-      expect(worker).to receive(:work).with(message)
+      allow(@msg_q).to receive(:retrieve_message).and_return message
 
-      @manager.do_work(msg_q: msgq, worker: worker, dest_qs: [])
+      @manager.do_work
+
+      expect(@worker).to have_received(:work).with(message)
+
     end
 
     it 'will pass message on to next queue' do
       message = {id: 5, type: 'test'}
-      msgq = instance_double('Queuer::SQSQueue',
-                             retrieve_message: message)
-      expect(msgq).to receive(:retrieve_message).and_return message
-      worker = double('worker')
-      expect(worker).to receive(:work).with(message)
+      allow(@msg_q).to receive(:retrieve_message).and_return message
 
-      destq = instance_double('Queuer::SQSQueue')
-      expect(destq).to receive(:send_message).with(message)
+      @manager.do_work
 
-      @manager.do_work(msg_q: msgq, worker: worker, dest_qs: [destq])
+      expect(@dest1_q).to have_received(:send_message).with(message)
     end
     it 'will pass message on to two next queues' do
       message = {id: 5, type: 'test'}
-      msgq = instance_double('Queuer::SQSQueue',
-                             retrieve_message: message)
-      expect(msgq).to receive(:retrieve_message).and_return message
-      worker = double('worker')
-      expect(worker).to receive(:work).with(message)
+      allow(@msg_q).to receive(:retrieve_message).and_return message
 
-      destq1 = instance_double('Queuer::SQSQueue')
-      expect(destq1).to receive(:send_message).with(message)
-      destq2 = instance_double('Queuer::SQSQueue')
-      expect(destq2).to receive(:send_message).with(message)
+      @manager.do_work
 
-      @manager.do_work(msg_q: msgq, worker: worker, dest_qs: [destq1, destq2])
+      expect(@dest1_q).to have_received(:send_message).with(message)
+      expect(@dest2_q).to have_received(:send_message).with(message)
     end
+
   end
 end

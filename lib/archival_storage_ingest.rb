@@ -69,6 +69,10 @@ module ArchivalStorageIngest
     def initialize
       @logger = ArchivalStorageIngest.configuration.logger
       @queuer = ArchivalStorageIngest.configuration.queuer
+      @msg_q = ArchivalStorageIngest.configuration.msg_q
+      @wip_q = ArchivalStorageIngest.configuration.wip_q
+      @dest_qs = ArchivalStorageIngest.configuration.dest_qs
+      @worker = ArchivalStorageIngest.configuration.worker
 
       @state = 'uninitialized'
     end
@@ -98,10 +102,6 @@ module ArchivalStorageIngest
     end
 
     def initialize_server
-      @msg_q = ArchivalStorageIngest.configuration.msg_q
-      @wip_q = ArchivalStorageIngest.configuration.wip_q
-      @dest_qs = ArchivalStorageIngest.configuration.dest_qs
-      @worker = ArchivalStorageIngest.configuration.worker
       @state = 'started'
     end
 

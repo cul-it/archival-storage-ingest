@@ -18,14 +18,12 @@ RSpec.describe 'Message processor' do # rubocop:disable Metrics/BlockLength
 
     it 'gets sent to the S3 Transfer queue' do
       expect(@queuer).to have_received(:put_message)
-                             .with(Queues::QUEUE_TRANSFER_S3,
-                                   have_attributes(type: IngestMessage::TYPE_TRANSFER_S3)).once
+        .with(Queues::QUEUE_TRANSFER_S3, have_attributes(type: IngestMessage::TYPE_TRANSFER_S3)).once
     end
 
     it 'gets sent to the SFS Transfer queue' do
       expect(@queuer).to have_received(:put_message)
-                             .with(Queues::QUEUE_TRANSFER_SFS,
-                                   have_attributes(type: IngestMessage::TYPE_TRANSFER_SFS)).once
+        .with(Queues::QUEUE_TRANSFER_SFS, have_attributes(type: IngestMessage::TYPE_TRANSFER_SFS)).once
     end
 
     it 'gets sent to only two queues' do
@@ -45,7 +43,7 @@ RSpec.describe 'Message processor' do # rubocop:disable Metrics/BlockLength
 
     it 'gets sent to the S3 fixity queue' do
       expect(@queuer).to have_received(:put_message)
-                             .with(Queues::QUEUE_FIXITY_S3, have_attributes(type: IngestMessage::TYPE_FIXITY_S3)).once
+        .with(Queues::QUEUE_FIXITY_S3, have_attributes(type: IngestMessage::TYPE_FIXITY_S3)).once
     end
 
     it 'gets sent to only one queue' do
@@ -65,7 +63,7 @@ RSpec.describe 'Message processor' do # rubocop:disable Metrics/BlockLength
 
     it 'gets sent to the S3 fixity queue' do
       expect(@queuer).to have_received(:put_message)
-                             .with(Queues::QUEUE_FIXITY_SFS, have_attributes(type: IngestMessage::TYPE_FIXITY_SFS)).once
+        .with(Queues::QUEUE_FIXITY_SFS, have_attributes(type: IngestMessage::TYPE_FIXITY_SFS)).once
     end
 
     it 'gets sent to only one queue' do

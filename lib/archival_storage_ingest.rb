@@ -42,7 +42,7 @@ module ArchivalStorageIngest
     end
 
     def dest_qs
-      @dest_qs ||= dest_queue_names.each {|qn| IngestQueue::SQSQueue.new(qn, queuer)}
+      @dest_qs ||= dest_queue_names.each { |qn| IngestQueue::SQSQueue.new(qn, queuer) }
     end
 
     def wip_q

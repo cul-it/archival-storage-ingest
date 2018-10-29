@@ -13,6 +13,7 @@ module IngestQueue
       @sqs = Aws::SQS::Client.new
     end
 
+    # rubocop: disable Metrics/MethodLength
     def put_message(queue_name, msg)
       queue_url = get_queue_url(queue_name)
       send_message_result = @sqs.send_message(
@@ -29,6 +30,8 @@ module IngestQueue
 
       send_message_result
     end
+
+    # rubocop: enable Metrics/MethodLength
 
     def retrieve_single_message(queue_name)
       queue_url = get_queue_url(queue_name)

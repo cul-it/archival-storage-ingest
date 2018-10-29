@@ -40,7 +40,6 @@ RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
       @manager.do_work
 
       expect(@worker).to have_received(:work).exactly(0).times
-
     end
 
     it 'will pass message to worker' do
@@ -50,7 +49,6 @@ RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
       @manager.do_work
 
       expect(@worker).to have_received(:work).with(message)
-
     end
 
     it 'will pass message on to next queue' do

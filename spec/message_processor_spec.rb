@@ -3,7 +3,7 @@
 require 'rspec'
 require 'rspec/mocks'
 
-RSpec.describe 'Message processor' do
+RSpec.describe 'Message processor' do # rubocop:disable Metrics/BlockLength
   before(:each) do
     @queuer = spy('Queuer')
     @logger = spy('Logger')

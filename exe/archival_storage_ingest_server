@@ -4,5 +4,5 @@
 require 'archival_storage_ingest'
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new
-ingest_manager.load_configuration
+# ingest_manager.load_configuration
 ingest_manager.start_server

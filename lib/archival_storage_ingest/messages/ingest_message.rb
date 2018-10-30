@@ -25,6 +25,8 @@ module IngestMessage
     SQSMessage.new(
       ingest_id: json['ingest_id'],
       type: json['type'],
+      data_path: json['data_path'],
+      dest_path: json['dest_path'],
       original_msg: sqs_message
     )
   end
@@ -40,15 +42,19 @@ module IngestMessage
       @ingest_id = params[:ingest_id]
       @type = params[:type]
       @original_msg = params[:original_msg]
+      @data_path = params[:data_path]
+      @dest_path = params[:dest_path]
     end
 
-    attr_reader :ingest_id, :original_msg
+    attr_reader :ingest_id, :original_msg, :data_path, :dest_path
     attr_accessor :type
 
     def to_json
       JSON.generate(
         ingest_id: ingest_id,
-        type: type
+        type: type,
+        data_path: data_path,
+        dest_path: dest_path
       )
     end
   end

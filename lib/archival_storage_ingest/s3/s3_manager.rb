@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'aws-sdk-s3'
 
 # This class will handle S3 interaction.

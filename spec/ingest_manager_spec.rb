@@ -40,21 +40,19 @@ RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
       @manager.do_work
 
       expect(@worker).to have_received(:work).exactly(0).times
-
     end
 
     it 'will pass message to worker' do
-      message = {id: 5, type: 'test'}
+      message = { id: 5, type: 'test' }
       allow(@msg_q).to receive(:retrieve_message).and_return message
 
       @manager.do_work
 
       expect(@worker).to have_received(:work).with(message)
-
     end
 
     it 'will pass message on to next queue' do
-      message = {id: 5, type: 'test'}
+      message = { id: 5, type: 'test' }
       allow(@msg_q).to receive(:retrieve_message).and_return message
 
       @manager.do_work
@@ -62,7 +60,7 @@ RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
       expect(@dest1_q).to have_received(:send_message).with(message)
     end
     it 'will pass message on to two next queues' do
-      message = {id: 5, type: 'test'}
+      message = { id: 5, type: 'test' }
       allow(@msg_q).to receive(:retrieve_message).and_return message
 
       @manager.do_work

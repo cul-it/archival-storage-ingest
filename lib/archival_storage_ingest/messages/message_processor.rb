@@ -11,6 +11,7 @@ module MessageProcessor
       @logger = logger
     end
 
+    # rubocop: disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength
     def process_message(msg)
       @logger.info('Received ingest message ' + msg.to_json)
 
@@ -39,6 +40,8 @@ module MessageProcessor
     else # TODO: figure out how to delete message.
       # @queuer.delete_message(msg.queue, msg)
     end
+
+    # rubocop: enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength
 
     private
 

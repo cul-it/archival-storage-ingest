@@ -86,11 +86,14 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable BlockLength
     allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/RMC/RMA/RMA0001234/2") { nil }
     allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/RMC/RMA/RMA0001234/4") { nil }
     allow(FileUtils).to receive(:copy)
-      .with("#{@symlinked_data_path}/RMA/RMA0001234/1/resource1.txt", "#{@test_dest_root}/RMC/RMA/RMA0001234/1/resource1.txt") { nil }
+      .with("#{@symlinked_data_path}/RMA/RMA0001234/1/resource1.txt",
+            "#{@test_dest_root}/RMC/RMA/RMA0001234/1/resource1.txt") { nil }
     allow(FileUtils).to receive(:copy)
-      .with("#{@symlink_real_path}/resource2.txt", "#{@test_dest_root}/RMC/RMA/RMA0001234/2/resource2.txt") { nil }
+      .with("#{@symlink_real_path}/resource2.txt",
+            "#{@test_dest_root}/RMC/RMA/RMA0001234/2/resource2.txt") { nil }
     allow(FileUtils).to receive(:copy)
-      .with("#{@symlinked_data_path}/RMA/RMA0001234/4/resource4.txt", "#{@test_dest_root}/RMC/RMA/RMA0001234/4/resource4.txt") { nil }
+      .with("#{@symlinked_data_path}/RMA/RMA0001234/4/resource4.txt",
+            "#{@test_dest_root}/RMC/RMA/RMA0001234/4/resource4.txt") { nil }
   end
 
   context 'when generating destination path' do

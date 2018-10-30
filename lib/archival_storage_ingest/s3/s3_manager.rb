@@ -19,7 +19,6 @@ class S3Manager
     raise Aws::S3::MultipartUploadError.new('Failed to upload file', 'Upload failed') unless status
 
     status
-    true
   rescue Aws::S3::MultipartUploadError
     retry if (retries += 1) < @max_retry
     raise IngestException, "S3 upload failures reached max retry (#{MAX_RETRY}) for #{file_to_upload}"

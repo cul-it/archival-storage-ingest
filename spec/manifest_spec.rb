@@ -10,7 +10,6 @@ end
 
 RSpec.describe 'Manifests' do # rubocop:disable Metrics/BlockLength
   context 'loading manifest' do
-
     let(:manifest10) { Manifests::Manifest.new(resource('10ItemsFull.json')) }
     let(:manifest_arxiv) { Manifests::Manifest.new(resource('arXiv.json')) }
 
@@ -38,7 +37,6 @@ RSpec.describe 'Manifests' do # rubocop:disable Metrics/BlockLength
 
     it 'knows how to deal with recursive directories' do
       expect(manifest_arxiv.size).to eq(8)
-
 
       first_file = manifest_arxiv.files.keys[0]
       expect(first_file).to eq('arXiv/arXiv/9107/2017-11-22/9107.zip')
@@ -73,6 +71,5 @@ RSpec.describe 'Manifests' do # rubocop:disable Metrics/BlockLength
 
       expect(diff).to_not have_key(manifest9.filename)
     end
-
   end
 end

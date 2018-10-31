@@ -28,13 +28,15 @@ module Manifests
       files
     end
 
-    def diff(m)
-      leftfiles = files.reject { |file, _| m.files.has_key? file }
-      rightfiles = m.files.reject { |file, _| files.has_key? file }
+    def diff(manifest)
+      left = files.to_a
+      right = manifest.files.to_a
+      leftfiles = (left - right).to_h
+      rightfiles = (right - left).to_h
 
       diff = {}
       diff[filename] = leftfiles unless leftfiles.empty?
-      diff[m.filename] = rightfiles unless rightfiles.empty?
+      diff[manifest.filename] = rightfiles unless rightfiles.empty?
       diff
     end
 
@@ -43,7 +45,7 @@ module Manifests
     def flatten_folder(files, items, prefix)
       items.each do |key, file_hash|
         fullkey = prefix + '/' + key
-        if file_hash.has_key?('sha1')
+        if file_hash.key?('sha1')
           files[fullkey] = file_hash['sha1']
         else
           flatten_folder(files, file_hash, fullkey)

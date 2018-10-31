@@ -23,4 +23,10 @@ class S3Manager
     retry if (retries += 1) < @max_retry
     raise IngestException, "S3 upload failures reached max retry (#{MAX_RETRY}) for #{file_to_upload}"
   end
+
+  def retrieve_file(s3_key, file_to_retrieve)
+    @s3.bucket(@s3_bucket).object(s3_key).get(response_target: file_to_retrieve)
+  rescue Aws::S3::Errors::NoSuchKey
+    nil
+  end
 end

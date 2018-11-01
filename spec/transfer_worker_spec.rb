@@ -9,16 +9,18 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
     @s3_bucket = spy('s3_bucket')
     @s3_manager = spy('s3_manager')
     @worker = TransferWorker::S3Transferer.new(@s3_manager)
+    @depositor = 'RMC/RMA'
+    @collection = 'RMA0001234'
 
     allow(@s3_manager).to receive(:upload_file)
-      .with('RMC/RMA/RMA0001234/1/resource1.txt', anything) { true }
+      .with("#{@depositor}/#{@collection}/1/resource1.txt", anything) { true }
     allow(@s3_manager).to receive(:upload_file)
-      .with('RMC/RMA/RMA0001234/2/resource2.txt', anything) { true }
+      .with("#{@depositor}/#{@collection}/2/resource2.txt", anything) { true }
     allow(@s3_manager).to receive(:upload_file)
-      .with('RMC/RMA/RMA0001234/3/resource3.txt', anything)
+      .with("#{@depositor}/#{@collection}/3/resource3.txt", anything)
       .and_raise(IngestException, 'Test error message')
     allow(@s3_manager).to receive(:upload_file)
-      .with('RMC/RMA/RMA0001234/4/resource4.txt', anything) { true }
+      .with("#{@depositor}/#{@collection}/4/resource4.txt", anything) { true }
   end
 
   context 'when doing successful work' do
@@ -27,8 +29,8 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
       msg = IngestMessage::SQSMessage.new(
         ingest_id: 'test_1234',
         data_path: success_data_path.to_s,
-        depositor: 'RMC/RMA',
-        collection: 'RMA0001234'
+        depositor: @depositor,
+        collection: @collection
       )
       expect(@worker.work(msg)).to eq(true)
 
@@ -42,8 +44,8 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
       msg = IngestMessage::SQSMessage.new(
         ingest_id: 'test_5678',
         data_path: fail_data_path.to_s,
-        depositor: 'RMC/RMA',
-        collection: 'RMA0001234'
+        depositor: @depositor,
+        collection: @collection
       )
       expect do
         @worker.work(msg)
@@ -61,8 +63,8 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
       msg = IngestMessage::SQSMessage.new(
         ingest_id: 'test_1234',
         data_path: symlinked_data_path.to_s,
-        depositor: 'RMC/RMA',
-        collection: 'RMA0001234'
+        depositor: @depositor,
+        collection: @collection
       )
       expect(@worker.work(msg)).to eq(true)
 
@@ -76,20 +78,22 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable BlockLength
     @worker = TransferWorker::SFSTransferer.new
     @symlinked_data_path = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'symlink')
     @test_dest_root = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'dest')
+    @depositor = 'RMC/RMA'
+    @collection = 'RMA0001234'
 
-    allow(FileUtils).to receive(:mkdir_p).with("#{@test_dest_root}/RMC/RMA/RMA0001234") { nil }
-    allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/RMC/RMA/RMA0001234/1") { nil }
-    allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/RMC/RMA/RMA0001234/2") { nil }
-    allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/RMC/RMA/RMA0001234/4") { nil }
+    allow(FileUtils).to receive(:mkdir_p).with("#{@test_dest_root}/#{@depositor}/#{@collection}") { nil }
+    allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/#{@depositor}/#{@collection}/1") { nil }
+    allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/#{@depositor}/#{@collection}/2") { nil }
+    allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/#{@depositor}/#{@collection}/4") { nil }
     allow(FileUtils).to receive(:copy)
-      .with("#{@symlinked_data_path}/RMC/RMA/RMA0001234/1/resource1.txt",
-            "#{@test_dest_root}/RMC/RMA/RMA0001234/1/resource1.txt") { nil }
+      .with("#{@symlinked_data_path}/#{@depositor}/#{@collection}/1/resource1.txt",
+            "#{@test_dest_root}/#{@depositor}/#{@collection}/1/resource1.txt") { nil }
     allow(FileUtils).to receive(:copy)
-      .with("#{@symlinked_data_path}/RMC/RMA/RMA0001234/2/resource2.txt",
-            "#{@test_dest_root}/RMC/RMA/RMA0001234/2/resource2.txt") { nil }
+      .with("#{@symlinked_data_path}/#{@depositor}/#{@collection}/2/resource2.txt",
+            "#{@test_dest_root}/#{@depositor}/#{@collection}/2/resource2.txt") { nil }
     allow(FileUtils).to receive(:copy)
-      .with("#{@symlinked_data_path}/RMC/RMA/RMA0001234/4/resource4.txt",
-            "#{@test_dest_root}/RMC/RMA/RMA0001234/4/resource4.txt") { nil }
+      .with("#{@symlinked_data_path}/#{@depositor}/#{@collection}/4/resource4.txt",
+            "#{@test_dest_root}/#{@depositor}/#{@collection}/4/resource4.txt") { nil }
   end
 
   context 'when generating destination path' do
@@ -109,8 +113,8 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable BlockLength
         ingest_id: 'test_1234',
         data_path: @symlinked_data_path.to_s,
         dest_path: @test_dest_root.to_s,
-        depositor: 'RMC/RMA',
-        collection: 'RMA0001234'
+        depositor: @depositor,
+        collection: @collection
       )
       expect(@worker.work(msg)).to eq(true)
 

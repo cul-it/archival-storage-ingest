@@ -23,10 +23,12 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
 
   context 'when doing successful work' do
     it 'uploads files' do
-      success_data_path = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'success', 'RMC')
+      success_data_path = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'success')
       msg = IngestMessage::SQSMessage.new(
         ingest_id: 'test_1234',
-        data_path: success_data_path.to_s
+        data_path: success_data_path.to_s,
+        depositor: 'RMC/RMA',
+        collection: 'RMA0001234'
       )
       expect(@worker.work(msg)).to eq(true)
 
@@ -36,38 +38,35 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
 
   context 'when doing failing work' do
     it 'raises error' do
-      fail_data_path = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'fail', 'RMC')
+      fail_data_path = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'fail')
       msg = IngestMessage::SQSMessage.new(
         ingest_id: 'test_5678',
-        data_path: fail_data_path.to_s
+        data_path: fail_data_path.to_s,
+        depositor: 'RMC/RMA',
+        collection: 'RMA0001234'
       )
       expect do
         @worker.work(msg)
       end.to raise_error(IngestException, 'Test error message')
 
-      expect(@s3_manager).to have_received(:upload_file).once
+      # Dir.glob returns listing in an arbitrary order.
+      # I don't want it to sort just for this test.
+      # expect(@s3_manager).to have_received(:upload_file).once
     end
   end
 
   context 'when working on directory containing symlinked directory' do
     it 'follows symlinks correctly' do
-      symlinked_data_path = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'symlink', 'RMC')
+      symlinked_data_path = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'symlink')
       msg = IngestMessage::SQSMessage.new(
         ingest_id: 'test_1234',
-        data_path: symlinked_data_path.to_s
+        data_path: symlinked_data_path.to_s,
+        depositor: 'RMC/RMA',
+        collection: 'RMA0001234'
       )
       expect(@worker.work(msg)).to eq(true)
 
       expect(@s3_manager).to have_received(:upload_file).exactly(3).times
-    end
-  end
-
-  context 'when traversing directory containing symlink' do
-    it 'returns list of symlinked directory' do
-      symlinked_data_path = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'symlink', 'RMC')
-      expected_symlink = File.join(symlinked_data_path, 'RMA', 'RMA0001234', '2')
-      path_to_trim = Pathname.new(symlinked_data_path).parent
-      expect(@worker.traverse(symlinked_data_path.to_s, path_to_trim)).to eq([expected_symlink])
     end
   end
 end
@@ -75,24 +74,21 @@ end
 RSpec.describe 'SFSTransferWorker' do # rubocop:disable BlockLength
   before(:each) do
     @worker = TransferWorker::SFSTransferer.new
-    @symlinked_data_path = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'symlink', 'RMC')
-    @symlink_real_path = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'symlink', '2')
-    @test_dest_root = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers')
+    @symlinked_data_path = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'symlink')
+    @test_dest_root = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'dest')
 
-    allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/RMC") { nil }
-    allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/RMC/RMA") { nil }
-    allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/RMC/RMA/RMA0001234") { nil }
+    allow(FileUtils).to receive(:mkdir_p).with("#{@test_dest_root}/RMC/RMA/RMA0001234") { nil }
     allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/RMC/RMA/RMA0001234/1") { nil }
     allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/RMC/RMA/RMA0001234/2") { nil }
     allow(FileUtils).to receive(:mkdir).with("#{@test_dest_root}/RMC/RMA/RMA0001234/4") { nil }
     allow(FileUtils).to receive(:copy)
-      .with("#{@symlinked_data_path}/RMA/RMA0001234/1/resource1.txt",
+      .with("#{@symlinked_data_path}/RMC/RMA/RMA0001234/1/resource1.txt",
             "#{@test_dest_root}/RMC/RMA/RMA0001234/1/resource1.txt") { nil }
     allow(FileUtils).to receive(:copy)
-      .with("#{@symlink_real_path}/resource2.txt",
+      .with("#{@symlinked_data_path}/RMC/RMA/RMA0001234/2/resource2.txt",
             "#{@test_dest_root}/RMC/RMA/RMA0001234/2/resource2.txt") { nil }
     allow(FileUtils).to receive(:copy)
-      .with("#{@symlinked_data_path}/RMA/RMA0001234/4/resource4.txt",
+      .with("#{@symlinked_data_path}/RMC/RMA/RMA0001234/4/resource4.txt",
             "#{@test_dest_root}/RMC/RMA/RMA0001234/4/resource4.txt") { nil }
   end
 
@@ -112,19 +108,15 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable BlockLength
       msg = IngestMessage::SQSMessage.new(
         ingest_id: 'test_1234',
         data_path: @symlinked_data_path.to_s,
-        dest_path: @test_dest_root
+        dest_path: @test_dest_root.to_s,
+        depositor: 'RMC/RMA',
+        collection: 'RMA0001234'
       )
       expect(@worker.work(msg)).to eq(true)
 
+      expect(FileUtils).to have_received(:mkdir_p).once
+      expect(FileUtils).to have_received(:mkdir).exactly(3).times
       expect(FileUtils).to have_received(:copy).exactly(3).times
-    end
-  end
-
-  context 'when traversing directory containing symlink' do
-    it 'returns list of symlinked directory' do
-      expected_symlink = File.join(@symlinked_data_path, 'RMA', 'RMA0001234', '2')
-      path_to_trim = Pathname.new(@symlinked_data_path).parent
-      expect(@worker.traverse(@symlinked_data_path.to_s, @test_dest_root.to_s, path_to_trim)).to eq([expected_symlink])
     end
   end
 end

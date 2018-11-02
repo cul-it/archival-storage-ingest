@@ -3,24 +3,27 @@
 require 'aws-sdk-s3'
 
 # This class will handle S3 interaction.
-# One of the things it will do is to retry a request up to 3 times.
+# https://docs.aws.amazon.com/sdkforruby/api/Aws/S3/Client.html
+# Above documentation states that the client has retry feature built in.
+# Only ~ 500 level server errors and certain ~ 400 level client errors are retried.
+# Generally, these are throttling errors, data checksum errors, networking errors,
+#   timeout errors and auth errors from expired credentials.
+# See Plugins::RetryErrors for more details.
 class S3Manager
-  MAX_RETRY = 3
-
-  def initialize(s3_bucket, max_retry = :MAX_RETRY)
+  def initialize(s3_bucket)
     @s3_bucket = s3_bucket
     @s3 = Aws::S3::Resource.new
-    @max_retry = max_retry
   end
 
   def upload_file(s3_key, file_to_upload)
-    retries ||= 0
-    status = @s3.bucket(@s3_bucket).object(s3_key).upload_file(file_to_upload)
-    raise Aws::S3::MultipartUploadError.new('Failed to upload file', 'Upload failed') unless status
+    @s3.bucket(@s3_bucket).object(s3_key).upload_file(file_to_upload)
+  end
 
-    status
-  rescue Aws::S3::MultipartUploadError
-    retry if (retries += 1) < @max_retry
-    raise IngestException, "S3 upload failures reached max retry (#{MAX_RETRY}) for #{file_to_upload}"
+  def upload_string(s3_key, data)
+    @s3.bucket(@s3_bucket).object(s3_key).put(data)
+  end
+
+  def manifest_key(ingest_id, type)
+    ".manifest/#{ingest_id}_#{type}.json"
   end
 end

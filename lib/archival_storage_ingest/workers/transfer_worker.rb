@@ -21,16 +21,16 @@ module TransferWorker
   # I will process immediate children and then use **/*/**.
 
   class DirectoryWalker
-    def process_immediate_children(msg)
-      Dir.glob("#{msg.effective_data_path}/*").each do |path|
+    def process_immediate_children(dir)
+      Dir.glob("#{dir}/*").each do |path|
         next if EXCLUDE_FILE_LIST[File.basename(path)]
 
         yield(path)
       end
     end
 
-    def process_rest(msg)
-      Dir.glob("#{msg.effective_data_path}/**/*/**").each do |path|
+    def process_rest(dir)
+      Dir.glob("#{dir}/**/*/**").each do |path|
         next if EXCLUDE_FILE_LIST[File.basename(path)]
 
         yield(path)
@@ -49,11 +49,11 @@ module TransferWorker
 
       path_to_trim = Pathname.new(msg.data_path)
 
-      directory_walker.process_immediate_children(msg) do |path|
+      directory_walker.process_immediate_children(msg.effective_data_path) do |path|
         process_path(path, path_to_trim)
       end
 
-      directory_walker.process_rest(msg) do |path|
+      directory_walker.process_rest(msg.effective_data_path) do |path|
         process_path(path, path_to_trim)
       end
 
@@ -86,11 +86,11 @@ module TransferWorker
 
       create_collection_dir(msg, path_to_trim)
 
-      directory_walker.process_immediate_children(msg) do |path|
+      directory_walker.process_immediate_children(msg.effective_data_path) do |path|
         process_path(path, path_to_trim, msg.dest_path)
       end
 
-      directory_walker.process_rest(msg) do |path|
+      directory_walker.process_rest(msg.effective_data_path) do |path|
         process_path(path, path_to_trim, msg.dest_path)
       end
 

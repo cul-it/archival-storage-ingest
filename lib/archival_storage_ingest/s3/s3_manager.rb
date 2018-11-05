@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'aws-sdk-s3'
+require 'digest/sha1'
 
 # This class will handle S3 interaction.
 # https://docs.aws.amazon.com/sdkforruby/api/Aws/S3/Client.html
@@ -10,22 +11,80 @@ require 'aws-sdk-s3'
 #   timeout errors and auth errors from expired credentials.
 # See Plugins::RetryErrors for more details.
 class S3Manager
-  attr_reader :s3
+  MAX_RETRY = 3
+
+  attr_writer :s3
 
   def s3
     @s3 ||= Aws::S3::Resource.new
   end
 
-  def initialize(s3_bucket)
+  def initialize(s3_bucket, max_retry = MAX_RETRY)
     @s3_bucket = s3_bucket
+    @max_retry = max_retry
+  end
+
+  def parse_s3_error(error)
+    "Code: #{error.code}\nContext: #{error.context}\nMessage: #{error.message}"
   end
 
   def upload_file(s3_key, file_to_upload)
-    @s3.bucket(@s3_bucket).object(s3_key).upload_file(file_to_upload)
+    s3.bucket(@s3_bucket).object(s3_key).upload_file(file_to_upload)
+  rescue Aws::S3::Errors::ServiceError => e
+    raise IngestException, "S3 upload file failed for #{file_to_upload}!\n" + parse_s3_error(e)
   end
 
   def upload_string(s3_key, data)
-    @s3.bucket(@s3_bucket).object(s3_key).put(data)
+    s3.bucket(@s3_bucket).object(s3_key).put(data)
+  rescue Aws::S3::Errors::ServiceError => e
+    raise IngestException, "S3 upload data stream failed!\n" + parse_s3_error(e)
+  end
+
+  # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Client.html#list_objects_v2-instance_method
+  # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Types/ListObjectsV2Output.html#next_continuation_token-instance_method
+  # RubyMine can't recognize any of the attributes of the response!
+  def list_object_keys(prefix)
+    resp = _list_object(prefix, nil)
+    object_keys = _list_keys(resp)
+    while resp.is_truncated
+      resp = _list_object(prefix, resp.continuation_token)
+      object_keys.concat(_list_keys(resp))
+    end
+
+    object_keys
+  rescue Aws::S3::Errors::ServiceError => e
+    raise IngestException, "S3 list_object_keys failed for #{prefix}!\n" + parse_s3_error(e)
+  end
+
+  def _list_object(prefix, continuation_token)
+    @s3.client.list_objects_v2(bucket: @s3_bucket, prefix: prefix, continuation_token: continuation_token)
+  end
+
+  def _list_keys(list_object_resp)
+    object_keys = []
+    list_object_resp.contents.each do |object|
+      object_keys.push(object.key)
+    end
+    object_keys
+  end
+
+  # https://aws.amazon.com/blogs/developer/downloading-objects-from-amazon-s3-using-the-aws-sdk-for-ruby/
+  # Please note, when using blocks to downloading objects,
+  # the Ruby SDK will NOT retry failed requests after the first chunk of data has been yielded.
+  # Doing so could cause file corruption on the client end by starting over mid-stream.
+  #
+  # We will need to put a retry mechanism for this function.
+  def calculate_checksum(s3_key)
+    retries ||= 0
+
+    dig = Digest::SHA1.new
+    @s3.client.get_object(bucket: @s3_bucket, key: s3_key) do |chunk|
+      dig.update(chunk)
+    end
+    dig
+  rescue Aws::S3::Errors::ServiceError => e
+    retry if (retries += 1) < @max_retry
+    raise IngestException, "S3 calculate_checksum failed for #{s3_key}!\n" + parse_s3_error(e)
   end
 
   def manifest_key(ingest_id, type)

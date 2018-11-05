@@ -58,6 +58,10 @@ module IngestMessage
       File.join(dest_path, depositor, collection).to_s
     end
 
+    def collection_s3_prefix
+      File.join(depositor, collection).to_s
+    end
+
     def to_json
       JSON.generate(
         ingest_id: ingest_id,

@@ -13,9 +13,14 @@ require 'digest/sha1'
 class S3Manager
   MAX_RETRY = 3
 
+  attr_writer :s3
+
+  def s3
+    @s3 ||= Aws::S3::Resource.new
+  end
+
   def initialize(s3_bucket, max_retry = MAX_RETRY)
     @s3_bucket = s3_bucket
-    @s3 = Aws::S3::Resource.new
     @max_retry = max_retry
   end
 
@@ -24,13 +29,13 @@ class S3Manager
   end
 
   def upload_file(s3_key, file_to_upload)
-    @s3.bucket(@s3_bucket).object(s3_key).upload_file(file_to_upload)
+    s3.bucket(@s3_bucket).object(s3_key).upload_file(file_to_upload)
   rescue Aws::S3::Errors::ServiceError => e
     raise IngestException, "S3 upload file failed for #{file_to_upload}!\n" + parse_s3_error(e)
   end
 
   def upload_string(s3_key, data)
-    @s3.bucket(@s3_bucket).object(s3_key).put(data)
+    s3.bucket(@s3_bucket).object(s3_key).put(data)
   rescue Aws::S3::Errors::ServiceError => e
     raise IngestException, "S3 upload data stream failed!\n" + parse_s3_error(e)
   end

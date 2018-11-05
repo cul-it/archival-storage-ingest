@@ -5,4 +5,5 @@ rvm:
 before_install: gem install bundler -v 1.16.2
 
 script:
+  bundle exec rake rspec
   bundle exec rubocop

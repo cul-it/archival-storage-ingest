@@ -16,7 +16,6 @@ class S3Manager
   def initialize(s3_bucket, max_retry = MAX_RETRY)
     @s3_bucket = s3_bucket
     @s3 = Aws::S3::Resource.new
-    @max_retry = max_retry
   end
 
   def parse_s3_error(error)

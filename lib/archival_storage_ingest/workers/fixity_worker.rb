@@ -13,7 +13,33 @@ require 'pathname'
 
 module FixityWorker
   class S3FixityGenerator < Workers::Worker
-    def work(msg) end
+    # Pass s3_manager only for tests.
+    def initialize(s3_manager = nil)
+      @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
+    end
+
+    def work(msg)
+      object_keys = @s3_manager.list_object_keys(msg.collection_s3_prefix)
+
+      manifest = generate_manifest(object_keys)
+
+      manifest_s3_key = @s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_S3)
+      data = manifest.manifest_hash.to_json
+      @s3_manager.upload_string(manifest_s3_key, data)
+
+      true
+    end
+
+    def generate_manifest(object_keys)
+      manifest = Manifest.new
+
+      object_keys.each do |s3_key|
+        checksum = @s3_manager.calculate_checksum(s3_key)
+        manifest.add_file(s3_key, checksum)
+      end
+
+      manifest
+    end
   end
 
   class SFSFixityGenerator < Workers::Worker
@@ -42,16 +68,16 @@ module FixityWorker
       Find.find(assets_dir) do |path|
         next if File.directory?(path)
 
-        sha1 = calculate_sha1(path)
+        checksum = calculate_checksum(path)
         filepath = Pathname.new(path).relative_path_from(path_to_trim).to_s
-        manifest.add_file(filepath, sha1.hexdigest)
+        manifest.add_file(filepath, checksum.hexdigest)
       end
 
       manifest
     end
 
-    def calculate_sha1(file_path)
-      sha1 = File.open(file_path, 'rb') do |file|
+    def calculate_checksum(file_path)
+      File.open(file_path, 'rb') do |file|
         dig = Digest::SHA1.new
         until file.eof?
           buffer = file.read(BUFFER_SIZE)
@@ -59,7 +85,6 @@ module FixityWorker
         end
         dig
       end
-      sha1
     end
   end
 end

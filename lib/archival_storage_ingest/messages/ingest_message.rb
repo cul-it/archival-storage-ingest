@@ -24,9 +24,10 @@ module IngestMessage
     json = JSON.parse(sqs_message.body)
     SQSMessage.new(
       ingest_id: json['ingest_id'],
-      type: json['type'],
       data_path: json['data_path'],
       dest_path: json['dest_path'],
+      depositor: json['depositor'],
+      collection: json['collection'],
       original_msg: sqs_message
     )
   end
@@ -40,21 +41,30 @@ module IngestMessage
   class SQSMessage
     def initialize(params)
       @ingest_id = params[:ingest_id]
-      @type = params[:type]
       @original_msg = params[:original_msg]
       @data_path = params[:data_path]
       @dest_path = params[:dest_path]
+      @depositor = params[:depositor]
+      @collection = params[:collection]
     end
 
-    attr_reader :ingest_id, :original_msg, :data_path, :dest_path
-    attr_accessor :type
+    attr_reader :ingest_id, :original_msg, :data_path, :dest_path, :depositor, :collection
+
+    def effective_data_path
+      File.join(data_path, depositor, collection).to_s
+    end
+
+    def effective_dest_path
+      File.join(dest_path, depositor, collection).to_s
+    end
 
     def to_json
       JSON.generate(
         ingest_id: ingest_id,
-        type: type,
         data_path: data_path,
-        dest_path: dest_path
+        dest_path: dest_path,
+        depositor: depositor,
+        collection: collection
       )
     end
   end

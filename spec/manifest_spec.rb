@@ -36,8 +36,8 @@ end
 
 RSpec.describe 'Manifests' do # rubocop:disable Metrics/BlockLength
   context 'loading manifest' do
-    let(:manifest10) { Manifests::Manifest.new(resource('10ItemsFull.json')) }
-    let(:manifest_arxiv) { Manifests::Manifest.new(resource('arXiv.json')) }
+    let(:manifest10) { Manifests::Manifest.new(filename: resource('10ItemsFull.json')) }
+    let(:manifest_arxiv) { Manifests::Manifest.new(filename: resource('arXiv.json')) }
 
     it 'can be loaded from files' do
       expect(manifest10.hash).to_not be_nil
@@ -56,7 +56,7 @@ RSpec.describe 'Manifests' do # rubocop:disable Metrics/BlockLength
     end
 
     it 'knows how many files' do
-      manifest = Manifests::Manifest.new(resource('10ItemsFull.json'))
+      manifest = Manifests::Manifest.new(filename: resource('10ItemsFull.json'))
 
       expect(manifest.size).to eq(10)
     end
@@ -71,8 +71,8 @@ RSpec.describe 'Manifests' do # rubocop:disable Metrics/BlockLength
   end
 
   context 'comparing manifests' do
-    let(:manifest10) { Manifests::Manifest.new(resource('10ItemsFull.json')) }
-    let(:manifest9) { Manifests::Manifest.new(resource('9ItemsShaOnlyReordered.json')) }
+    let(:manifest10) { Manifests::Manifest.new(filename: resource('10ItemsFull.json')) }
+    let(:manifest9) { Manifests::Manifest.new(filename: resource('9ItemsShaOnlyReordered.json')) }
 
     it 'a manifest is equal to itself' do
       diff = manifest10.diff(manifest10)

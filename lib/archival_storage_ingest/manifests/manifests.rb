@@ -6,10 +6,11 @@ module Manifests
     attr_reader :files
     attr_reader :filename
 
-    def initialize(json)
-      @filename = json
-      file = File.read(json)
-      @hash = JSON.parse(file)
+    def initialize(filename:, json: nil)
+      @filename = filename
+      json_io = json || File.open(filename)
+      json_text = json_io.read
+      @hash = JSON.parse(json_text)
       @files = flattened
     end
 

@@ -11,16 +11,25 @@ module FixityCompareWorker
     end
 
     def work(msg)
-      begin
-        s3_manifest = s3_manager.retrieve_file(".manifests/#{msg.ingest_id}_S3.json")
-        sfs_manifest = s3_manager.retrieve_file(".manifests/#{msg.ingest_id}_SFS.json")
-      rescue Aws::S3::Errors::NoSuchKey
-        return true
-      end
+      s3_manifest = retrieve_manifest(msg, 'S3')
+      sfs_manifest = retrieve_manifest(msg, 'SFS')
+      ingest_manifest = retrieve_manifest(msg, 'ingest')
 
-      return true if s3_manifest == sfs_manifest
+      raise IngestException, 'Ingest and SFS manifests do not match' unless ingest_manifest.flattened == sfs_manifest.flattened
 
+      raise IngestException, 'Ingest and S3 manifests do not match' unless s3_manifest.flattened == ingest_manifest.flattened
+
+      true
+    rescue Aws::S3::Errors::NoSuchKey
       false
+    end
+
+    private
+
+    def retrieve_manifest(msg, suffix)
+      manifest_name = s3_manager.manifest_key(msg.ingest_id, suffix)
+      manifest_file = s3_manager.retrieve_file(manifest_name)
+      Manifests::Manifest.new(filename: manifest_name, json: manifest_file)
     end
   end
 end

@@ -91,8 +91,8 @@ class S3Manager
     ".manifest/#{ingest_id}_#{type}.json"
   end
 
-  def retrieve_file(s3_key, file_to_retrieve)
-    @s3.bucket(@s3_bucket).object(s3_key).get(response_target: file_to_retrieve)
+  def retrieve_file(s3_key)
+    @s3.bucket(@s3_bucket).object(s3_key).get.body
   rescue Aws::S3::Errors::NoSuchKey
     nil
   end

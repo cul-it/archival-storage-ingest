@@ -28,6 +28,7 @@ module IngestMessage
       dest_path: json['dest_path'],
       depositor: json['depositor'],
       collection: json['collection'],
+      ingest_manifest: json['ingest_manifest'],
       original_msg: sqs_message
     )
   end
@@ -46,9 +47,10 @@ module IngestMessage
       @dest_path = params[:dest_path]
       @depositor = params[:depositor]
       @collection = params[:collection]
+      @ingest_manifest = params[:ingest_manifest]
     end
 
-    attr_reader :ingest_id, :original_msg, :data_path, :dest_path, :depositor, :collection
+    attr_reader :ingest_id, :original_msg, :data_path, :dest_path, :depositor, :collection, :ingest_manifest
 
     def effective_data_path
       File.join(data_path, depositor, collection).to_s
@@ -68,7 +70,8 @@ module IngestMessage
         data_path: data_path,
         dest_path: dest_path,
         depositor: depositor,
-        collection: collection
+        collection: collection,
+        ingest_manifest: ingest_manifest
       )
     end
   end

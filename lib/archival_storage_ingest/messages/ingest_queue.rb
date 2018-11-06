@@ -60,10 +60,9 @@ module IngestQueue
     #
     # Currently, delete message is in queuer for convenience.
     # Move it to another place if needed.
-    def delete_message(msg)
-      queue = IngestMessage.queue_name_from_work_type(msg.type)
+    def delete_message(msg, queue_name)
       @sqs.delete_message(
-        queue_url: get_queue_url(queue),
+        queue_url: get_queue_url(queue_name),
         receipt_handle: msg.original_msg.receipt_handle
       )
     end
@@ -83,8 +82,8 @@ module IngestQueue
       IngestMessage.new(@queuer.retrieve_single_message(@queue_name))
     end
 
-    def delete_message(msg)
-      @queuer.delete_message(msg)
+    def delete_message(msg, queue_name)
+      @queuer.delete_message(msg, queue_name)
     end
   end
 end

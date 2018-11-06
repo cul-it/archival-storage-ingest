@@ -11,7 +11,6 @@ require 'archival_storage_ingest/workers/fixity_compare_worker'
 require 'archival_storage_ingest/workers/fixity_worker'
 require 'archival_storage_ingest/workers/transfer_worker'
 require 'archival_storage_ingest/s3/s3_manager'
-require 'yaml'
 require 'aws-sdk-sqs'
 
 # Main archival storage ingest server module
@@ -86,12 +85,27 @@ module ArchivalStorageIngest
       @state = 'uninitialized'
     end
 
-    def queue_ingest(_ingest_config)
+    def queue_ingest(ingest_config)
+      return unless confirm_ingest(ingest_config)
+
       msg = IngestMessage::SQSMessage.new(
         ingest_id: SecureRandom.uuid,
-        type: IngestMessage::TYPE_INGEST
+        depositor: config['depositor'],
+        collection: config['collection'],
+        data_path: config['data_path'],
+        dest_path: config['dest_path']
       )
       @queuer.put_message(Queues::QUEUE_INGEST, msg)
+    end
+
+    def confirm_ingest(ingest_config)
+      puts "Depositor: #{ingest_config['depositor']}"
+      puts "Collection: #{ingest_config['collection']}"
+      puts "Data Path: #{ingest_config['data_path']}"
+      puts "Destination Path: #{ingest_config['dest_path']}"
+      puts 'Queue ingest? (Y/N)'
+      input = gets.chomp
+      'y'.casecmp(input).zero?
     end
 
     def start_server
@@ -144,13 +158,13 @@ module ArchivalStorageIngest
 
     def move_msg_to_wip(msg)
       @wip_q.send_message(msg)
-      @msg_q.delete_message(msg)
+      @msg_q.delete_message(msg, subscribed_queue_name)
     end
 
     def remove_wip_msg
       msg = @wip_q.retrieve_message
       # report error if this in nil?
-      @wip_q.delete_message(msg)
+      @wip_q.delete_message(msg, in_progress_queue_name)
     end
 
     # private

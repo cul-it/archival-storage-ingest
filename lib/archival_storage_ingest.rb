@@ -144,11 +144,11 @@ module ArchivalStorageIngest
 
       move_msg_to_wip(msg)
 
-      worker.work(msg)
+      status = worker.work(msg)
 
       dest_qs.each do |queue|
         queue.send_message(msg)
-      end
+      end if status
 
       remove_wip_msg
     end

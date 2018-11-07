@@ -3,6 +3,7 @@
 require 'rspec'
 require 'spec_helper'
 require 'json'
+require 'archival_storage_ingest/s3/s3_manager'
 
 RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
   let(:dest_path) { File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'sfs', 'archival01') }

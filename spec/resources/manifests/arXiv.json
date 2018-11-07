@@ -1,0 +1,68 @@
+{
+  "arXiv/arXiv": {
+    "steward": "oyr1",
+    "number_files": 636,
+    "locations": {
+      "s3": [
+        {
+          "uri": "s3://s3-cular/arXiv/arXiv"
+        }
+      ],
+      "sfs": [
+        {
+          "uri": "smb://files.library.cornell.edu/lib/archival02/arXiv/arXiv"
+        }
+      ]
+    },
+    "items": {
+      "9107": {
+        "2017-11-22": {
+          "9107.zip": {
+            "sha1": "bd03f1f4302bb7da67cb7bbac42c82a30feb9660",
+            "size": 556051
+          },
+          "metadata_9107.zip": {
+            "sha1": "030b5b7253c20ec7ceca5ab87d6d33bf5fd05874",
+            "size": 11788
+          }
+        }
+      },
+      "9108": {
+        "2017-11-22": {
+          "9108.zip": {
+            "sha1": "b27e039c141b3d1dc9c8b7c12cae2de6aee77c74",
+            "size": 9455495
+          },
+          "metadata_9108.zip": {
+            "sha1": "9ec0717b4e41b2068eef7c01fd46717750232456",
+            "size": 179806
+          }
+        }
+      },
+      "9109": {
+        "2017-11-22": {
+          "9109.zip": {
+            "sha1": "41c1ce84a02c61e12515310c54c5556bc7a2d243",
+            "size": 14352889
+          },
+          "metadata_9109.zip": {
+            "sha1": "fc8a8274c6f355f75deae84c22f2312755445c8a",
+            "size": 389612
+          }
+        }
+      },
+      "9110": {
+        "2017-11-22": {
+          "9110.zip": {
+            "sha1": "bfb11fbbf31a5b0b936a6bc6c0addc519630dd3a",
+            "size": 20234122
+          },
+          "metadata_9110.zip": {
+            "sha1": "48477cd688d3d0c715b732b52e8f43e35e06ee24",
+            "size": 516552
+          }
+        }
+      }
+    }
+  }
+}

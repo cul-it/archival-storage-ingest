@@ -15,6 +15,10 @@ require 'aws-sdk-sqs'
 
 # Main archival storage ingest server module
 module ArchivalStorageIngest
+  COMMAND_SERVER_START = 'start'
+  COMMAND_SERVER_STATUS = 'status'
+  COMMAND_SERVER_STOP = 'stop'
+
   class Configuration
     attr_accessor :subscribed_queue_name, :in_progress_queue_name, :log_path, :debug
     attr_accessor :message_queue_name, :worker, :dest_queue_names
@@ -48,11 +52,9 @@ module ArchivalStorageIngest
     def s3_bucket
       @s3_bucket ||= 's3-cular'
     end
-
     def s3_manager
       @s3_manager ||= S3Manager.new(s3_bucket)
     end
-
     def dry_run
       @dry_run ||= false
     end

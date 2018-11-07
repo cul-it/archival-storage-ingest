@@ -3,6 +3,7 @@
 require 'spec_helper'
 require 'rspec/mocks'
 require 'pathname'
+require 'archival_storage_ingest/workers/transfer_worker'
 
 RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
   before(:each) do

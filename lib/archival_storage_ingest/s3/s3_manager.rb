@@ -93,7 +93,5 @@ class S3Manager
 
   def retrieve_file(s3_key)
     @s3.bucket(@s3_bucket).object(s3_key).get.body
-  rescue Aws::S3::Errors::NoSuchKey
-    nil
   end
 end

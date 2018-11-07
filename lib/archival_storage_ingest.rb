@@ -4,24 +4,15 @@ require 'archival_storage_ingest/version'
 require 'archival_storage_ingest/exception/ingest_exception'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
 require 'archival_storage_ingest/messages/ingest_message'
-require 'archival_storage_ingest/messages/poller'
 require 'archival_storage_ingest/messages/ingest_queue'
 require 'archival_storage_ingest/messages/queues'
-require 'archival_storage_ingest/workers/fixity_compare_worker'
-require 'archival_storage_ingest/workers/fixity_worker'
-require 'archival_storage_ingest/workers/transfer_worker'
 require 'archival_storage_ingest/s3/s3_manager'
-require 'aws-sdk-sqs'
 
 # Main archival storage ingest server module
 module ArchivalStorageIngest
-  COMMAND_SERVER_START = 'start'
-  COMMAND_SERVER_STATUS = 'status'
-  COMMAND_SERVER_STOP = 'stop'
-
   class Configuration
-    attr_accessor :subscribed_queue_name, :in_progress_queue_name, :log_path, :debug
-    attr_accessor :message_queue_name, :worker, :dest_queue_names
+    attr_accessor :message_queue_name, :in_progress_queue_name, :log_path, :debug
+    attr_accessor :worker, :dest_queue_names
 
     attr_writer :msg_q, :dest_qs, :wip_q
     attr_writer :s3_bucket, :s3_manager, :dry_run
@@ -52,9 +43,11 @@ module ArchivalStorageIngest
     def s3_bucket
       @s3_bucket ||= 's3-cular'
     end
+
     def s3_manager
       @s3_manager ||= S3Manager.new(s3_bucket)
     end
+
     def dry_run
       @dry_run ||= false
     end
@@ -137,18 +130,17 @@ module ArchivalStorageIngest
 
       check_wip
 
-      msg = msg_q.retrieve_message
-      return if msg.nil?
+      return if (msg = msg_q.retrieve_message).nil?
 
       @logger.info("Message received: #{msg}")
 
       move_msg_to_wip(msg)
 
-      status = worker.work(msg)
-
-      dest_qs.each do |queue|
-        queue.send_message(msg)
-      end if status
+      if worker.work(msg)
+        dest_qs.each do |queue|
+          queue.send_message(msg)
+        end
+      end
 
       remove_wip_msg
     end
@@ -160,29 +152,13 @@ module ArchivalStorageIngest
 
     def move_msg_to_wip(msg)
       @wip_q.send_message(msg)
-      @msg_q.delete_message(msg, subscribed_queue_name)
+      @msg_q.delete_message(msg, @msg_q.queue_name)
     end
 
     def remove_wip_msg
       msg = @wip_q.retrieve_message
       # report error if this in nil?
-      @wip_q.delete_message(msg, in_progress_queue_name)
+      @wip_q.delete_message(msg, @wip_q.queue_name)
     end
-
-    # private
-    #
-    # def load_configuration
-    #   default_config_path = '/cul/app/archival_storage_ingest/conf/queue_ingest.yaml'
-    #   env_config_path = 'archival_storage_ingest_config'
-    #   config_file = ENV[env_config_path]
-    #   if config_file.nil?
-    #     warn "#{env_config_path} env variable is not set, using default config file path #{default_config_path}"
-    #     config_file = default_config_path
-    #   end
-    #
-    #   raise "Configuration file #{config_file} does not exist!" unless File.exist?(config_file)
-    #
-    #   @configuration = YAML.load_file(config_file)
-    # end
   end
 end

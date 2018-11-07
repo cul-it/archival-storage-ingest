@@ -69,17 +69,19 @@ module IngestQueue
   end
 
   class SQSQueue
+    attr_reader :queue_name
+
     def initialize(queue_name, queuer)
       @queuer = queuer
       @queue_name = queue_name
     end
 
     def send_message(msg)
-      @queuer.put_message(@queue_name, msg)
+      @queuer.put_message(queue_name, msg)
     end
 
     def retrieve_message
-      IngestMessage.new(@queuer.retrieve_single_message(@queue_name))
+      IngestMessage.new(@queuer.retrieve_single_message(queue_name))
     end
 
     def delete_message(msg, queue_name)

@@ -1,0 +1,22 @@
+{
+  "RMC/RMM/RMM07799_Arch_Brown_papers": {
+    "items": {
+      "RMM07799_V7033": {
+        "RMM07799_V7033.mov": {
+          "sha1": "29687544404ec0ed273b1ae1766a1390acfe5c90"
+        },
+        "RMM07799_V7033.mp4": {
+          "sha1": "a11f30793ef53ace821110b04c12d4bb78dfc948"
+        }
+      },
+      "RMM07799_V7038": {
+        "RMM07799_V7038.mov": {
+          "sha1": "8e1501831ece3cbcb035fccb5768f76b33e859b8"
+        },
+        "RMM07799_V7038.mp4": {
+          "sha1": "3aa6d37ad02b4219ad484693ebf37fe8349adc1c"
+        }
+      }
+    }
+  }
+}

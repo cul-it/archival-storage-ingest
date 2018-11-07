@@ -1,0 +1,28 @@
+{
+  "RMC/RMM/RMM07799_Arch_Brown_papers": {
+    "phys_coll_id": "RMM07799",
+    "steward": "eef46",
+    "items": {
+      "RMM07799_V7038": {
+        "RMM07799_V7038.mov": {
+          "size": 101501840603,
+          "sha1": "8e1501831ece3cbcb035fccb5768f76b33e859b8"
+        },
+        "RMM07799_V7038.mp4": {
+          "size": 1410133777,
+          "sha1": "3aa6d37ad02b4219ad484693ebf37fe8349adc1c"
+        }
+      },
+      "RMM07799_V7033": {
+        "RMM07799_V7033.mp4": {
+          "size": 2981003402,
+          "sha1": "f1ae75662cc21390633bf2fececa210a1d39b4b5"
+        },
+        "RMM07799_V7033.mov": {
+          "size": 210957812519,
+          "sha1": "29687544404ec0ed273b1ae1766a1390acfe5c90"
+        }
+      }
+    }
+  }
+}

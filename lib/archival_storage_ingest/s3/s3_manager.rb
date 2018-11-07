@@ -90,4 +90,8 @@ class S3Manager
   def manifest_key(ingest_id, type)
     ".manifest/#{ingest_id}_#{type}.json"
   end
+
+  def retrieve_file(s3_key)
+    @s3.bucket(@s3_bucket).object(s3_key).get.body
+  end
 end

@@ -10,18 +10,20 @@ require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/workers/fixity_compare_worker'
 require 'archival_storage_ingest/workers/fixity_worker'
 require 'archival_storage_ingest/workers/transfer_worker'
-require 'archival_storage_ingest/s3/s3_manager'
 require 'yaml'
 require 'aws-sdk-sqs'
 
 # Main archival storage ingest server module
 module ArchivalStorageIngest
+  COMMAND_SERVER_START = 'start'
+  COMMAND_SERVER_STATUS = 'status'
+  COMMAND_SERVER_STOP = 'stop'
+
   class Configuration
     attr_accessor :subscribed_queue_name, :in_progress_queue_name, :log_path, :debug
     attr_accessor :message_queue_name, :worker, :dest_queue_names
 
     attr_writer :msg_q, :dest_qs, :wip_q
-    attr_writer :s3_bucket, :s3_manager, :dry_run
 
     # for use in tests
     attr_writer :logger, :queuer
@@ -44,18 +46,6 @@ module ArchivalStorageIngest
 
     def wip_q
       @wip_q ||= IngestQueue::SQSQueue.new(in_progress_queue_name, queuer)
-    end
-
-    def s3_bucket
-      @s3_bucket ||= 's3-cular'
-    end
-
-    def s3_manager
-      @s3_manager ||= S3Manager.new(s3_bucket)
-    end
-
-    def dry_run
-      @dry_run ||= false
     end
   end
 

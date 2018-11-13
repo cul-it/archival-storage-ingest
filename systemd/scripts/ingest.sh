@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-export archival_storage_ingest_config=/cul/app/archival_storage_ingest/conf/ingest.yaml
+# export asi_s3_ingest_log_path='/cul/app/archival_storage_ingest/logs/ingest.log'
+# export asi_ingest_debug=false
+# export asi_ingest_dry_run=false
+# export asi_ingest_s3_bucket=s3-cular
 
 export PATH="$PATH:/cul/app/archival_storage_ingest/rvm"
 source /cul/app/archival_storage_ingest/rvm/scripts/rvm

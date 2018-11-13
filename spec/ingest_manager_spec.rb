@@ -2,6 +2,7 @@
 
 require 'spec_helper'
 require 'rspec/mocks'
+require 'archival_storage_ingest'
 
 RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
   before(:each) do

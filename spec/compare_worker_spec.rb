@@ -3,6 +3,7 @@
 require 'spec_helper'
 require 'rspec/mocks'
 require 'aws-sdk-s3'
+require 'archival_storage_ingest/workers/fixity_compare_worker'
 
 def resource(filename)
   File.join(File.dirname(__FILE__), ['resources', 'manifests', filename])

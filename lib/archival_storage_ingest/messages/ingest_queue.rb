@@ -81,7 +81,7 @@ module IngestQueue
     end
 
     def retrieve_message
-      IngestMessage.new(@queuer.retrieve_single_message(queue_name))
+      IngestMessage::SQSMessage.new(@queuer.retrieve_single_message(queue_name))
     end
 
     def delete_message(msg, queue_name)

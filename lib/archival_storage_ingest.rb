@@ -180,6 +180,9 @@ module ArchivalStorageIngest
     end
 
     # Make this function wait 10 seconds before deletion.
+    # The message is not viewable immediately after it is sent.
+    # If the work is completed very quickly, by the time the code
+    # reaches here, the message may not be available, yet.
     def remove_wip_msg
       sleep 10
       msg = @wip_q.retrieve_message

@@ -21,27 +21,43 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
       collection: collection
     )
   end
-  let(:expected_hash) do
+  # let(:expected_hash) do
+  #   {
+  #     number_files: 2,
+  #     files: [
+  #       {
+  #         filepath: "#{depositor}/#{collection}/1/one.zip",
+  #         sha1: 'c19ed993b201bd33b3765c3f6ec59bd39f995629'
+  #       },
+  #       {
+  #         filepath: "#{depositor}/#{collection}/2/two.zip",
+  #         sha1: '86c6167b8a8245a699a5735a3c56890421c28689'
+  #       }
+  #     ]
+  #   }
+  # end
+  let(:expected_old_hash) do
     {
-      number_files: 2,
-      files: [
-        {
-          filepath: "#{depositor}/#{collection}/1/one.zip",
-          sha1: 'c19ed993b201bd33b3765c3f6ec59bd39f995629'
-        },
-        {
-          filepath: "#{depositor}/#{collection}/2/two.zip",
-          sha1: '86c6167b8a8245a699a5735a3c56890421c28689'
+      "#{depositor}/#{collection}" => {
+        items: {
+          '1/one.zip' => {
+            sha1: 'c19ed993b201bd33b3765c3f6ec59bd39f995629'
+          },
+          '2/two.zip' => {
+            sha1: '86c6167b8a8245a699a5735a3c56890421c28689'
+          }
         }
-      ]
+      }
     }
   end
   let(:s3_manager) do
     s3m = S3Manager.new('bogus_bucket')
     allow(s3m).to receive(:upload_string)
-      .with(".manifest/#{ingest_id}_s3.json", expected_hash.to_json) { true }
+      .with(".manifest/#{ingest_id}_s3.json", expected_old_hash.to_json) { true }
+      # .with(".manifest/#{ingest_id}_s3.json", expected_hash.to_json) { true }
     allow(s3m).to receive(:upload_string)
-      .with(".manifest/#{ingest_id}_sfs.json", expected_hash.to_json) { true }
+      .with(".manifest/#{ingest_id}_sfs.json", expected_old_hash.to_json) { true }
+      # .with(".manifest/#{ingest_id}_sfs.json", expected_hash.to_json) { true }
     allow(s3m).to receive(:upload_file)
       .with(any_args)
       .and_raise(IngestException, 'upload_file must not be called in this test!')
@@ -74,7 +90,8 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
       it 'returns manifest' do
         object_keys = s3_manager.list_object_keys(msg.collection_s3_prefix)
         manifest = worker.generate_manifest(object_keys)
-        expect(manifest.manifest_hash).to eq(expected_hash)
+        # expect(manifest.manifest_hash).to eq(expected_old_hash)
+        expect(manifest.to_old_manifest(depositor, collection)).to eq(expected_old_hash)
       end
     end
   end
@@ -93,7 +110,8 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
     context 'when generating manifest' do
       it 'returns manifest' do
         manifest = worker.generate_manifest(msg)
-        expect(manifest.manifest_hash).to eq(expected_hash)
+        # expect(manifest.manifest_hash).to eq(expected_hash)
+        expect(manifest.to_old_manifest(depositor, collection)).to eq(expected_old_hash)
       end
     end
 

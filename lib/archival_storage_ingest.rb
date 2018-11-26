@@ -33,7 +33,7 @@ module ArchivalStorageIngest
     end
 
     def dest_qs
-      @dest_qs ||= dest_queue_names.each { |qn| IngestQueue::SQSQueue.new(qn, queuer) }
+      @dest_qs ||= dest_queue_names.map { |qn| IngestQueue::SQSQueue.new(qn, queuer) }
     end
 
     def wip_q
@@ -85,10 +85,11 @@ module ArchivalStorageIngest
 
       msg = IngestMessage::SQSMessage.new(
         ingest_id: SecureRandom.uuid,
-        depositor: config['depositor'],
-        collection: config['collection'],
-        data_path: config['data_path'],
-        dest_path: config['dest_path']
+        depositor: ingest_config['depositor'],
+        collection: ingest_config['collection'],
+        data_path: ingest_config['data_path'],
+        dest_path: ingest_config['dest_path'],
+        ingest_manifest: ingest_config['ingest_manifest']
       )
       @queuer.put_message(Queues::QUEUE_INGEST, msg)
     end
@@ -98,9 +99,9 @@ module ArchivalStorageIngest
       puts "Collection: #{ingest_config['collection']}"
       puts "Data Path: #{ingest_config['data_path']}"
       puts "Destination Path: #{ingest_config['dest_path']}"
+      puts "Ingest Manifest: #{ingest_config['ingest_manifest']}"
       puts 'Queue ingest? (Y/N)'
-      input = gets.chomp
-      'y'.casecmp(input).zero?
+      'y'.casecmp(gets.chomp).zero?
     end
 
     def start_server
@@ -152,13 +153,16 @@ module ArchivalStorageIngest
 
     def move_msg_to_wip(msg)
       @wip_q.send_message(msg)
-      @msg_q.delete_message(msg, @msg_q.queue_name)
+      @msg_q.delete_message(msg)
     end
 
+    # Make this function wait 10 seconds before deletion.
     def remove_wip_msg
+      sleep 10
       msg = @wip_q.retrieve_message
+      @logger.debug("WIP MSG: #{msg}")
       # report error if this in nil?
-      @wip_q.delete_message(msg, @wip_q.queue_name)
+      @wip_q.delete_message(msg)
     end
   end
 end

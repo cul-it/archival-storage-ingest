@@ -5,6 +5,7 @@ require 'archival_storage_ingest/options/command_parser'
 require 'yaml'
 
 require 'archival_storage_ingest'
+require 'archival_storage_ingest/workers/worker'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
 require 'archival_storage_ingest/messages/queues'
 

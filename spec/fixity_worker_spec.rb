@@ -54,10 +54,10 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
     s3m = S3Manager.new('bogus_bucket')
     allow(s3m).to receive(:upload_string)
       .with(".manifest/#{ingest_id}_s3.json", expected_old_hash.to_json) { true }
-      # .with(".manifest/#{ingest_id}_s3.json", expected_hash.to_json) { true }
+    # .with(".manifest/#{ingest_id}_s3.json", expected_hash.to_json) { true }
     allow(s3m).to receive(:upload_string)
       .with(".manifest/#{ingest_id}_sfs.json", expected_old_hash.to_json) { true }
-      # .with(".manifest/#{ingest_id}_sfs.json", expected_hash.to_json) { true }
+    # .with(".manifest/#{ingest_id}_sfs.json", expected_hash.to_json) { true }
     allow(s3m).to receive(:upload_file)
       .with(any_args)
       .and_raise(IngestException, 'upload_file must not be called in this test!')

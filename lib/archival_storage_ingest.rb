@@ -156,7 +156,7 @@ module ArchivalStorageIngest
 
       return if (msg = msg_q.retrieve_message).nil?
 
-      @logger.info("Message received: #{msg}")
+      @logger.info("Message received: #{msg.to_json}")
 
       move_msg_to_wip(msg)
 
@@ -186,7 +186,6 @@ module ArchivalStorageIngest
     def remove_wip_msg
       sleep 10
       msg = @wip_q.retrieve_message
-      @logger.debug("WIP MSG: #{msg}")
       # report error if this in nil?
       @wip_q.delete_message(msg)
     end

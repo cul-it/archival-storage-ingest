@@ -94,6 +94,29 @@ module ArchivalStorageIngest
       @queuer.put_message(Queues::QUEUE_INGEST, msg)
     end
 
+    def move_message(conf)
+      raise '-s and -t flags are required!' if conf[:source].nil? || conf[:target].nil?
+
+      msg = remove_from_source_queue(conf[:source])
+
+      target_q = IngestQueue::SQSQueue.new(conf[:target], @queuer)
+      target_q.send_message(msg)
+      puts "Sent message to the target queue #{conf[:target]}"
+
+      puts 'Move message complete'
+    end
+
+    def remove_from_source_queue(source_queue_name)
+      source_q = IngestQueue::SQSQueue.new(source_queue_name, @queuer)
+      msg = source_q.retrieve_message
+      puts "Message: #{msg}"
+
+      source_q.delete_message(msg)
+      puts "Removed message from the source queue #{source_queue_name}"
+
+      msg
+    end
+
     def confirm_ingest(ingest_config)
       puts "Depositor: #{ingest_config['depositor']}"
       puts "Collection: #{ingest_config['collection']}"

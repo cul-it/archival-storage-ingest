@@ -35,7 +35,7 @@ class S3Manager
   end
 
   def upload_string(s3_key, data)
-    s3.bucket(@s3_bucket).object(s3_key).put(data)
+    s3.bucket(@s3_bucket).object(s3_key).put(body: data)
   rescue Aws::S3::Errors::ServiceError => e
     raise IngestException, "S3 upload data stream failed!\n" + parse_s3_error(e)
   end
@@ -57,7 +57,7 @@ class S3Manager
   end
 
   def _list_object(prefix, continuation_token)
-    @s3.client.list_objects_v2(bucket: @s3_bucket, prefix: prefix, continuation_token: continuation_token)
+    s3.client.list_objects_v2(bucket: @s3_bucket, prefix: prefix, continuation_token: continuation_token)
   end
 
   def _list_keys(list_object_resp)
@@ -78,7 +78,7 @@ class S3Manager
     retries ||= 0
 
     dig = Digest::SHA1.new
-    @s3.client.get_object(bucket: @s3_bucket, key: s3_key) do |chunk|
+    s3.client.get_object(bucket: @s3_bucket, key: s3_key) do |chunk|
       dig.update(chunk)
     end
     dig
@@ -92,6 +92,6 @@ class S3Manager
   end
 
   def retrieve_file(s3_key)
-    @s3.bucket(@s3_bucket).object(s3_key).get.body
+    s3.bucket(@s3_bucket).object(s3_key).get.body
   end
 end

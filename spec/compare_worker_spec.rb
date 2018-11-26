@@ -26,9 +26,9 @@ RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
   let(:flat9) { File.open(resource('9ItemsShaOnlyReordered.json')) }
   let(:ingest) { File.open(resource('10ItemsFull.json')) }
 
-  let(:sfs_key) { '.manifest/test_1234_SFS.json' }
-  let(:s3_key) { '.manifest/test_1234_S3.json' }
-  let(:ingest_key) { '.manifest/test_1234_ingest.json' }
+  let(:sfs_key) { '.manifest/test_1234_sfs.json' }
+  let(:s3_key) { '.manifest/test_1234_s3.json' }
+  let(:ingest_key) { '.manifest/test_1234_ingest_manifest.json' }
 
   let(:msg) do
     IngestMessage::SQSMessage.new(
@@ -61,8 +61,8 @@ RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
       setup_manifests(full10, nil)
 
       expect(worker.work(msg)).to be_falsey
-      expect(s3_manager).to have_received(:retrieve_file).with('.manifest/test_1234_S3.json')
-      expect(s3_manager).to have_received(:retrieve_file).with('.manifest/test_1234_SFS.json')
+      expect(s3_manager).to have_received(:retrieve_file).with('.manifest/test_1234_s3.json')
+      expect(s3_manager).to have_received(:retrieve_file).with('.manifest/test_1234_sfs.json')
     end
   end
 

@@ -29,4 +29,26 @@ module CommandParser
 
     attr_reader :ingest_config
   end
+
+  class MoveMessageCommandParser
+    def initialize
+      @config = {}
+    end
+
+    def parse!(args)
+      OptionParser.new do |opts|
+        opts.banner = 'Usage: archival_storage_move_message -s [source queue name] -t [target queue name]'
+
+        opts.on('-s source queue name', '--source_q source queue name', 'Source queue name') do |s|
+          config[:source] = s
+        end
+
+        opts.on('-t target queue name', '--target_q target queue name', 'Target queue name') do |t|
+          config[:target] = t
+        end
+      end.parse!(args)
+    end
+
+    attr_reader :config
+  end
 end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/workers/worker'
+
 class IngestWorker < Workers::Worker
   # Pass s3_manager only for tests.
   def initialize(s3_manager = nil)

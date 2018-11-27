@@ -81,10 +81,13 @@ module IngestQueue
     end
 
     def retrieve_message
-      IngestMessage.new(@queuer.retrieve_single_message(queue_name))
+      raw_message = @queuer.retrieve_single_message(queue_name)
+      return nil if raw_message.nil?
+
+      IngestMessage.convert_sqs_message(raw_message)
     end
 
-    def delete_message(msg, queue_name)
+    def delete_message(msg)
       @queuer.delete_message(msg, queue_name)
     end
   end

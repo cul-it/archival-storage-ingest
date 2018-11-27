@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/workers/worker'
+require 'archival_storage_ingest/manifests/manifests'
 
 module FixityCompareWorker
   class ManifestComparator < Workers::Worker
@@ -12,9 +13,9 @@ module FixityCompareWorker
     end
 
     def work(msg)
-      s3_manifest = retrieve_manifest(msg, 'S3')
-      sfs_manifest = retrieve_manifest(msg, 'SFS')
-      ingest_manifest = retrieve_manifest(msg, 'ingest')
+      s3_manifest = retrieve_manifest(msg, Workers::TYPE_S3)
+      sfs_manifest = retrieve_manifest(msg, Workers::TYPE_SFS)
+      ingest_manifest = retrieve_manifest(msg, Workers::TYPE_INGEST)
 
       raise IngestException, 'Ingest and SFS manifests do not match' unless ingest_manifest.flattened == sfs_manifest.flattened
 

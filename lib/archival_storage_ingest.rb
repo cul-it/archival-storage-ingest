@@ -33,7 +33,7 @@ module ArchivalStorageIngest
     end
 
     def dest_qs
-      @dest_qs ||= dest_queue_names.each { |qn| IngestQueue::SQSQueue.new(qn, queuer) }
+      @dest_qs ||= dest_queue_names.map { |qn| IngestQueue::SQSQueue.new(qn, queuer) }
     end
 
     def wip_q
@@ -85,12 +85,36 @@ module ArchivalStorageIngest
 
       msg = IngestMessage::SQSMessage.new(
         ingest_id: SecureRandom.uuid,
-        depositor: config['depositor'],
-        collection: config['collection'],
-        data_path: config['data_path'],
-        dest_path: config['dest_path']
+        depositor: ingest_config['depositor'],
+        collection: ingest_config['collection'],
+        data_path: ingest_config['data_path'],
+        dest_path: ingest_config['dest_path'],
+        ingest_manifest: ingest_config['ingest_manifest']
       )
       @queuer.put_message(Queues::QUEUE_INGEST, msg)
+    end
+
+    def move_message(conf)
+      raise '-s and -t flags are required!' if conf[:source].nil? || conf[:target].nil?
+
+      msg = remove_from_source_queue(conf[:source])
+
+      target_q = IngestQueue::SQSQueue.new(conf[:target], @queuer)
+      target_q.send_message(msg)
+      puts "Sent message to the target queue #{conf[:target]}"
+
+      puts 'Move message complete'
+    end
+
+    def remove_from_source_queue(source_queue_name)
+      source_q = IngestQueue::SQSQueue.new(source_queue_name, @queuer)
+      msg = source_q.retrieve_message
+      puts "Message: #{msg}"
+
+      source_q.delete_message(msg)
+      puts "Removed message from the source queue #{source_queue_name}"
+
+      msg
     end
 
     def confirm_ingest(ingest_config)
@@ -98,9 +122,9 @@ module ArchivalStorageIngest
       puts "Collection: #{ingest_config['collection']}"
       puts "Data Path: #{ingest_config['data_path']}"
       puts "Destination Path: #{ingest_config['dest_path']}"
+      puts "Ingest Manifest: #{ingest_config['ingest_manifest']}"
       puts 'Queue ingest? (Y/N)'
-      input = gets.chomp
-      'y'.casecmp(input).zero?
+      'y'.casecmp(gets.chomp).zero?
     end
 
     def start_server
@@ -132,7 +156,7 @@ module ArchivalStorageIngest
 
       return if (msg = msg_q.retrieve_message).nil?
 
-      @logger.info("Message received: #{msg}")
+      @logger.info("Message received: #{msg.to_json}")
 
       move_msg_to_wip(msg)
 
@@ -152,13 +176,18 @@ module ArchivalStorageIngest
 
     def move_msg_to_wip(msg)
       @wip_q.send_message(msg)
-      @msg_q.delete_message(msg, @msg_q.queue_name)
+      @msg_q.delete_message(msg)
     end
 
+    # Make this function wait 10 seconds before deletion.
+    # The message is not viewable immediately after it is sent.
+    # If the work is completed very quickly, by the time the code
+    # reaches here, the message may not be available, yet.
     def remove_wip_msg
+      sleep 10
       msg = @wip_q.retrieve_message
       # report error if this in nil?
-      @wip_q.delete_message(msg, @wip_q.queue_name)
+      @wip_q.delete_message(msg)
     end
   end
 end

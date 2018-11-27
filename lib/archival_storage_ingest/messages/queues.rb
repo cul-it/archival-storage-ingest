@@ -16,5 +16,5 @@ module Queues
   QUEUE_FIXITY_COMPARE = 'cular_development_comparison'
   QUEUE_FIXITY_COMPARE_IN_PROGRESS = 'cular_development_comparison_in_progress'
   QUEUE_ERROR = 'cular_development_error'
-  QUEUE_COMPLETE = 'cular_development_complete'
+  QUEUE_COMPLETE = 'cular_development_done'
 end

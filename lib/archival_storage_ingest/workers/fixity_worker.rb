@@ -10,6 +10,8 @@ require 'pathname'
 # We don't expect to encounter symlinks on fixity checker!
 # We will store JSON on memory while generating it.
 # If memory usage becomes an issue, then we will try sax-like approach.
+#
+# Until CULAR-1588 gets finalized, use old manifest format.
 
 module FixityWorker
   class S3FixityGenerator < Workers::Worker
@@ -24,7 +26,8 @@ module FixityWorker
       manifest = generate_manifest(object_keys)
 
       manifest_s3_key = @s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_S3)
-      data = manifest.manifest_hash.to_json
+      # data = manifest.manifest_hash.to_json
+      data = manifest.to_old_manifest(msg.depositor, msg.collection).to_json
       @s3_manager.upload_string(manifest_s3_key, data)
 
       true
@@ -54,7 +57,8 @@ module FixityWorker
       manifest = generate_manifest(msg)
 
       manifest_s3_key = @s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_SFS)
-      data = manifest.manifest_hash.to_json
+      # data = manifest.manifest_hash.to_json
+      data = manifest.to_old_manifest(msg.depositor, msg.collection).to_json
       @s3_manager.upload_string(manifest_s3_key, data)
 
       true

@@ -20,5 +20,5 @@ end
 option_parser = CommandParser::MoveMessageCommandParser.new
 option_parser.parse!(ARGV)
 
-ingest_manager = ArchivalStorageIngest::IngestManager.new
-ingest_manager.move_message(option_parser.config)
+message_mover = ArchivalStorageIngest::MessageMover.new
+message_mover.move_message(option_parser.config)

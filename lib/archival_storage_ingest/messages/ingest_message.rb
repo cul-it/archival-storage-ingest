@@ -20,7 +20,7 @@ module IngestMessage
     TYPE_FIXITY_COMPARE => Queues::QUEUE_FIXITY_COMPARE
   }.freeze
 
-  def self.convert_sqs_message(sqs_message)
+  def self.convert_sqs_response(sqs_message)
     json = JSON.parse(sqs_message.body)
     SQSMessage.new(
       ingest_id: json['ingest_id'],

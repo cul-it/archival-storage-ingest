@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'optparse'
-require 'archival_storage_ingest'
+require 'archival_storage_ingest/exception/ingest_exception'
 
 # option parser
 module CommandParser
@@ -21,7 +21,7 @@ module CommandParser
         end
       end.parse!(args)
 
-      raise options[:ingest_config] + ' is not a valid file' unless
+      raise IngestException, options[:ingest_config] + ' is not a valid file' unless
           File.file?(options[:ingest_config])
 
       @ingest_config = options[:ingest_config]

@@ -10,12 +10,15 @@ require 'archival_storage_ingest/s3/s3_manager'
 
 # Main archival storage ingest server module
 module ArchivalStorageIngest
+  DEFAULT_POLLING_INTERVAL = 60
+  WIP_REMOVAL_WAIT_TIME = 10
+
   class Configuration
     attr_accessor :message_queue_name, :in_progress_queue_name, :log_path, :debug
     attr_accessor :worker, :dest_queue_names
 
     attr_writer :msg_q, :dest_qs, :wip_q
-    attr_writer :s3_bucket, :s3_manager, :dry_run
+    attr_writer :s3_bucket, :s3_manager, :dry_run, :polling_interval
 
     # for use in tests
     attr_writer :logger, :queuer
@@ -51,6 +54,10 @@ module ArchivalStorageIngest
     def dry_run
       @dry_run ||= false
     end
+
+    def polling_interval
+      @polling_interval ||= DEFAULT_POLLING_INTERVAL
+    end
   end
 
   class << self
@@ -71,13 +78,88 @@ module ArchivalStorageIngest
 
     def initialize
       @logger = ArchivalStorageIngest.configuration.logger
-      @queuer = ArchivalStorageIngest.configuration.queuer
       @msg_q = ArchivalStorageIngest.configuration.msg_q
       @wip_q = ArchivalStorageIngest.configuration.wip_q
       @dest_qs = ArchivalStorageIngest.configuration.dest_qs
       @worker = ArchivalStorageIngest.configuration.worker
+      @polling_interval = ArchivalStorageIngest.configuration.polling_interval
 
       @state = 'uninitialized'
+    end
+
+    def start_server
+      initialize_server
+
+      loop do
+        begin
+          sleep(@polling_interval)
+          do_work
+        rescue IngestException => ex
+          notify_and_quit(ex)
+        end
+      end
+    end
+
+    def notify_and_quit(exception)
+      # notify admins!
+      @logger.fatal(exception)
+      exit(0)
+    end
+
+    def initialize_server
+      @state = 'started'
+    end
+
+    # To test do_work, I need to pass in the queues, logger, and worker for it to use
+    def do_work
+      # work is to get a message from msg_q,
+      # process it, and pass it along to the next queue
+
+      check_wip
+
+      return if (msg = @msg_q.retrieve_message).nil?
+
+      @logger.info("Message received: #{msg.to_json}")
+
+      move_msg_to_wip(msg)
+
+      send_next_message(msg) if @worker.work(msg)
+
+      remove_wip_msg
+    end
+
+    def check_wip
+      msg = @wip_q.retrieve_message
+      raise IngestException unless msg.nil?
+    end
+
+    def move_msg_to_wip(msg)
+      @wip_q.send_message(msg)
+      @msg_q.delete_message(msg)
+    end
+
+    # Make this function wait 10 seconds before deletion.
+    # The message is not viewable immediately after it is sent.
+    # If the work is completed very quickly, by the time the code
+    # reaches here, the message may not be available, yet.
+    # Waiting for 10 seconds will ensure we get the message.
+    def remove_wip_msg
+      sleep WIP_REMOVAL_WAIT_TIME
+      msg = @wip_q.retrieve_message
+      # report error if this in nil?
+      @wip_q.delete_message(msg)
+    end
+
+    def send_next_message(msg)
+      @dest_qs.each do |queue|
+        queue.send_message(msg)
+      end
+    end
+  end
+
+  class IngestQueuer
+    def initialize
+      @queuer = ArchivalStorageIngest.configuration.queuer
     end
 
     def queue_ingest(ingest_config)
@@ -92,6 +174,22 @@ module ArchivalStorageIngest
         ingest_manifest: ingest_config['ingest_manifest']
       )
       @queuer.put_message(Queues::QUEUE_INGEST, msg)
+    end
+
+    def confirm_ingest(ingest_config)
+      puts "Depositor: #{ingest_config['depositor']}"
+      puts "Collection: #{ingest_config['collection']}"
+      puts "Data Path: #{ingest_config['data_path']}"
+      puts "Destination Path: #{ingest_config['dest_path']}"
+      puts "Ingest Manifest: #{ingest_config['ingest_manifest']}"
+      puts 'Queue ingest? (Y/N)'
+      'y'.casecmp(gets.chomp).zero?
+    end
+  end
+
+  class MessageMover
+    def initialize
+      @queuer = ArchivalStorageIngest.configuration.queuer
     end
 
     def move_message(conf)
@@ -115,79 +213,6 @@ module ArchivalStorageIngest
       puts "Removed message from the source queue #{source_queue_name}"
 
       msg
-    end
-
-    def confirm_ingest(ingest_config)
-      puts "Depositor: #{ingest_config['depositor']}"
-      puts "Collection: #{ingest_config['collection']}"
-      puts "Data Path: #{ingest_config['data_path']}"
-      puts "Destination Path: #{ingest_config['dest_path']}"
-      puts "Ingest Manifest: #{ingest_config['ingest_manifest']}"
-      puts 'Queue ingest? (Y/N)'
-      'y'.casecmp(gets.chomp).zero?
-    end
-
-    def start_server
-      initialize_server
-
-      begin
-        do_work
-      rescue IngestException => ex
-        notify_and_quit(ex)
-      end
-    end
-
-    def notify_and_quit(exception)
-      # notify admins!
-      @logger.fatal(exception)
-      exit(0)
-    end
-
-    def initialize_server
-      @state = 'started'
-    end
-
-    # To test do_work, I need to pass in the queues, logger, and worker for it to use
-    def do_work(msg_q: @msg_q, worker: @worker, dest_qs: @dest_qs)
-      # work is to get a message from msg_q,
-      # process it, and pass it along to the next queue
-
-      check_wip
-
-      return if (msg = msg_q.retrieve_message).nil?
-
-      @logger.info("Message received: #{msg.to_json}")
-
-      move_msg_to_wip(msg)
-
-      if worker.work(msg)
-        dest_qs.each do |queue|
-          queue.send_message(msg)
-        end
-      end
-
-      remove_wip_msg
-    end
-
-    def check_wip
-      msg = @wip_q.retrieve_message
-      raise IngestException unless msg.nil?
-    end
-
-    def move_msg_to_wip(msg)
-      @wip_q.send_message(msg)
-      @msg_q.delete_message(msg)
-    end
-
-    # Make this function wait 10 seconds before deletion.
-    # The message is not viewable immediately after it is sent.
-    # If the work is completed very quickly, by the time the code
-    # reaches here, the message may not be available, yet.
-    def remove_wip_msg
-      sleep 10
-      msg = @wip_q.retrieve_message
-      # report error if this in nil?
-      @wip_q.delete_message(msg)
     end
   end
 end

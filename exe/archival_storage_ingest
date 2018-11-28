@@ -23,5 +23,5 @@ option_parser = CommandParser::IngestCommandParser.new
 option_parser.parse!(ARGV)
 ingest_config = YAML.load_file(option_parser.ingest_config)
 
-ingest_manager = ArchivalStorageIngest::IngestManager.new
-ingest_manager.queue_ingest(ingest_config)
+ingest_queuer = ArchivalStorageIngest::IngestQueuer.new
+ingest_queuer.queue_ingest(ingest_config)

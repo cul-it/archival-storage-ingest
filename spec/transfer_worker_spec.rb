@@ -9,7 +9,7 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
   before(:each) do
     @s3_bucket = spy('s3_bucket')
     @s3_manager = spy('s3_manager')
-    @worker = TransferWorker::S3Transferer.new(@s3_manager)
+    @s3_worker = TransferWorker::S3Transferer.new(@s3_manager)
     @depositor = 'RMC/RMA'
     @collection = 'RMA0001234'
 
@@ -32,7 +32,7 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
       file = '/a/b/c/resource.txt'
       path_to_trim = Pathname.new('/a/b')
       expected_s3_key = 'c/resource.txt'
-      expect(@worker.s3_key(file, path_to_trim)).to eq(expected_s3_key)
+      expect(@s3_worker.s3_key(file, path_to_trim)).to eq(expected_s3_key)
     end
   end
 
@@ -43,7 +43,7 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
       path_to_trim = File.join(File.dirname(__FILE__),
                                'resources', 'transfer_workers', 'success')
       path_to_trim = Pathname.new(path_to_trim)
-      expect(@worker.process_path(path, path_to_trim)).to be_nil
+      expect(@s3_worker.process_path(path, path_to_trim)).to be_nil
       expect(@s3_manager).to have_received(:upload_file).exactly(0).times
     end
 
@@ -53,7 +53,7 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
       path_to_trim = File.join(File.dirname(__FILE__),
                                'resources', 'transfer_workers', 'success')
       path_to_trim = Pathname.new(path_to_trim)
-      @worker.process_path(path, path_to_trim)
+      @s3_worker.process_path(path, path_to_trim)
       expect(@s3_manager).to have_received(:upload_file).once
     end
   end
@@ -67,7 +67,7 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
         depositor: @depositor,
         collection: @collection
       )
-      expect(@worker.work(msg)).to eq(true)
+      expect(@s3_worker.work(msg)).to eq(true)
 
       expect(@s3_manager).to have_received(:upload_file).exactly(2).times
     end
@@ -83,7 +83,7 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
         collection: @collection
       )
       expect do
-        @worker.work(msg)
+        @s3_worker.work(msg)
       end.to raise_error(IngestException, 'Test error message')
 
       # Dir.glob returns listing in an arbitrary order.
@@ -101,7 +101,7 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
         depositor: @depositor,
         collection: @collection
       )
-      expect(@worker.work(msg)).to eq(true)
+      expect(@s3_worker.work(msg)).to eq(true)
 
       expect(@s3_manager).to have_received(:upload_file).exactly(3).times
     end
@@ -110,7 +110,7 @@ end
 
 RSpec.describe 'SFSTransferWorker' do # rubocop:disable BlockLength
   before(:each) do
-    @worker = TransferWorker::SFSTransferer.new
+    @sfs_worker = TransferWorker::SFSTransferer.new
     @symlinked_data_path = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'symlink')
     @test_dest_root = File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'dest')
     @depositor = 'RMC/RMA'
@@ -148,13 +148,13 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable BlockLength
         collection: @collection
       )
       path_to_trim = Pathname.new(@symlinked_data_path)
-      @worker.create_collection_dir(msg, path_to_trim)
+      @sfs_worker.create_collection_dir(msg, path_to_trim)
       expect(FileUtils).to have_received(:mkdir_p).exactly(0).times
     end
 
     it 'creates directory recursively if it does not exist' do
       path_to_trim = Pathname.new(@symlinked_data_path)
-      @worker.create_collection_dir(@msg, path_to_trim)
+      @sfs_worker.create_collection_dir(@msg, path_to_trim)
       expect(FileUtils).to have_received(:mkdir_p).once
     end
   end
@@ -164,7 +164,7 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable BlockLength
       path = File.join(@symlinked_data_path, @depositor, @collection, '1')
       path_to_trim = Pathname.new(@symlinked_data_path)
       dest_root = @msg.data_path # same dir as data_dir so we know this directory exists
-      @worker.process_path(path, path_to_trim, dest_root)
+      @sfs_worker.process_path(path, path_to_trim, dest_root)
       expect(FileUtils).to have_received(:mkdir).exactly(0).times
     end
 
@@ -172,7 +172,7 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable BlockLength
       path = File.join(@symlinked_data_path, @depositor, @collection, '1')
       path_to_trim = Pathname.new(@symlinked_data_path)
       dest_root = @msg.dest_path
-      @worker.process_path(path, path_to_trim, dest_root)
+      @sfs_worker.process_path(path, path_to_trim, dest_root)
       expect(FileUtils).to have_received(:mkdir).once
     end
 
@@ -180,7 +180,7 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable BlockLength
       path = File.join(@symlinked_data_path, @depositor, @collection, '1', 'resource1.txt')
       path_to_trim = Pathname.new(@symlinked_data_path)
       dest_root = @msg.dest_path
-      @worker.process_path(path, path_to_trim, dest_root)
+      @sfs_worker.process_path(path, path_to_trim, dest_root)
       expect(FileUtils).to have_received(:copy).once
     end
   end
@@ -191,7 +191,7 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable BlockLength
       path = '/b/c/d/resource.txt'
       path_to_trim = Pathname.new('/b/c')
       expected_destination = '/a/d/resource.txt'
-      expect(@worker.generate_dest_path(dest_root, path, path_to_trim)).to eq(expected_destination)
+      expect(@sfs_worker.generate_dest_path(dest_root, path, path_to_trim)).to eq(expected_destination)
     end
   end
 
@@ -201,13 +201,13 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable BlockLength
       file_path = '/a/data/abc/resource.txt'
       path_to_trim = Pathname.new('/a/data')
       expected = '/dest/abc/resource.txt'
-      expect(@worker.generate_dest_path(dest_root_dir, file_path, path_to_trim)).to eq(expected)
+      expect(@sfs_worker.generate_dest_path(dest_root_dir, file_path, path_to_trim)).to eq(expected)
     end
   end
 
   context 'when working on directory containing symlinked directory' do
     it 'follows symlinks correctly' do
-      expect(@worker.work(@msg)).to eq(true)
+      expect(@sfs_worker.work(@msg)).to eq(true)
 
       expect(FileUtils).to have_received(:mkdir_p).once
       expect(FileUtils).to have_received(:mkdir).exactly(3).times

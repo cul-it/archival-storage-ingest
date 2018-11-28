@@ -11,6 +11,7 @@ ArchivalStorageIngest.configure do |config|
   config.dry_run = ENV['asi_s3_transfer_dry_run'] || false
   config.debug = ENV['asi_s3_transfer_debug'] || false
   config.s3_bucket = ENV['asi_s3_transfer_bucket'] || 's3-cular'
+  config.polling_interval = ENV['asi_transfer_s3_polling_interval'] if ENV['asi_transfer_s3_polling_interval']
   config.message_queue_name = Queues::QUEUE_TRANSFER_S3
   config.in_progress_queue_name = Queues::QUEUE_TRANSFER_S3_IN_PROGRESS
   config.dest_queue_names = [Queues::QUEUE_FIXITY_S3]

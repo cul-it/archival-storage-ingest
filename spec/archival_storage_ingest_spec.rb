@@ -13,10 +13,7 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
     expect(ArchivalStorageIngest::VERSION).not_to be nil
   end
 
-  let(:queuer) do
-    logger = spy('logger')
-    IngestQueue::SQSQueuer.new(logger)
-  end
+  let(:queuer) { spy('queuer') }
 
   describe 'IngestQueuer' do
     let(:ingest_queuer) do

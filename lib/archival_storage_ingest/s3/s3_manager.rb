@@ -47,7 +47,7 @@ class S3Manager
     resp = _list_object(prefix, nil)
     object_keys = _list_keys(resp)
     while resp.is_truncated
-      resp = _list_object(prefix, resp.continuation_token)
+      resp = _list_object(prefix, resp.next_continuation_token)
       object_keys.concat(_list_keys(resp))
     end
 
@@ -61,11 +61,7 @@ class S3Manager
   end
 
   def _list_keys(list_object_resp)
-    object_keys = []
-    list_object_resp.contents.each do |object|
-      object_keys.push(object.key)
-    end
-    object_keys
+    list_object_resp.contents.map(&:key)
   end
 
   # https://aws.amazon.com/blogs/developer/downloading-objects-from-amazon-s3-using-the-aws-sdk-for-ruby/

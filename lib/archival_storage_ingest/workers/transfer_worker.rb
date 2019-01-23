@@ -7,10 +7,10 @@ require 'pathname'
 
 module TransferWorker
   EXCLUDE_FILE_LIST = {
-    '.DS_Store' => true,
-    '.Thumbs.db' => true,
-    '.BridgeCache' => true,
-    '.BridgeCacheT' => true
+    '.ds_store' => true,
+    'thumbs.db' => true,
+    '.bridgecache' => true,
+    '.bridgecachet' => true
   }.freeze
 
   # https://stackoverflow.com/questions/357754/can-i-traverse-symlinked-directories-in-ruby-with-a-glob
@@ -23,7 +23,7 @@ module TransferWorker
   class DirectoryWalker
     def process_immediate_children(dir)
       Dir.glob("#{dir}/*").each do |path|
-        next if EXCLUDE_FILE_LIST[File.basename(path)]
+        next if EXCLUDE_FILE_LIST[File.basename(path).downcase]
 
         yield(path)
       end
@@ -31,7 +31,7 @@ module TransferWorker
 
     def process_rest(dir)
       Dir.glob("#{dir}/**/*/**").each do |path|
-        next if EXCLUDE_FILE_LIST[File.basename(path)]
+        next if EXCLUDE_FILE_LIST[File.basename(path).downcase]
 
         yield(path)
       end

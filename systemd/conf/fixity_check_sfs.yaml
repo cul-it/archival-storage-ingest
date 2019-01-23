@@ -1,5 +1,0 @@
-subscribed_queue: cular_development_fixity_sfs
-
-log_path: /cul/app/archival_storage_ingest/logs/fixity_check_sfs.log
-
-debug: 0

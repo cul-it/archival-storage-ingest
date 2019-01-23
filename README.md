@@ -24,18 +24,6 @@ $ bundle install
 $ rake install
 ```
 
-After the gem is installed, you need to set up a configuration YAML file.
-
-It looks for archival_storage_ingest_config environment variable for the configuration file path.
-If it is not set, it uses a default value of /cul/app/archival_storage_ingest/conf/queue_ingest.yaml.
-Following is an example configuration file.
-
-```fixity_check_sfs.yaml
-subscribed_queue: cular_development_fixity_sfs
-log_path: /cul/app/archival_storage_ingest/logs/fixity_check_sfs.log
-debug: 0
-```
-
 #### AWS Configuration
 
 It uses AWS Ruby SDK.
@@ -62,12 +50,10 @@ We may implement a runnable command to handle this part in the future.
 
 Inside the systemd directory of this project, there are conf, scripts and service directory.
 - service directory contains systemd service files.
-- conf directory contains YAML config files for each of the services.
 - scripts directory contains shell scripts used by the systemd service.
 
 As cular user, make symlinks of conf and scripts directory and create log directory.
 ```bash
-$ ln -s PROJECT_DIR/systemd/conf /cul/app/archival_storage_ingest/conf
 $ ln -s PROJECT_DIR/systemd/scripts /cul/app/archival_storage_ingest/scripts
 $ mkdir /cul/app/archival_storage_ingest/logs
 ```
@@ -113,6 +99,14 @@ On S3 fixity checking VM, enable the following service.
 
 -i flag will queue a new ingest as described in the ingest config file.
 
+## Example ingest config file
+    ---
+    data_path: /cul/app/archival_storage_ingest/ingest/RMA1234/data
+    depositor: RMC/RMA
+    collection: RMA1234_Example_Collection
+    dest_path: /cul/data/archivalxx
+    ingest_manifest: /cul/app/archival_storage_ingest/ingest/RMA1234/manifest/ingest_manifest/_EM_RMC_RMA_RMA1234_ExampleCollection.json
+
 ## Development
 
 For development, you could also create a test gemset via RVM as well with the following command before installation.
@@ -124,13 +118,10 @@ For development, you could also create a test gemset via RVM as well with the fo
 ```json
 {
   "ingest_id": "UUID generated for this ingest",
-  "type": "Transfer S3"
 }
 ```
 
 ingest_id is generated when a new ingest is queued by a user and persists through all of the steps for that ingest.
-
-type designates the work that needs to be done upon reception.
 
 Any other information needed for the ingest should be included to this JSON.
 

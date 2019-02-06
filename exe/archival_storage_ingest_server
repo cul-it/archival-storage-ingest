@@ -16,6 +16,9 @@ ArchivalStorageIngest.configure do |config|
   config.in_progress_queue_name = Queues::QUEUE_INGEST_IN_PROGRESS
   config.dest_queue_names = [Queues::QUEUE_TRANSFER_S3, Queues::QUEUE_TRANSFER_SFS]
   config.worker = IngestWorker.new
+  config.inhibit_file = ENV['asi_ingest_inhibit_file'] || '/cul/app/archival_storage_ingest/control/ingest.inhibit'
+  config.global_inhibit_file = ENV['asi_global_inhibit_file'] || '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
+
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

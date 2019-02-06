@@ -16,9 +16,12 @@ module ArchivalStorageIngest
   class Configuration
     attr_accessor :message_queue_name, :in_progress_queue_name, :log_path, :debug
     attr_accessor :worker, :dest_queue_names
+    attr_accessor :inhibit_file, :global_inhibit_file
 
     attr_writer :msg_q, :dest_qs, :wip_q
-    attr_writer :s3_bucket, :s3_manager, :dry_run, :polling_interval
+
+
+    attr_writer :s3_bucket, :s3_manager, :dry_run, :polling_interval, :wip_removal_wait_time
 
     # for use in tests
     attr_writer :logger, :queuer
@@ -58,6 +61,11 @@ module ArchivalStorageIngest
     def polling_interval
       @polling_interval ||= DEFAULT_POLLING_INTERVAL
     end
+
+    def wip_removal_wait_time
+      @wip_removal_wait_time ||= WIP_REMOVAL_WAIT_TIME
+    end
+
   end
 
   class << self
@@ -77,12 +85,14 @@ module ArchivalStorageIngest
     attr_reader :state
 
     def initialize
-      @logger = ArchivalStorageIngest.configuration.logger
-      @msg_q = ArchivalStorageIngest.configuration.msg_q
-      @wip_q = ArchivalStorageIngest.configuration.wip_q
-      @dest_qs = ArchivalStorageIngest.configuration.dest_qs
-      @worker = ArchivalStorageIngest.configuration.worker
-      @polling_interval = ArchivalStorageIngest.configuration.polling_interval
+      @configuration = ArchivalStorageIngest.configuration
+      @logger = @configuration.logger
+      @msg_q = @configuration.msg_q
+      @wip_q = @configuration.wip_q
+      @wip_wait_time = @configuration.wip_removal_wait_time
+      @dest_qs = @configuration.dest_qs
+      @worker = @configuration.worker
+      @polling_interval = @configuration.polling_interval
 
       @state = 'uninitialized'
     end
@@ -93,11 +103,24 @@ module ArchivalStorageIngest
       loop do
         begin
           sleep(@polling_interval)
+
+          shutdown if shutdown?
+
           do_work
+
         rescue IngestException => ex
           notify_and_quit(ex)
         end
       end
+    end
+
+    def shutdown
+      @logger.info 'Gracefully shutting down'
+      exit 0
+    end
+
+    def shutdown?
+      File.exist?(@configuration.inhibit_file) || File.exist?(@configuration.global_inhibit_file)
     end
 
     def notify_and_quit(exception)
@@ -111,6 +134,9 @@ module ArchivalStorageIngest
     end
 
     # To test do_work, I need to pass in the queues, logger, and worker for it to use
+    #
+    # do_work processes a single message from the input queue.
+    #
     def do_work
       # work is to get a message from msg_q,
       # process it, and pass it along to the next queue
@@ -144,7 +170,7 @@ module ArchivalStorageIngest
     # reaches here, the message may not be available, yet.
     # Waiting for 10 seconds will ensure we get the message.
     def remove_wip_msg
-      sleep WIP_REMOVAL_WAIT_TIME
+      sleep @wip_wait_time
       msg = @wip_q.retrieve_message
       # report error if this in nil?
       @wip_q.delete_message(msg)

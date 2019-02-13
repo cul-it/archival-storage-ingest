@@ -20,7 +20,6 @@ module ArchivalStorageIngest
 
     attr_writer :msg_q, :dest_qs, :wip_q
 
-
     attr_writer :s3_bucket, :s3_manager, :dry_run, :polling_interval, :wip_removal_wait_time
 
     # for use in tests
@@ -65,7 +64,6 @@ module ArchivalStorageIngest
     def wip_removal_wait_time
       @wip_removal_wait_time ||= WIP_REMOVAL_WAIT_TIME
     end
-
   end
 
   class << self
@@ -107,7 +105,6 @@ module ArchivalStorageIngest
           shutdown if shutdown?
 
           do_work
-
         rescue IngestException => ex
           notify_and_quit(ex)
         end

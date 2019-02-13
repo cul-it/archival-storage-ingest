@@ -32,7 +32,7 @@ RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
   context 'when shutting down' do
     it 'will shutdown' do
       expect { @manager.shutdown }.to raise_error(SystemExit)
-      expect(@logger).to have_received(:info).with("Gracefully shutting down")
+      expect(@logger).to have_received(:info).with('Gracefully shutting down')
     end
   end
 

@@ -18,7 +18,6 @@ ArchivalStorageIngest.configure do |config|
   config.worker = IngestWorker.new
   config.inhibit_file = ENV['asi_ingest_inhibit_file'] || '/cul/app/archival_storage_ingest/control/ingest.inhibit'
   config.global_inhibit_file = ENV['asi_global_inhibit_file'] || '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
-
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

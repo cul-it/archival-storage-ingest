@@ -5,6 +5,11 @@
 
 Archival storage ingest is a ruby gem for automating parts of the ingest process.
 
+1. [Installation and configuration](#Installation)
+1. [Usage](#Usage)
+
+<a name="Installation"/>
+
 ## Installation
 
 #### Archival storage ingest installation
@@ -93,6 +98,16 @@ On cular-ingest server, you should enable the following services.
 On S3 fixity checking VM, enable the following service.
 - fixity_check_s3
 
+#### Graceful shutdown of the service
+
+Using `systemctl stop <servicename>` will cause the running service to terminate immediately, even in the middle of
+processing an item in the queue. This potentially leaves the system in a bad state.
+
+To prevent this, the services are configured to look for the presence of an "inhibit" file at `/cul/app/archival_storage_ingest/control/<service>.inhibit`
+to tell a specific service it should gracefully shutdown after finishing its current work, and to look at `/cul/app/archival_storage_ingest/control/archival_storage.inhibit` to gracefully shut down all services.
+
+<a name='Usage'>
+
 ## Usage
 
     $ archival_storage_ingest -i [PATH_TO_INGEST_CONFIG_FILE]
@@ -117,7 +132,7 @@ For development, you could also create a test gemset via RVM as well with the fo
 
 ```json
 {
-  "ingest_id": "UUID generated for this ingest",
+  "ingest_id": "UUID generated for this ingest"
 }
 ```
 

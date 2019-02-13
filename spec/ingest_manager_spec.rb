@@ -21,11 +21,19 @@ RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
       config.wip_q = @wip_q
       config.dest_qs = [@dest1_q, @dest2_q]
       config.worker = @worker
+      config.wip_removal_wait_time = 0
     end
 
     allow(@wip_q).to receive(:retrieve_message).and_return nil
 
     @manager = ArchivalStorageIngest::IngestManager.new
+  end
+
+  context 'when shutting down' do
+    it 'will shutdown' do
+      expect { @manager.shutdown }.to raise_error(SystemExit)
+      expect(@logger).to have_received(:info).with('Gracefully shutting down')
+    end
   end
 
   context 'when doing work' do # rubocop:disable BlockLength

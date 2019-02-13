@@ -16,6 +16,8 @@ ArchivalStorageIngest.configure do |config|
   config.in_progress_queue_name = Queues::QUEUE_TRANSFER_SFS_IN_PROGRESS
   config.dest_queue_names = [Queues::QUEUE_FIXITY_SFS]
   config.worker = TransferWorker::SFSTransferer.new
+  config.inhibit_file = ENV['asi_sfs_transfer_inhibit_file'] || '/cul/app/archival_storage_ingest/control/sfs_transfer.inhibit'
+  config.global_inhibit_file = ENV['asi_global_inhibit_file'] || '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

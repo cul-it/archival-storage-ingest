@@ -19,7 +19,7 @@ module FixityCompareWorker
 
       raise IngestException, 'Ingest and SFS manifests do not match' unless ingest_manifest.flattened == sfs_manifest.flattened
 
-      raise IngestException, 'Ingest and S3 manifests do not match' unless s3_manifest.flattened == ingest_manifest.flattened
+      raise IngestException, 'Ingest and S3 manifests do not match' unless ingest_manifest.flattened == s3_manifest.flattened
 
       true
     rescue Aws::S3::Errors::NoSuchKey

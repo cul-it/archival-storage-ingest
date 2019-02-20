@@ -37,9 +37,6 @@ class FixityCheck
       path.strip!
       dirs = path.split('/') # TODO: Fix this part to be more generic
       data_path = dirs[0..4].join('/') # "root" is element 0, cul is element 1, so depositor is 4
-      depcol = dirs[4...-1].join('/')
-
-      manifest = dirs[-1]
       collection = dirs[-2]
       depositor = File.join(dirs[4...-2])
       ingest_manifest = File.join(dirs[4..-1])
@@ -57,14 +54,15 @@ class FixityCheck
     dep = path.depositor
     col = path.collection
 
-    manifest_json = manifest.to_old_manifest(dep, col).to_json
-    manifest_fix = Manifests::Manifest.new(filename: 'fixity', json: StringIO.new(manifest_json))
+    fixity_manifest_json = manifest.to_old_manifest(dep, col).to_json
+    fixity_manifest = Manifests::Manifest.new(filename: 'fixity', json: StringIO.new(fixity_manifest_json))
+
     ingest_manifest_json = s3.retrieve_file(path.ingest_manifest)
     ingest_manifest = Manifests::Manifest.new(filename: 'collection', json: ingest_manifest_json)
 
-    difference = manifest_fix.diff(ingest_manifest)
+    difference = fixity_manifest.diff(ingest_manifest)
 
-    if difference.keys.length != 1 || difference['fixity'].keys.length != 1
+    unless difference.keys.length == 1 && difference['fixity'].keys.length == 1
       pp difference
       raise "#{dep} #{col} failed!"
     end

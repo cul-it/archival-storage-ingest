@@ -1,0 +1,87 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'pp'
+require 'json'
+
+require 'archival_storage_ingest'
+require 'archival_storage_ingest/workers/fixity_worker'
+require 'archival_storage_ingest/s3/s3_manager'
+require 'archival_storage_ingest/manifests/manifests'
+
+# require 'aws-sdk-s3'
+
+class FixityCheck
+  MANIFEST_PATH = '/cul/app/cular/manifest'
+
+  def s3
+    @s3 ||= S3Manager.new('s3-cular')
+  end
+
+  def worker
+    @worker ||= FixityWorker::S3FixityGenerator.new(s3)
+  end
+
+  # @return [list of manifest objects]
+  def manifest_list
+    IO.readlines('collection_manifests_math_africana.txt')
+  end
+
+  def generate_fixity_manifest(msg)
+    object_keys = s3.list_object_keys(msg.collection_s3_prefix)
+    worker.generate_manifest(object_keys)
+  end
+
+  def manifests
+    manifest_list.reverse.map do |path|
+      path.strip!
+      dirs = path.split('/') # TODO: Fix this part to be more generic
+      data_path = dirs[0..4].join('/') # "root" is element 0, cul is element 1, so depositor is 4
+      depcol = dirs[4...-1].join('/')
+
+      manifest = dirs[-1]
+      collection = dirs[-2]
+      depositor = File.join(dirs[4...-2])
+      ingest_manifest = File.join(dirs[4..-1])
+
+      IngestMessage::SQSMessage.new(
+        data_path: data_path,
+        depositor: depositor,
+        collection: collection,
+        ingest_manifest: ingest_manifest
+      )
+    end
+  end
+
+  def compare_manifest(manifest, path)
+    dep = path.depositor
+    col = path.collection
+
+    manifest_json = manifest.to_old_manifest(dep, col).to_json
+    manifest_fix = Manifests::Manifest.new(filename: 'fixity', json: StringIO.new(manifest_json))
+    ingest_manifest_json = s3.retrieve_file(path.ingest_manifest)
+    ingest_manifest = Manifests::Manifest.new(filename: 'collection', json: ingest_manifest_json)
+
+    difference = manifest_fix.diff(ingest_manifest)
+
+    if difference.keys.length != 1 || difference['fixity'].keys.length != 1
+      pp difference
+      raise "#{dep} #{col} failed!"
+    end
+  end
+
+  def check_manifest(path)
+    manifest = generate_fixity_manifest(path)
+    compare_manifest(manifest, path)
+  end
+
+  def check_all_manifests
+    paths = manifests
+
+    @bars = TTY::ProgressBar.new('Checking [:bar] :elapsed, :eta')
+    bars.iterate(paths) { |p| check_manifest p }
+  end
+end
+
+checker = FixityCheck.new
+checker.check_all_manifests

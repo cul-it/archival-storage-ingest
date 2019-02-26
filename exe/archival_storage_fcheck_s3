@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+# rubocop:disable all
+
 require 'pp'
 require 'json'
 
@@ -14,6 +16,8 @@ require 'archival_storage_ingest/manifests/manifests'
 class FixityCheck
   MANIFEST_PATH = '/cul/app/cular/manifest'
 
+  attr_reader :s3, :worker
+
   def s3
     @s3 ||= S3Manager.new('s3-cular')
   end
@@ -24,12 +28,11 @@ class FixityCheck
 
   # @return [list of manifest objects]
   def manifest_list
-    IO.readlines('collection_manifests_math_africana.txt')
+    IO.readlines('collection_manifests.txt')
   end
 
   def generate_fixity_manifest(msg)
-    object_keys = s3.list_object_keys(msg.collection_s3_prefix)
-    worker.generate_manifest(object_keys)
+    worker.generate_manifest(msg)
   end
 
   def manifests
@@ -76,8 +79,7 @@ class FixityCheck
   def check_all_manifests
     paths = manifests
 
-    @bars = TTY::ProgressBar.new('Checking [:bar] :elapsed, :eta')
-    bars.iterate(paths) { |p| check_manifest p }
+    paths.each(&method(:check_manifest))
   end
 end
 

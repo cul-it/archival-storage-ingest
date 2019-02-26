@@ -69,7 +69,7 @@ module FixityWorker
 
     def object_key_paths(msg)
       @s3_manager.list_object_keys(msg.collection_s3_prefix)
-        .map { |x| [x, x] }.to_h
+                 .map { |x| [x, x] }.to_h
     end
   end
 
@@ -100,9 +100,9 @@ module FixityWorker
       path_to_trim = Pathname.new(msg.dest_path)
 
       Find.find(assets_dir)
-        .reject { |path| File.directory?(path) }
-        .map { |path| [Pathname.new(path).relative_path_from(path_to_trim).to_s, path] }
-        .to_h
+          .reject { |path| File.directory?(path) }
+          .map { |path| [Pathname.new(path).relative_path_from(path_to_trim).to_s, path] }
+          .to_h
     end
   end
 end

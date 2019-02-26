@@ -14,49 +14,19 @@ require 'pathname'
 # Until CULAR-1588 gets finalized, use old manifest format.
 
 module FixityWorker
-  class S3FixityGenerator < Workers::Worker
-    # Pass s3_manager only for tests.
+  class FixityGenerator < Workers::Worker
     def initialize(s3_manager = nil)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
     end
 
-    def work(msg)
-      object_keys = @s3_manager.list_object_keys(msg.collection_s3_prefix)
-
-      manifest = generate_manifest(object_keys)
-
-      manifest_s3_key = @s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_S3)
-      # data = manifest.manifest_hash.to_json
-      data = manifest.to_old_manifest(msg.depositor, msg.collection).to_json
-      @s3_manager.upload_string(manifest_s3_key, data)
-
-      true
-    end
-
-    def generate_manifest(object_keys)
-      manifest = Manifest.new
-
-      object_keys.each do |s3_key|
-        checksum = @s3_manager.calculate_checksum(s3_key)
-        manifest.add_file(s3_key, checksum)
-      end
-
-      manifest
-    end
-  end
-
-  class SFSFixityGenerator < Workers::Worker
-    BUFFER_SIZE = 4096
-
-    # Pass s3_manager only for tests.
-    def initialize(s3_manager = nil)
-      @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
+    def worker_type
+      raise NotImplementedError
     end
 
     def work(msg)
       manifest = generate_manifest(msg)
 
-      manifest_s3_key = @s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_SFS)
+      manifest_s3_key = @s3_manager.manifest_key(msg.ingest_id, worker_type)
       # data = manifest.manifest_hash.to_json
       data = manifest.to_old_manifest(msg.depositor, msg.collection).to_json
       @s3_manager.upload_string(manifest_s3_key, data)
@@ -65,20 +35,52 @@ module FixityWorker
     end
 
     def generate_manifest(msg)
+      object_keys = object_key_paths(msg) # returns a hash of keys (dep/col/resource) to paths.
+
       manifest = Manifest.new
-      assets_dir = msg.effective_dest_path
-      path_to_trim = Pathname.new(msg.dest_path)
-
-      Find.find(assets_dir) do |path|
-        next if File.directory?(path)
-
-        checksum = calculate_checksum(path)
-        filepath = Pathname.new(path).relative_path_from(path_to_trim).to_s
-        manifest.add_file(filepath, checksum.hexdigest)
+      object_keys.each do |s3_key, path|
+        manifest.add_file(s3_key, calculate_checksum(path))
       end
 
       manifest
     end
+
+    def object_key_paths(_msg)
+      raise NotImplementedError
+    end
+
+    def calculate_checksum(_path)
+      raise NotImplementedError
+    end
+  end
+
+  class S3FixityGenerator < FixityGenerator
+    def worker_type
+      Workers::TYPE_S3
+    end
+
+    # Pass s3_manager only for tests.
+
+    def calculate_checksum(path)
+      @s3_manager.calculate_checksum(path)
+    end
+
+    private
+
+    def object_key_paths(msg)
+      @s3_manager.list_object_keys(msg.collection_s3_prefix)
+        .map { |x| [x, x] }.to_h
+    end
+  end
+
+  class SFSFixityGenerator < FixityGenerator
+    BUFFER_SIZE = 4096
+
+    def worker_type
+      Workers::TYPE_SFS
+    end
+
+    # Pass s3_manager only for tests.
 
     def calculate_checksum(file_path)
       File.open(file_path, 'rb') do |file|
@@ -87,8 +89,20 @@ module FixityWorker
           buffer = file.read(BUFFER_SIZE)
           dig.update(buffer)
         end
-        dig
+        dig.hexdigest
       end
+    end
+
+    private
+
+    def object_key_paths(msg)
+      assets_dir = msg.effective_dest_path
+      path_to_trim = Pathname.new(msg.dest_path)
+
+      Find.find(assets_dir)
+        .reject { |path| File.directory?(path) }
+        .map { |path| [Pathname.new(path).relative_path_from(path_to_trim).to_s, path] }
+        .to_h
     end
   end
 end

@@ -88,8 +88,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
 
     context 'when generating manifest' do
       it 'returns manifest' do
-        object_keys = s3_manager.list_object_keys(msg.collection_s3_prefix)
-        manifest = worker.generate_manifest(object_keys)
+        manifest = worker.generate_manifest(msg)
         # expect(manifest.manifest_hash).to eq(expected_old_hash)
         expect(manifest.to_old_manifest(depositor, collection)).to eq(expected_old_hash)
       end

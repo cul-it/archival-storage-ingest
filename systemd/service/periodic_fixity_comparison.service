@@ -1,10 +1,10 @@
 [Unit]
-Description=Archival Storage Fixity Comparison Server
+Description=Archival Storage Server Periodic Fixity Comparison
 
 [Service]
 Type=simple
 WorkingDirectory=/cul/app/archival_storage_ingest
-ExecStart=/cul/app/archival_storage_ingest/scripts/fixity_comparison.sh
+ExecStart=/cul/app/archival_storage_ingest/scripts/periodic_fixity_comparison.sh
 Restart=on-failure
 PrivateTmp=true
 

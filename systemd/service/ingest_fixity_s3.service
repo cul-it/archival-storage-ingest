@@ -1,0 +1,15 @@
+[Unit]
+Description=Archival Storage Server Ingest Fixity S3
+
+[Service]
+Type=simple
+WorkingDirectory=/cul/app/archival_storage_ingest
+ExecStart=/cul/app/archival_storage_ingest/scripts/ingest_fixity_s3.sh
+Restart=on-failure
+PrivateTmp=true
+
+User=cular
+Group=cular
+
+[Install]
+WantedBy=multi-user.target

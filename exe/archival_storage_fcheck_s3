@@ -23,7 +23,7 @@ class FixityCheck
   end
 
   def worker
-    @worker ||= FixityWorker::S3FixityGenerator.new(s3)
+    @worker ||= FixityWorker::IngestFixityS3Generator.new(s3)
   end
 
   # @return [list of manifest objects]

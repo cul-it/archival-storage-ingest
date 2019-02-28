@@ -7,16 +7,16 @@ require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/workers/fixity_compare_worker'
 
 ArchivalStorageIngest.configure do |config|
-  config.log_path = ENV['asi_compare_fixity_log_path'] || '/cul/app/archival_storage_ingest/logs/compare_fixity.log'
-  config.dry_run = ENV['asi_compare_fixity_dry_run'] || false
-  config.debug = ENV['asi_compare_fixity_debug'] || false
-  config.s3_bucket = ENV['asi_compare_fixity_bucket'] || 's3-cular'
-  config.polling_interval = ENV['asi_compare_fixity_polling_interval'] if ENV['asi_compare_fixity_polling_interval']
-  config.message_queue_name = Queues::QUEUE_FIXITY_COMPARE
-  config.in_progress_queue_name = Queues::QUEUE_FIXITY_COMPARE_IN_PROGRESS
+  config.log_path = ENV['asi_ingest_fixity_comparison_log_path'] || '/cul/app/archival_storage_ingest/logs/ingest_fixity_comparison.log'
+  config.dry_run = ENV['asi_ingest_fixity_comparison_dry_run'] || false
+  config.debug = ENV['asi_ingest_fixity_comparison_debug'] || false
+  config.s3_bucket = ENV['asi_ingest_fixity_comparison_bucket'] || 's3-cular'
+  config.polling_interval = ENV['asi_ingest_fixity_comparison_polling_interval'] if ENV['asi_ingest_fixity_comparison_polling_interval']
+  config.message_queue_name = Queues::QUEUE_INGEST_FIXITY_COMPARISON
+  config.in_progress_queue_name = Queues::QUEUE_INGEST_FIXITY_COMPARISON_IN_PROGRESS
   config.dest_queue_names = [Queues::QUEUE_COMPLETE]
   config.worker = FixityCompareWorker::ManifestComparator.new
-  config.inhibit_file = ENV['asi_compare_fixity_inhibit_file'] || '/cul/app/archival_storage_ingest/control/compare_fixity.inhibit'
+  config.inhibit_file = ENV['asi_ingest_fixity_comparison_inhibit_file'] || '/cul/app/archival_storage_ingest/control/ingest_fixity_comparison.inhibit'
   config.global_inhibit_file = ENV['asi_global_inhibit_file'] || '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
 end
 

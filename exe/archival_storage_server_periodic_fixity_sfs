@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'archival_storage_ingest'
+require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
+require 'archival_storage_ingest/messages/queues'
+require 'archival_storage_ingest/workers/fixity_worker'
+
+ArchivalStorageIngest.configure do |config|
+  config.log_path = ENV['asi_periodic_fixity_sfs_log_path'] || '/cul/app/archival_storage_ingest/logs/periodic_fixity_sfs.log'
+  config.dry_run = ENV['asi_periodic_fixity_sfs_dry_run'] || false
+  config.debug = ENV['asi_periodic_fixity_sfs_debug'] || false
+  config.s3_bucket = ENV['asi_periodic_fixity_sfs_bucket'] || 's3-cular'
+  config.polling_interval = ENV['asi_periodic_fixity_sfs_polling_interval'] if ENV['asi_periodic_fixity_sfs_polling_interval']
+  config.message_queue_name = Queues::QUEUE_PERIODIC_FIXITY_SFS
+  config.in_progress_queue_name = Queues::QUEUE_PERIODIC_FIXITY_SFS_IN_PROGRESS
+  config.dest_queue_names = [Queues::QUEUE_PERIODIC_FIXITY_COMPARISON]
+  config.worker = FixityWorker::PeriodicFixitySFSGenerator.new
+  config.inhibit_file = ENV['asi_periodic_fixity_sfs_inhibit_file'] || '/cul/app/archival_storage_ingest/control/periodic_fixity_sfs.inhibit'
+  config.global_inhibit_file = ENV['asi_global_inhibit_file'] || '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
+end
+
+ingest_manager = ArchivalStorageIngest::IngestManager.new
+ingest_manager.start_server

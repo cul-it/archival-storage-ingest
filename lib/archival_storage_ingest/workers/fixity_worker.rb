@@ -15,6 +15,7 @@ require 'pathname'
 
 module FixityWorker
   class FixityGenerator < Workers::Worker
+    # Pass s3_manager only for tests.
     def initialize(s3_manager = nil)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
     end
@@ -58,42 +59,28 @@ module FixityWorker
     def calculate_checksum(_path, _msg)
       raise NotImplementedError
     end
+  end
 
-    # Return checksum manifest of objects listed in the ingest manifest.
-    def for_ingest_manifest(msg)
-      new_manifest = WorkerManifest::Manifest.new
-
+  class IngestFixityGenerator < FixityGenerator
+    def object_paths(msg)
       ingest_manifest = fetch_ingest_manifest(msg)
-      manifest = WorkerManifest.parse_old_manifest(ingest_manifest)
-      manifest.walk_manifest do |filepath, _sha1|
-        checksum = calculate_checksum(filepath, msg)
-        new_manifest.add_file(filepath, checksum)
-      end
-
-      new_manifest
+      ingest_manifest.files.keys
     end
 
     def fetch_ingest_manifest(msg)
       manifest_s3_key = @s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_INGEST)
-      @s3_manager.retrieve_file(manifest_s3_key)
+      ingest_manifest = @s3_manager.retrieve_file(manifest_s3_key)
+      WorkerManifest.parse_old_manifest(ingest_manifest)
     end
   end
 
-  class IngestFixityS3Generator < FixityGenerator
+  class IngestFixityS3Generator < IngestFixityGenerator
     def worker_type
       Workers::TYPE_S3
     end
 
-    # Pass s3_manager only for tests.
-
-    def calculate_checksum(path, _msg)
-      @s3_manager.calculate_checksum(path)
-    end
-
-    private
-
-    def object_paths(msg)
-      @s3_manager.list_object_keys(msg.collection_s3_prefix)
+    def calculate_checksum(object_path, _msg)
+      @s3_manager.calculate_checksum(object_path)
     end
   end
 
@@ -115,17 +102,15 @@ module FixityWorker
     end
   end
 
-  class IngestFixitySFSGenerator < FixityGenerator
+  class IngestFixitySFSGenerator < IngestFixityGenerator
     BUFFER_SIZE = 4096
 
     def worker_type
       Workers::TYPE_SFS
     end
 
-    # Pass s3_manager only for tests.
-
-    def calculate_checksum(file_path, msg)
-      full_path = File.join(msg.dest_path, file_path).to_s
+    def calculate_checksum(object_path, msg)
+      full_path = File.join(msg.dest_path, object_path).to_s
       File.open(full_path, 'rb') do |file|
         dig = Digest::SHA1.new
         until file.eof?
@@ -134,17 +119,6 @@ module FixityWorker
         end
         dig.hexdigest
       end
-    end
-
-    private
-
-    def object_paths(msg)
-      assets_dir = msg.effective_dest_path
-      path_to_trim = Pathname.new(msg.dest_path)
-
-      Find.find(assets_dir)
-          .reject { |path| File.directory?(path) }
-          .map { |path| Pathname.new(path).relative_path_from(path_to_trim).to_s }
     end
   end
 

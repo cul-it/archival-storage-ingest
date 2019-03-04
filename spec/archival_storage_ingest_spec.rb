@@ -52,13 +52,13 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
     context 'when moving message' do
       it 'should remove from source queue and add to target queue' do
         allow(queuer).to receive(:retrieve_single_message)
-          .with(Queues::QUEUE_FIXITY_S3_IN_PROGRESS).and_return(message_response)
+          .with(Queues::QUEUE_INGEST_FIXITY_S3_IN_PROGRESS).and_return(message_response)
         allow(queuer).to receive(:delete_message)
-          .with(anything, Queues::QUEUE_FIXITY_S3_IN_PROGRESS).and_return(1)
+          .with(anything, Queues::QUEUE_INGEST_FIXITY_S3_IN_PROGRESS).and_return(1)
         allow(queuer).to receive(:put_message)
-          .with(Queues::QUEUE_FIXITY_S3, anything).and_return(1)
-        message_mover.move_message(source: Queues::QUEUE_FIXITY_S3_IN_PROGRESS,
-                                   target: Queues::QUEUE_FIXITY_S3)
+          .with(Queues::QUEUE_INGEST_FIXITY_S3, anything).and_return(1)
+        message_mover.move_message(source: Queues::QUEUE_INGEST_FIXITY_S3_IN_PROGRESS,
+                                   target: Queues::QUEUE_INGEST_FIXITY_S3)
         expect(queuer).to have_received(:retrieve_single_message).exactly(1).times
         expect(queuer).to have_received(:delete_message).exactly(1).times
         expect(queuer).to have_received(:put_message).exactly(1).times

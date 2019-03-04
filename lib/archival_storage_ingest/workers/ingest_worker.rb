@@ -9,7 +9,7 @@ class IngestWorker < Workers::Worker
   end
 
   def work(msg)
-    s3_key = @s3_manager.manifest_key(msg.ingest_id, 'ingest_manifest')
+    s3_key = @s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_INGEST)
     @s3_manager.upload_file(s3_key, msg.ingest_manifest)
 
     true

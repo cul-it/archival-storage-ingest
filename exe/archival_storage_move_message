@@ -8,7 +8,8 @@ require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
 require 'archival_storage_ingest/messages/queues'
 
 ArchivalStorageIngest.configure do |config|
-  config.log_path = ENV['asi_move_message_log_path'] || '/cul/app/archival_storage_ingest/logs/move_message.log'
+  config.log_path = ENV['asi_move_message_log_path'] ||
+                    '/cul/app/archival_storage_ingest/logs/move_message.log'
   config.dry_run = ENV['asi_move_message_dry_run'] || false
   config.debug = ENV['asi_move_message_debug'] || false
   config.message_queue_name = ''

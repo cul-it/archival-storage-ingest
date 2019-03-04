@@ -1,35 +1,48 @@
 # frozen_string_literal: true
 
+require 'json'
 require 'pathname'
+require 'archival_storage_ingest/manifests/manifests'
 
-class Manifest
-  def initialize
-    @manifest_hash = {
-      number_files: 0,
-      files: []
-    }
+module WorkerManifest
+  def self.parse_old_manifest(manifest)
+    old_manifest = Manifests::Manifest.new(filename: 'not_important.json', json: manifest)
+    Manifest.new(params_files: old_manifest.files)
   end
 
-  attr_reader :manifest_hash
-
-  def add_file(filepath, sha1)
-    new_entry = {
-      filepath: filepath,
-      sha1: sha1
-    }
-    manifest_hash[:files].push(new_entry)
-    manifest_hash[:number_files] += 1
-  end
-
-  def to_old_manifest(depositor, collection)
-    depo_col = "#{depositor}/#{collection}"
-    depo_col_as_path = Pathname.new(depo_col)
-    old_manifest = { depo_col => { items: {} } }
-    manifest_hash[:files].each do |entry|
-      key = Pathname.new(entry[:filepath]).relative_path_from(depo_col_as_path).to_s
-      sha1 = entry[:sha1]
-      old_manifest[depo_col][:items][key] = { sha1: sha1 }
+  class Manifest
+    def initialize(params_files: nil)
+      if params_files.nil?
+        @files = {}
+        @number_files = 0
+      else
+        @files = params_files
+        @number_files = params_files.size
+      end
     end
-    old_manifest
+
+    attr_reader :files, :number_files
+
+    def add_file(filepath, sha1)
+      files[filepath] = sha1
+      @number_files += 1
+    end
+
+    def walk_manifest
+      files.each do |filepath, sha1|
+        yield(filepath, sha1)
+      end
+    end
+
+    def to_old_manifest(depositor, collection)
+      depositor_collection = "#{depositor}/#{collection}"
+      depositor_collection_as_path = Pathname.new(depositor_collection)
+      old_manifest = { depositor_collection => { items: {} } }
+      files.each do |filepath, sha1|
+        key = Pathname.new(filepath).relative_path_from(depositor_collection_as_path).to_s
+        old_manifest[depositor_collection][:items][key] = { sha1: sha1 }
+      end
+      old_manifest
+    end
   end
 end

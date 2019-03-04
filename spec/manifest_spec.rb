@@ -7,29 +7,22 @@ require 'archival_storage_ingest/workers/manifest'
 RSpec.describe 'Manifest' do # rubocop:disable Metrics/BlockLength
   context 'when adding items' do
     it 'should add to items section and increment file count' do
-      manifest = Manifest.new
+      manifest = WorkerManifest::Manifest.new
       manifest.add_file('a/b/c/resource1.txt', 'deadbeef1')
       manifest.add_file('a/b/c/resource2.txt', 'deadbeef2')
       expected_hash = {
-        number_files: 2,
-        files: [
-          {
-            filepath: 'a/b/c/resource1.txt',
-            sha1: 'deadbeef1'
-          },
-          {
-            filepath: 'a/b/c/resource2.txt',
-            sha1: 'deadbeef2'
-          }
-        ]
+        'a/b/c/resource1.txt' => 'deadbeef1',
+        'a/b/c/resource2.txt' => 'deadbeef2'
       }
-      expect(manifest.manifest_hash).to eq(expected_hash)
+      expected_number_files = 2
+      expect(manifest.files).to eq(expected_hash)
+      expect(manifest.number_files).to eq(expected_number_files)
     end
   end
 
   context 'when generating old manifest' do
     it 'should use semi-nested format' do
-      manifest = Manifest.new
+      manifest = WorkerManifest::Manifest.new
       manifest.add_file('a/b/c/resource1.txt', 'deadbeef1')
       manifest.add_file('a/b/c/resource2.txt', 'deadbeef2')
       expected_hash = {

@@ -23,7 +23,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
       collection: collection
     )
   end
-  let(:expected_old_hash) do
+  let(:expected_old_ingest_hash) do
     {
       "#{depositor}/#{collection}" => {
         items: {
@@ -41,22 +41,26 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
     s3m = S3Manager.new('bogus_bucket')
 
     allow(s3m).to receive(:upload_string)
-      .with(".manifest/#{ingest_id}_s3.json", expected_old_hash.to_json) { true }
+      .with(".manifest/#{ingest_id}_s3.json", expected_old_ingest_hash.to_json) { true }
     # .with(".manifest/#{ingest_id}_s3.json", expected_hash.to_json) { true }
 
     allow(s3m).to receive(:upload_string)
-      .with(".manifest/#{ingest_id}_sfs.json", expected_old_hash.to_json) { true }
+      .with(".manifest/#{ingest_id}_sfs.json", expected_old_ingest_hash.to_json) { true }
     # .with(".manifest/#{ingest_id}_sfs.json", expected_hash.to_json) { true }
 
     allow(s3m).to receive(:upload_file)
       .with(any_args)
       .and_raise(IngestException, 'upload_file must not be called in this test!')
 
+    # Ingest manifest should only return one and two.
+    # The list_object_keys will return one, two and three.
+    # It will be an error if ingest fixity check requests three.
     allow(s3m).to receive(:list_object_keys)
       .with("#{depositor}/#{collection}") do
       %W[
         #{depositor}/#{collection}/1/one.zip
         #{depositor}/#{collection}/2/two.zip
+        #{depositor}/#{collection}/3/two.zip
       ]
     end
 
@@ -68,7 +72,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
 
     allow(s3m).to receive(:manifest_key).with(any_args).and_call_original
     ingest_manifest_s3_key = s3m.manifest_key(ingest_id, Workers::TYPE_INGEST)
-    ingest_manifest = StringIO.new(expected_old_hash.to_json)
+    ingest_manifest = StringIO.new(expected_old_ingest_hash.to_json)
     allow(s3m).to receive(:retrieve_file)
       .with(ingest_manifest_s3_key) { ingest_manifest }
 
@@ -87,10 +91,10 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
     end
 
     context 'when generating manifest' do
-      it 'returns manifest' do
+      it 'returns manifest for objects in ingest manifest' do
         manifest = worker.generate_manifest(msg)
         # expect(manifest.manifest_hash).to eq(expected_old_hash)
-        expect(manifest.to_old_manifest(depositor, collection)).to eq(expected_old_hash)
+        expect(manifest.to_old_manifest(depositor, collection)).to eq(expected_old_ingest_hash)
       end
     end
   end
@@ -107,10 +111,10 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
     end
 
     context 'when generating manifest' do
-      it 'returns manifest' do
+      it 'returns manifest for objects in ingest manifest' do
         manifest = worker.generate_manifest(msg)
         # expect(manifest.manifest_hash).to eq(expected_hash)
-        expect(manifest.to_old_manifest(depositor, collection)).to eq(expected_old_hash)
+        expect(manifest.to_old_manifest(depositor, collection)).to eq(expected_old_ingest_hash)
       end
     end
 

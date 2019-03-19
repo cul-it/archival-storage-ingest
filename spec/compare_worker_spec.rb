@@ -90,19 +90,31 @@ RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
     it 'throws exception if SFS manifest short' do
       setup_manifests(flat10, flat9)
 
-      expect { worker.work(msg) }.to raise_error(IngestException, 'Ingest and SFS manifests do not match')
+      exception = nil
+      expect { worker.work(msg) }.to(raise_error { |ex| exception = ex })
+
+      expect(exception).to be_instance_of(IngestException)
+      expect(exception.message).to start_with('Ingest and SFS manifests do not match:')
     end
 
     it 'throws exception if S3 manifest short' do
       setup_manifests(flat9, flat10)
 
-      expect { worker.work(msg) }.to raise_error(IngestException, 'Ingest and S3 manifests do not match')
+      exception = nil
+      expect { worker.work(msg) }.to(raise_error { |ex| exception = ex })
+
+      expect(exception).to be_instance_of(IngestException)
+      expect(exception.message).to start_with('Ingest and S3 manifests do not match')
     end
 
     it 'throws exception if Ingest and SFS manifests have different SHAs' do
       setup_manifests(full10, flat10error)
 
-      expect { worker.work(msg) }.to raise_error(IngestException, 'Ingest and SFS manifests do not match')
+      exception = nil
+      expect { worker.work(msg) }.to(raise_error { |ex| exception = ex })
+
+      expect(exception).to be_instance_of(IngestException)
+      expect(exception.message).to start_with('Ingest and SFS manifests do not match')
     end
   end
 end

@@ -8,6 +8,8 @@ require 'archival_storage_ingest/s3/s3_manager'
 require 'archival_storage_ingest/workers/fixity_worker'
 require 'archival_storage_ingest/workers/worker'
 
+# TODO: Refactor tests so that variables are defined locally to their use as much as possible.
+
 RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
   let(:dest_path) { File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'sfs', 'archival01') }
   let(:manifest_dir) { File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'manifest') }
@@ -28,10 +30,10 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
       "#{depositor}/#{collection}" => {
         items: {
           '1/one.zip' => {
-            sha1: 'c19ed993b201bd33b3765c3f6ec59bd39f995629'
+            sha1: 'c19ed993b201bd33b3765c3f6ec59bd39f995629', size: 168
           },
           '2/two.zip' => {
-            sha1: '86c6167b8a8245a699a5735a3c56890421c28689'
+            sha1: '86c6167b8a8245a699a5735a3c56890421c28689', size: 168
           }
         }
       }
@@ -65,10 +67,10 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
     end
 
     allow(s3m).to receive(:calculate_checksum)
-      .with("#{depositor}/#{collection}/1/one.zip") { 'c19ed993b201bd33b3765c3f6ec59bd39f995629' }
+      .with("#{depositor}/#{collection}/1/one.zip") { ['c19ed993b201bd33b3765c3f6ec59bd39f995629', 168] }
 
     allow(s3m).to receive(:calculate_checksum)
-      .with("#{depositor}/#{collection}/2/two.zip") { '86c6167b8a8245a699a5735a3c56890421c28689' }
+      .with("#{depositor}/#{collection}/2/two.zip") { ['86c6167b8a8245a699a5735a3c56890421c28689', 168] }
 
     allow(s3m).to receive(:manifest_key).with(any_args).and_call_original
     ingest_manifest_s3_key = s3m.manifest_key(ingest_id, Workers::TYPE_INGEST)
@@ -120,8 +122,9 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
 
     context 'when calculating checksum' do
       it 'should return checksum hex' do
-        sha1 = worker.calculate_checksum("#{depositor}/#{collection}/1/one.zip", msg)
+        (sha1, size) = worker.calculate_checksum("#{depositor}/#{collection}/1/one.zip", msg)
         expect(sha1).to eq('c19ed993b201bd33b3765c3f6ec59bd39f995629')
+        expect(size).to eq(168)
       end
     end
   end

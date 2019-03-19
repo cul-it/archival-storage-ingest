@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# rubocop:disable BlockLength
+
 require 'spec_helper'
 require 'rspec/mocks'
 require 'archival_storage_ingest'
 
-RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
+RSpec.describe 'IngestManager' do
   before(:each) do
     @logger = spy('logger')
     @queuer = spy('queuer')
@@ -36,7 +38,7 @@ RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
     end
   end
 
-  context 'when doing work' do # rubocop:disable BlockLength
+  context 'when doing work' do
     it 'will poll message queue' do
       @manager.do_work
 
@@ -51,31 +53,84 @@ RSpec.describe 'IngestManager' do # rubocop:disable BlockLength
       expect(@worker).to have_received(:work).exactly(0).times
     end
 
-    it 'will pass message to worker' do
-      message = { id: 5, type: 'test' }
-      allow(@msg_q).to receive(:retrieve_message).and_return message
+    context 'when receiving a message' do
+      let(:message) { { id: 5, type: 'test' } }
 
-      @manager.do_work
+      before(:each) do
+        message = { id: 5, type: 'test' }
+        allow(@msg_q).to receive(:retrieve_message).and_return message
+      end
 
-      expect(@worker).to have_received(:work).with(message)
-    end
+      it 'will pass message to worker' do
+        @manager.do_work
 
-    it 'will pass message on to next queue' do
-      message = { id: 5, type: 'test' }
-      allow(@msg_q).to receive(:retrieve_message).and_return message
+        expect(@worker).to have_received(:work).with(message)
+      end
 
-      @manager.do_work
+      context 'Successful processing' do
+        before(:each) do
+          allow(@worker).to receive(:work).and_return true
+        end
 
-      expect(@dest1_q).to have_received(:send_message).with(message)
-    end
-    it 'will pass message on to two next queues' do
-      message = { id: 5, type: 'test' }
-      allow(@msg_q).to receive(:retrieve_message).and_return message
+        it 'will log success' do
+          @manager.do_work
 
-      @manager.do_work
+          expect(@logger).to have_received(:info).with("Completed #{message.to_json}")
+        end
 
-      expect(@dest1_q).to have_received(:send_message).with(message)
-      expect(@dest2_q).to have_received(:send_message).with(message)
+        it 'will pass message on to next queue' do
+          @manager.do_work
+
+          expect(@dest1_q).to have_received(:send_message).with(message)
+        end
+
+        it 'will pass message on to two next queues' do
+          @manager.do_work
+
+          expect(@dest1_q).to have_received(:send_message).with(message)
+          expect(@dest2_q).to have_received(:send_message).with(message)
+        end
+
+        it 'will log that the message was received' do
+          @manager.do_work
+
+          expect(@logger).to have_received(:info).with("Received #{message.to_json}")
+        end
+      end
+
+      context 'Processing error' do
+        before(:each) do
+          allow(@worker).to receive(:work).and_raise IngestException, 'This is the error'
+        end
+
+        it 'will log fatal exception' do
+          expect { @manager.do_work }.to raise_error(SystemExit)
+
+          exception = nil
+          expect(@logger).to have_received(:fatal) { |ex| exception = ex }
+          expect(exception).to be_an_instance_of(IngestException)
+          expect(exception.message).to be('This is the error')
+        end
+
+        it 'will not pass message on to next queue' do
+          expect { @manager.do_work }.to raise_error(SystemExit)
+
+          expect(@dest1_q).to_not have_received(:send_message)
+        end
+      end
+
+      context 'Processing skipped' do
+        before(:each) do
+          allow(@worker).to receive(:work).and_return false
+        end
+
+        it 'will not pass message on to the next queue' do
+          @manager.do_work
+
+          expect(@logger).to have_received(:info).with("Skipped #{message.to_json}")
+        end
+      end
     end
   end
 end
+# rubocop:enable BlockLength

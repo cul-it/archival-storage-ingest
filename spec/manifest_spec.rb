@@ -8,11 +8,11 @@ RSpec.describe 'Manifest' do # rubocop:disable Metrics/BlockLength
   context 'when adding items' do
     it 'should add to items section and increment file count' do
       manifest = WorkerManifest::Manifest.new
-      manifest.add_file('a/b/c/resource1.txt', 'deadbeef1')
-      manifest.add_file('a/b/c/resource2.txt', 'deadbeef2')
+      manifest.add_file('a/b/c/resource1.txt', 'deadbeef1', 5)
+      manifest.add_file('a/b/c/resource2.txt', 'deadbeef2', 10)
       expected_hash = {
-        'a/b/c/resource1.txt' => 'deadbeef1',
-        'a/b/c/resource2.txt' => 'deadbeef2'
+        'a/b/c/resource1.txt' => { sha1: 'deadbeef1', size: 5 },
+        'a/b/c/resource2.txt' => { sha1: 'deadbeef2', size: 10 }
       }
       expected_number_files = 2
       expect(manifest.files).to eq(expected_hash)
@@ -29,10 +29,12 @@ RSpec.describe 'Manifest' do # rubocop:disable Metrics/BlockLength
         'a/b' => {
           items: {
             'c/resource1.txt' => {
-              sha1: 'deadbeef1'
+              sha1: 'deadbeef1',
+              size: 0
             },
             'c/resource2.txt' => {
-              sha1: 'deadbeef2'
+              sha1: 'deadbeef2',
+              size: 0
             }
           }
         }

@@ -41,7 +41,8 @@ module FixityWorker
 
       manifest = WorkerManifest::Manifest.new
       object_paths.each do |object_path|
-        manifest.add_file(object_path, calculate_checksum(object_path, msg))
+        (sha, size) = calculate_checksum(object_path, msg)
+        manifest.add_file(object_path, sha, size)
       end
 
       manifest
@@ -109,15 +110,17 @@ module FixityWorker
       Workers::TYPE_SFS
     end
 
-    def calculate_checksum(object_path, msg)
+    def calculate_checksum(object_path, msg) # rubocop:disable Metrics/MethodLength
       full_path = File.join(msg.dest_path, object_path).to_s
+      size = 0
       File.open(full_path, 'rb') do |file|
         dig = Digest::SHA1.new
         until file.eof?
           buffer = file.read(BUFFER_SIZE)
           dig.update(buffer)
+          size += buffer.length
         end
-        dig.hexdigest
+        return dig.hexdigest, size
       end
     end
   end

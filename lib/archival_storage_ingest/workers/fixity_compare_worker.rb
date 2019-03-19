@@ -12,14 +12,18 @@ module FixityCompareWorker
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
     end
 
-    def work(msg)
+    def work(msg) # rubocop:disable Metrics/MethodLength
       s3_manifest = retrieve_manifest(msg, Workers::TYPE_S3)
       sfs_manifest = retrieve_manifest(msg, Workers::TYPE_SFS)
       ingest_manifest = retrieve_manifest(msg, Workers::TYPE_INGEST)
 
-      raise IngestException, 'Ingest and SFS manifests do not match' unless ingest_manifest.flattened == sfs_manifest.flattened
+      if ingest_manifest.flattened != sfs_manifest.flattened
+        raise IngestException, "Ingest and SFS manifests do not match: #{ingest_manifest.diff(sfs_manifest)}"
+      end
 
-      raise IngestException, 'Ingest and S3 manifests do not match' unless ingest_manifest.flattened == s3_manifest.flattened
+      if ingest_manifest.flattened != s3_manifest.flattened
+        raise IngestException, "Ingest and S3 manifests do not match: #{ingest_manifest.diff(sfs_manifest)}"
+      end
 
       true
     rescue Aws::S3::Errors::NoSuchKey

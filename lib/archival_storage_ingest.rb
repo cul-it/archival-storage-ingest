@@ -99,15 +99,11 @@ module ArchivalStorageIngest
       initialize_server
 
       loop do
-        begin
-          sleep(@polling_interval)
+        sleep(@polling_interval)
 
-          shutdown if shutdown?
+        shutdown if shutdown?
 
-          do_work
-        rescue IngestException => ex
-          notify_and_quit(ex)
-        end
+        do_work
       end
     end
 
@@ -134,7 +130,7 @@ module ArchivalStorageIngest
     #
     # do_work processes a single message from the input queue.
     #
-    def do_work
+    def do_work # rubocop:disable Metrics/MethodLength
       # work is to get a message from msg_q,
       # process it, and pass it along to the next queue
 
@@ -142,13 +138,22 @@ module ArchivalStorageIngest
 
       return if (msg = @msg_q.retrieve_message).nil?
 
-      @logger.info("Message received: #{msg.to_json}")
+      @logger.info("Received #{msg.to_json}")
 
       move_msg_to_wip(msg)
 
-      send_next_message(msg) if @worker.work(msg)
+      go_to_next_queues = @worker.work(msg)
+      if go_to_next_queues
+        send_next_message(msg)
+        status = 'Completed'
+      else
+        status = 'Skipped'
+      end
 
       remove_wip_msg
+      @logger.info("#{status} #{msg.to_json}")
+    rescue IngestException => ex
+      notify_and_quit(ex)
     end
 
     def check_wip

@@ -151,7 +151,7 @@ module ArchivalStorageIngest
       end
 
       remove_wip_msg
-      @logger.info("#{status} #{msg.to_json}")
+      @logger.info("#{status} #{msg.ingest_id}")
     rescue IngestException => ex
       notify_and_quit(ex)
     end

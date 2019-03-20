@@ -54,10 +54,10 @@ RSpec.describe 'IngestManager' do
     end
 
     context 'when receiving a message' do
-      let(:message) { { id: 5, type: 'test' } }
+      let(:message) { IngestMessage::SQSMessage.new(ingest_id: 'test_id', depositor: 'TestDepositor', collection: 'TestCollection') }
 
       before(:each) do
-        message = { id: 5, type: 'test' }
+        # message = { id: 5, type: 'test' }
         allow(@msg_q).to receive(:retrieve_message).and_return message
       end
 
@@ -75,7 +75,7 @@ RSpec.describe 'IngestManager' do
         it 'will log success' do
           @manager.do_work
 
-          expect(@logger).to have_received(:info).with("Completed #{message.to_json}")
+          expect(@logger).to have_received(:info).with('Completed test_id')
         end
 
         it 'will pass message on to next queue' do
@@ -127,7 +127,7 @@ RSpec.describe 'IngestManager' do
         it 'will not pass message on to the next queue' do
           @manager.do_work
 
-          expect(@logger).to have_received(:info).with("Skipped #{message.to_json}")
+          expect(@logger).to have_received(:info).with('Skipped test_id')
         end
       end
     end

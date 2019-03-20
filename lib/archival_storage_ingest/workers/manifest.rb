@@ -23,8 +23,8 @@ module WorkerManifest
 
     attr_reader :files, :number_files
 
-    def add_file(filepath, sha1)
-      files[filepath] = sha1
+    def add_file(filepath, sha1, size = 0)
+      files[filepath] = { sha1: sha1, size: size }
       @number_files += 1
     end
 
@@ -38,9 +38,9 @@ module WorkerManifest
       depositor_collection = "#{depositor}/#{collection}"
       depositor_collection_as_path = Pathname.new(depositor_collection)
       old_manifest = { depositor_collection => { items: {} } }
-      files.each do |filepath, sha1|
+      files.each do |filepath, vals|
         key = Pathname.new(filepath).relative_path_from(depositor_collection_as_path).to_s
-        old_manifest[depositor_collection][:items][key] = { sha1: sha1 }
+        old_manifest[depositor_collection][:items][key] = vals
       end
       old_manifest
     end

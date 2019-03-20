@@ -70,7 +70,7 @@ module IngestMessage
       File.join(depositor, collection).to_s
     end
 
-    def to_json
+    def to_json(_opt = nil)
       JSON.generate(
         ingest_id: ingest_id,
         data_path: data_path,

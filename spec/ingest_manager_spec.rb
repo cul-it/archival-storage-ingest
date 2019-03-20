@@ -54,7 +54,13 @@ RSpec.describe 'IngestManager' do
     end
 
     context 'when receiving a message' do
-      let(:message) { IngestMessage::SQSMessage.new(ingest_id: 'test_id', depositor: 'TestDepositor', collection: 'TestCollection') }
+      let(:message) do
+        IngestMessage::SQSMessage.new(
+          ingest_id: 'test_id',
+          depositor: 'TestDepositor',
+          collection: 'TestCollection'
+        )
+      end
 
       before(:each) do
         # message = { id: 5, type: 'test' }

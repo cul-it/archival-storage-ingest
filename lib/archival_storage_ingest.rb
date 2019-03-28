@@ -7,6 +7,9 @@ require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/messages/ingest_queue'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/s3/s3_manager'
+require 'archival_storage_ingest/ticket/ticket_handler'
+require 'forwardable'
+require 'time'
 
 # Main archival storage ingest server module
 module ArchivalStorageIngest
@@ -15,10 +18,11 @@ module ArchivalStorageIngest
 
   class Configuration
     attr_accessor :message_queue_name, :in_progress_queue_name, :log_path, :debug
-    attr_accessor :worker, :dest_queue_names
+    attr_accessor :worker, :dest_queue_names, :develop
     attr_accessor :inhibit_file, :global_inhibit_file
 
-    attr_writer :msg_q, :dest_qs, :wip_q
+    # Only set issue_tracker_helper in test!
+    attr_writer :msg_q, :dest_qs, :wip_q, :ticket_handler, :issue_tracker_helper
 
     attr_writer :s3_bucket, :s3_manager, :dry_run, :polling_interval, :wip_removal_wait_time
 
@@ -64,6 +68,15 @@ module ArchivalStorageIngest
     def wip_removal_wait_time
       @wip_removal_wait_time ||= WIP_REMOVAL_WAIT_TIME
     end
+
+    def ticket_handler
+      @ticket_handler ||= TicketHandler::JiraHandler.new
+    end
+
+    def issue_tracker_helper
+      @issue_tracker_helper ||= IssueTrackerHelper.new(worker_name: worker.name,
+                                                       ticket_handler: ticket_handler)
+    end
   end
 
   class << self
@@ -80,26 +93,35 @@ module ArchivalStorageIngest
 
   # Ingest manager to either start the server or queue new ingest.
   class IngestManager
+    extend Forwardable
     attr_reader :state
 
     def initialize
       @configuration = ArchivalStorageIngest.configuration
-      @logger = @configuration.logger
-      @msg_q = @configuration.msg_q
-      @wip_q = @configuration.wip_q
-      @wip_wait_time = @configuration.wip_removal_wait_time
-      @dest_qs = @configuration.dest_qs
-      @worker = @configuration.worker
-      @polling_interval = @configuration.polling_interval
+      @issue_tracker_helper = @configuration.issue_tracker_helper
 
       @state = 'uninitialized'
     end
 
+    def_delegators :@configuration, :logger, :msg_q, :wip_q, :dest_qs, :wip_removal_wait_time,
+                   :worker, :polling_interval, :inhibit_file, :global_inhibit_file, :develop
+
+    def_delegators :@issue_tracker_helper, :notify_worker_started, :notify_worker_completed,
+                   :notify_worker_skipped, :notify_worker_error, :notify_error
+
     def start_server
       initialize_server
 
+      if develop
+        run_dev_server
+      else
+        run_server
+      end
+    end
+
+    def run_server
       loop do
-        sleep(@polling_interval)
+        sleep(polling_interval)
 
         shutdown if shutdown?
 
@@ -107,18 +129,35 @@ module ArchivalStorageIngest
       end
     end
 
+    # rubocop:disable Metrics/AbcSize
+    def run_dev_server
+      puts 'Message Queue Name: ' + @configuration.message_queue_name
+      puts 'In Progress Queue Name: ' + @configuration.in_progress_queue_name
+      puts 'Destination Queue Names: ' + @configuration.dest_queue_names.to_s
+      puts 'Run? (Y/N)'
+      do_work if 'y'.casecmp(gets.chomp).zero?
+    end
+    # rubocop:enable Metrics/AbcSize
+
     def shutdown
-      @logger.info 'Gracefully shutting down'
+      logger.info 'Gracefully shutting down'
       exit 0
     end
 
     def shutdown?
-      File.exist?(@configuration.inhibit_file) || File.exist?(@configuration.global_inhibit_file)
+      File.exist?(inhibit_file) || File.exist?(global_inhibit_file)
     end
 
-    def notify_and_quit(exception)
-      # notify admins!
-      @logger.fatal(exception)
+    def notify_and_quit(exception, ingest_msg)
+      logger.fatal(exception)
+
+      if ingest_msg.nil?
+        notify_error(exception.backtrace.join("\n"))
+      else
+        notify_worker_error(ingest_msg: ingest_msg,
+                            error_msg: exception.backtrace.join("\n"))
+      end
+
       exit(0)
     end
 
@@ -130,40 +169,60 @@ module ArchivalStorageIngest
     #
     # do_work processes a single message from the input queue.
     #
-    def do_work # rubocop:disable Metrics/MethodLength
+    # logger.info appears to trigger ABC (Assignment Branch Condition) rubocop error.
+    #
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/AbcSize
+    def do_work
       # work is to get a message from msg_q,
       # process it, and pass it along to the next queue
 
-      check_wip
+      msg = nil
+      begin
+        check_wip
 
-      return if (msg = @msg_q.retrieve_message).nil?
+        return if (msg = msg_q.retrieve_message).nil?
 
-      @logger.info("Received #{msg.to_json}")
+        logger.info("Received #{msg.to_json}")
 
-      move_msg_to_wip(msg)
+        move_msg_to_wip(msg)
 
-      go_to_next_queues = @worker.work(msg)
-      if go_to_next_queues
+        notify_worker_started(msg)
+
+        status = _do_work_and_notify(msg)
+
+        remove_wip_msg
+
+        logger.info("#{status} #{msg.ingest_id}")
+      rescue IngestException => ex
+        notify_and_quit(ex, msg)
+      end
+    end
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/AbcSize
+
+    def _do_work_and_notify(msg)
+      go_to_next_queue = worker.work(msg)
+      if go_to_next_queue
         send_next_message(msg)
         status = 'Completed'
+        notify_worker_completed(msg)
       else
         status = 'Skipped'
+        notify_worker_skipped(msg)
       end
 
-      remove_wip_msg
-      @logger.info("#{status} #{msg.ingest_id}")
-    rescue IngestException => ex
-      notify_and_quit(ex)
+      status
     end
 
     def check_wip
-      msg = @wip_q.retrieve_message
-      raise IngestException unless msg.nil?
+      msg = wip_q.retrieve_message
+      raise IngestException, "Ingest #{msg.ingest_id} crashed last run." unless msg.nil?
     end
 
     def move_msg_to_wip(msg)
-      @wip_q.send_message(msg)
-      @msg_q.delete_message(msg)
+      wip_q.send_message(msg)
+      msg_q.delete_message(msg)
     end
 
     # Make this function wait 10 seconds before deletion.
@@ -172,44 +231,121 @@ module ArchivalStorageIngest
     # reaches here, the message may not be available, yet.
     # Waiting for 10 seconds will ensure we get the message.
     def remove_wip_msg
-      sleep @wip_wait_time
-      msg = @wip_q.retrieve_message
-      # report error if this in nil?
-      @wip_q.delete_message(msg)
+      sleep wip_removal_wait_time
+      msg = wip_q.retrieve_message
+      # report error if this is nil?
+      wip_q.delete_message(msg)
     end
 
     def send_next_message(msg)
-      @dest_qs.each do |queue|
+      dest_qs.each do |queue|
         queue.send_message(msg)
       end
     end
   end
 
+  class IssueTrackerHelper
+    attr_reader :worker_name, :ticket_handler
+
+    def initialize(worker_name:, ticket_handler:)
+      @worker_name = worker_name
+      @ticket_handler = ticket_handler
+    end
+
+    # These will add a comment to an existing ticket.
+    def notify_worker_started(ingest_msg)
+      notify_status(ingest_msg: ingest_msg, status: 'Started')
+    end
+
+    def notify_worker_completed(ingest_msg)
+      notify_status(ingest_msg: ingest_msg, status: 'Completed')
+    end
+
+    def notify_worker_skipped(ingest_msg)
+      notify_status(ingest_msg: ingest_msg, status: 'Skipped')
+    end
+
+    def notify_worker_error(ingest_msg:, error_msg:)
+      body = "#{Time.new}\n" \
+             "#{worker_name}\n" \
+             "Depositor/Collection: #{ingest_msg.depositor}/#{ingest_msg.collection}\n" \
+             "Ingest ID: #{ingest_msg.ingest_id}\n" \
+             "Status: Error\n\n#{error_msg}"
+      ticket_handler.update_issue_tracker(subject: ingest_msg.ticket_id, body: body)
+    end
+
+    def notify_status(ingest_msg:, status:)
+      body = "#{Time.new}\n" \
+             "#{worker_name}\n" \
+             "Depositor/Collection: #{ingest_msg.depositor}/#{ingest_msg.collection}\n" \
+             "Ingest ID: #{ingest_msg.ingest_id}\n" \
+             "Status: #{status}"
+      ticket_handler.update_issue_tracker(subject: ingest_msg.ticket_id, body: body)
+    end
+
+    # This will create a new ticket.
+    def notify_error(error_msg)
+      subject = "#{worker_name} service has terminated due to fatal error."
+      body = "#{Time.new}\n#{error_msg}"
+      ticket_handler.update_issue_tracker(subject: subject, body: body)
+    end
+  end
+
   class IngestQueuer
     def initialize
-      @queuer = ArchivalStorageIngest.configuration.queuer
+      @configuration = ArchivalStorageIngest.configuration
+
+      @queuer = @configuration.queuer
+      @queue_name = @configuration.message_queue_name
+      @ticket_handler = @configuration.ticket_handler
+      @develop = @configuration.develop
     end
 
     def queue_ingest(ingest_config)
+      config_errors = config_errors(ingest_config)
+      if config_errors.size.positive?
+        puts config_errors
+        return
+      end
+
       return unless confirm_ingest(ingest_config)
 
+      ingest_msg = _queue_ingest(ingest_config)
+
+      send_notification(ingest_msg)
+    end
+
+    def send_notification(ingest_msg)
+      body = "New ingest queued at #{Time.new}.\n" \
+             "Depositor/Collection: #{ingest_msg.depositor}/#{ingest_msg.collection}\n" \
+             "Ingest Info\n#{ingest_msg.to_pretty_json}"
+      @ticket_handler.update_issue_tracker(subject: ingest_msg.ticket_id, body: body)
+    end
+
+    def _queue_ingest(ingest_config)
       msg = IngestMessage::SQSMessage.new(
-        ingest_id: SecureRandom.uuid,
-        depositor: ingest_config['depositor'],
-        collection: ingest_config['collection'],
-        data_path: ingest_config['data_path'],
-        dest_path: ingest_config['dest_path'],
+        ingest_id: SecureRandom.uuid, ticket_id: ingest_config['ticket_id'],
+        depositor: ingest_config['depositor'], collection: ingest_config['collection'],
+        data_path: ingest_config['data_path'], dest_path: ingest_config['dest_path'],
         ingest_manifest: ingest_config['ingest_manifest']
       )
-      @queuer.put_message(Queues::QUEUE_INGEST, msg)
+      @queuer.put_message(@queue_name, msg)
+      msg
+    end
+
+    def config_errors(ingest_config)
+      fields = %w[data_path dest_path ingest_manifest]
+      errors = []
+      fields.each do |field|
+        errors << "Invalid #{field} #{ingest_config[field]}!" if ingest_config[field] && !File.exist?(ingest_config[field])
+      end
+      errors
     end
 
     def confirm_ingest(ingest_config)
-      puts "Depositor: #{ingest_config['depositor']}"
-      puts "Collection: #{ingest_config['collection']}"
-      puts "Data Path: #{ingest_config['data_path']}"
-      puts "Destination Path: #{ingest_config['dest_path']}"
-      puts "Ingest Manifest: #{ingest_config['ingest_manifest']}"
+      ingest_config.keys.sort.each do |key|
+        puts "#{key}: #{ingest_config[key]}"
+      end
       puts 'Queue ingest? (Y/N)'
       'y'.casecmp(gets.chomp).zero?
     end

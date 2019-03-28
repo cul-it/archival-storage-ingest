@@ -10,8 +10,6 @@ ArchivalStorageIngest.configure do |config|
   config.log_path = ENV['asi_periodic_fixity_comparison_log_path'] ||
                     '/cul/app/archival_storage_ingest/logs/periodic_fixity_comparison.log'
   config.dry_run = ENV['asi_periodic_fixity_comparison_dry_run'] || false
-  config.debug = ENV['asi_periodic_fixity_comparison_debug'] || false
-  config.s3_bucket = ENV['asi_periodic_fixity_comparison_bucket'] || 's3-cular'
   config.polling_interval = ENV['asi_periodic_fixity_comparison_polling_interval'] if
                             ENV['asi_periodic_fixity_comparison_polling_interval']
   config.message_queue_name = Queues::QUEUE_PERIODIC_FIXITY_COMPARISON
@@ -22,6 +20,17 @@ ArchivalStorageIngest.configure do |config|
                         '/cul/app/archival_storage_ingest/control/periodic_fixity_comparison.inhibit'
   config.global_inhibit_file = ENV['asi_global_inhibit_file'] ||
                                '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
+
+  # Currently, we don't have dev queues for this service.
+  if ENV['asi_develop'] || ENV['asi_periodic_fixity_comparison_develop']
+    config.s3_bucket = 's3-cular-dev'
+    config.debug = true
+    config.develop = true
+  else
+    config.s3_bucket = 's3-cular'
+    config.debug = ENV['asi_ingest_debug'] || false
+    config.develop = false
+  end
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

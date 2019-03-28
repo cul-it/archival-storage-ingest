@@ -8,5 +8,7 @@ module Workers
   # Base class for specific workers
   class Worker
     def work(msg) end
+
+    def name; end
   end
 end

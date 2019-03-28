@@ -29,13 +29,10 @@ module IngestMessage
   def self.convert_sqs_response(sqs_message)
     json = JSON.parse(sqs_message.body)
     SQSMessage.new(
-      ingest_id: json['ingest_id'],
-      data_path: json['data_path'],
-      dest_path: json['dest_path'],
-      depositor: json['depositor'],
-      collection: json['collection'],
-      ingest_manifest: json['ingest_manifest'],
-      original_msg: sqs_message
+      ingest_id: json['ingest_id'], data_path: json['data_path'],
+      dest_path: json['dest_path'], depositor: json['depositor'],
+      collection: json['collection'], ingest_manifest: json['ingest_manifest'],
+      ticket_id: json['ticket_id'], original_msg: sqs_message
     )
   end
 
@@ -54,9 +51,10 @@ module IngestMessage
       @depositor = params[:depositor]
       @collection = params[:collection]
       @ingest_manifest = params[:ingest_manifest]
+      @ticket_id = params[:ticket_id]
     end
 
-    attr_reader :ingest_id, :original_msg, :data_path, :dest_path, :depositor, :collection, :ingest_manifest
+    attr_reader :ingest_id, :original_msg, :data_path, :dest_path, :depositor, :collection, :ingest_manifest, :ticket_id
 
     def effective_data_path
       File.join(data_path, depositor, collection).to_s
@@ -70,15 +68,24 @@ module IngestMessage
       File.join(depositor, collection).to_s
     end
 
-    def to_json(_opt = nil)
-      JSON.generate(
+    def to_hash
+      {
         ingest_id: ingest_id,
         data_path: data_path,
         dest_path: dest_path,
         depositor: depositor,
         collection: collection,
-        ingest_manifest: ingest_manifest
-      )
+        ingest_manifest: ingest_manifest,
+        ticket_id: ticket_id
+      }
+    end
+
+    def to_json(_opts = nil)
+      JSON.generate(to_hash)
+    end
+
+    def to_pretty_json(_opts = nil)
+      JSON.pretty_generate(to_hash)
     end
   end
 end

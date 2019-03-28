@@ -14,11 +14,14 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
   end
 
   let(:queuer) { spy('queuer') }
+  let(:dir) { File.join(File.dirname(__FILE__), %w[resources manifests]) }
+  let(:file) { File.join(dir, 'arXiv.json') }
 
-  describe 'IngestQueuer' do
+  describe 'IngestQueuer' do # rubocop:disable BlockLength
     let(:ingest_queuer) do
       ArchivalStorageIngest.configure do |config|
         config.queuer = queuer
+        config.message_queue_name = Queues::QUEUE_INGEST
       end
       ingest_queuer = ArchivalStorageIngest::IngestQueuer.new
       allow(ingest_queuer).to receive(:confirm_ingest) { true }
@@ -29,8 +32,21 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
       it 'should send message to ingest queue' do
         allow(queuer).to receive(:put_message)
           .with(Queues::QUEUE_INGEST, anything).and_return(1) # doesn't matter what we return as we don't use it
-        ingest_queuer.queue_ingest(ingest_id: 'test_id')
+        puts dir
+        puts file
+        ingest_queuer.queue_ingest('ingest_id' => 'test_id',
+                                   'data_path' => dir,
+                                   'dest_path' => dir,
+                                   'ingest_manifest' => file)
         expect(queuer).to have_received(:put_message).exactly(1).times
+      end
+    end
+
+    context 'when not supplying required fields' do
+      it 'should return errors' do
+        errors = ingest_queuer.config_errors('ingest_id' => 'test_id',
+                                             'ingest_manifest' => 'bogus_path')
+        expect(errors.size).to eq(1)
       end
     end
   end

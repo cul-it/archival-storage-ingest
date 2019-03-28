@@ -5,6 +5,7 @@ Coveralls.wear!
 
 require 'bundler/setup'
 require 'archival_storage_ingest'
+require 'mail'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -19,5 +20,9 @@ RSpec.configure do |config|
 
   config.mock_with :rspec do |mocks|
     mocks.verify_partial_doubles = true
+  end
+
+  Mail.defaults do
+    delivery_method :test
   end
 end

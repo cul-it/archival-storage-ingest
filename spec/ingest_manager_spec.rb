@@ -5,6 +5,7 @@
 require 'spec_helper'
 require 'rspec/mocks'
 require 'archival_storage_ingest'
+require 'mail'
 
 RSpec.describe 'IngestManager' do
   before(:each) do
@@ -15,6 +16,11 @@ RSpec.describe 'IngestManager' do
     @dest1_q = spy('dest1 q')
     @dest2_q = spy('dest2 q')
     @worker = spy('worker')
+    @issue_tracker_helper = spy('issue_tracker_helper')
+    allow(@issue_tracker_helper).to receive(:notify_worker_started).and_return nil
+    allow(@issue_tracker_helper).to receive(:notify_worker_completed).and_return nil
+    allow(@issue_tracker_helper).to receive(:notify_worker_skipped).and_return nil
+    allow(@issue_tracker_helper).to receive(:notify_worker_error).and_return nil
 
     ArchivalStorageIngest.configure do |config|
       config.logger = @logger
@@ -24,6 +30,7 @@ RSpec.describe 'IngestManager' do
       config.dest_qs = [@dest1_q, @dest2_q]
       config.worker = @worker
       config.wip_removal_wait_time = 0
+      config.issue_tracker_helper = @issue_tracker_helper
     end
 
     allow(@wip_q).to receive(:retrieve_message).and_return nil
@@ -102,6 +109,13 @@ RSpec.describe 'IngestManager' do
 
           expect(@logger).to have_received(:info).with("Received #{message.to_json}")
         end
+
+        it 'will send notification to ticket handler' do
+          @manager.do_work
+
+          expect(@issue_tracker_helper).to have_received(:notify_worker_started).once
+          expect(@issue_tracker_helper).to have_received(:notify_worker_completed).once
+        end
       end
 
       context 'Processing error' do
@@ -123,6 +137,13 @@ RSpec.describe 'IngestManager' do
 
           expect(@dest1_q).to_not have_received(:send_message)
         end
+
+        it 'will send notification to ticket handler' do
+          expect { @manager.do_work }.to raise_error(SystemExit)
+
+          expect(@issue_tracker_helper).to have_received(:notify_worker_started).once
+          expect(@issue_tracker_helper).to have_received(:notify_worker_error).once
+        end
       end
 
       context 'Processing skipped' do
@@ -134,6 +155,13 @@ RSpec.describe 'IngestManager' do
           @manager.do_work
 
           expect(@logger).to have_received(:info).with('Skipped test_id')
+        end
+
+        it 'will send notification to ticket handler' do
+          @manager.do_work
+
+          expect(@issue_tracker_helper).to have_received(:notify_worker_started).once
+          expect(@issue_tracker_helper).to have_received(:notify_worker_skipped).once
         end
       end
     end

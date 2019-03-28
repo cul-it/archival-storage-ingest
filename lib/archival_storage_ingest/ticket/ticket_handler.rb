@@ -3,22 +3,37 @@
 require 'mail'
 
 module TicketHandler
-  class JiraHandler
-    def add_comment(ingest_msg, comment)
-      mail = generate_email(ingest_msg, comment)
+  DEFAULT_FROM = 'cular-jiramailer@cornell.edu'
+  DEFAULT_TO = 'cular-jiramailer@cornell.edu'
 
-      mail.delivery_method :sendmail
+  class JiraHandler
+    attr_reader :from, :to
+
+    def initialize(from: DEFAULT_FROM, to: DEFAULT_TO)
+      @from = from
+      @to = to
+      Mail.defaults do
+        delivery_method :sendmail
+      end
+    end
+
+    # If an existing ticket id is used for subject, this will add comment.
+    # Otherwise, it will create a new ticket.
+    def update_issue_tracker(subject:, body:)
+      mail = generate_email(subject: subject, body: body)
 
       mail.deliver
     end
 
-    def generate_email(ingest_msg, comment)
-      Mail.new do
-        from ingest_msg.mailer
-        to ingest_msg.mailer
-        subject msg.ticket_id
-        body comment
+    def generate_email(subject:, body:)
+      mail = Mail.new do
+        subject subject
+        body body
       end
+      # Why don't these work on constructor???
+      mail.from(from)
+      mail.to(to)
+      mail
     end
   end
 end

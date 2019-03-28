@@ -4,7 +4,7 @@ lib = File.expand_path('lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'archival_storage_ingest/version'
 
-Gem::Specification.new do |spec|
+Gem::Specification.new do |spec| # rubocop:disable BlockLength
   spec.name = 'archival_storage_ingest'
   spec.version = ArchivalStorageIngest::VERSION
   spec.authors = %w[Shinwoo Kim Buddha Buck]
@@ -41,4 +41,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop-rspec'
 
   spec.add_runtime_dependency 'aws-sdk'
+  spec.add_runtime_dependency 'mail'
 end

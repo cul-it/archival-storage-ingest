@@ -4,7 +4,7 @@ lib = File.expand_path('lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'archival_storage_ingest/version'
 
-Gem::Specification.new do |spec| # rubocop:disable BlockLength
+Gem::Specification.new do |spec|
   spec.name = 'archival_storage_ingest'
   spec.version = ArchivalStorageIngest::VERSION
   spec.authors = %w[Shinwoo Kim Buddha Buck]

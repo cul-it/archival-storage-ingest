@@ -21,6 +21,7 @@ RSpec.describe 'IngestManager' do
     allow(@issue_tracker_helper).to receive(:notify_worker_completed).and_return nil
     allow(@issue_tracker_helper).to receive(:notify_worker_skipped).and_return nil
     allow(@issue_tracker_helper).to receive(:notify_worker_error).and_return nil
+    allow(@issue_tracker_helper).to receive(:notify_error).and_return nil
 
     ArchivalStorageIngest.configure do |config|
       config.logger = @logger
@@ -80,6 +81,18 @@ RSpec.describe 'IngestManager' do
         expect(@worker).to have_received(:work).with(message)
       end
 
+      context 'when there is an existing message in WIP queue' do
+        it 'will send error notification and exit' do
+          allow(@wip_q).to receive(:retrieve_message).and_return message
+
+          expect { @manager.do_work }.to raise_error(SystemExit)
+          expect(@worker).to_not have_received(:work)
+          expect(@issue_tracker_helper).to have_received(:notify_error).once
+          expect(@issue_tracker_helper).to_not have_received(:notify_worker_started)
+          expect(@dest1_q).to_not have_received(:send_message)
+        end
+      end
+
       context 'Successful processing' do
         before(:each) do
           allow(@worker).to receive(:work).and_return true
@@ -132,17 +145,12 @@ RSpec.describe 'IngestManager' do
           expect(exception.message).to be('This is the error')
         end
 
-        it 'will not pass message on to next queue' do
-          expect { @manager.do_work }.to raise_error(SystemExit)
-
-          expect(@dest1_q).to_not have_received(:send_message)
-        end
-
-        it 'will send notification to ticket handler' do
+        it 'will send notification to ticket handler and will not pass message on to next queue' do
           expect { @manager.do_work }.to raise_error(SystemExit)
 
           expect(@issue_tracker_helper).to have_received(:notify_worker_started).once
           expect(@issue_tracker_helper).to have_received(:notify_worker_error).once
+          expect(@dest1_q).to_not have_received(:send_message)
         end
       end
 

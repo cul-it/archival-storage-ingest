@@ -128,17 +128,65 @@ For development, you could also create a test gemset via RVM as well with the fo
 
     $ rvm gemset create archival_storage_ingest
 
+Each services and queuer can be run in develop mode by setting specific environment variable. To run it in develop mode, set the desired environment variable with any value such as 1. To disable it, simply unset the environment variable.
+
+Under the develop mode, the application will use develop queues, S3 bucket. In case of each services, it will run the code once and terminate.
+
+This is useful for integration test.
+
+There is a global develop environment variable and specific environment variables for each services.
+- asi_develop (global)
+- asi_queue_develop
+- asi_ingest_develop
+- asi_ingest_transfer_s3_develop
+- asi_ingest_transfer_sfs_develop
+- asi_ingest_fixity_s3_develop
+- asi_ingest_fixity_sfs_develop
+- asi_ingest_fixity_comparison_develop
+
+There are environment variables for periodic fixity services but we currently do not have develop queues for these and will use production queues.
+
 ## Message
 
 ```json
 {
-  "ingest_id": "UUID generated for this ingest"
+  "ingest_id": "ee4b25f4-d67a-4110-9a8d-2dcf5497fd7a",
+  "depositor": "RMC/RMA",
+  "collection": "RMA1234",
+  "data_path": "/cul/data",
+  "dest_path": "/cul/data/archival02",
+  "ingest_manifest": "/cul/data/somewhere/_EM_RMC_RMA_RMA1234_ExampleCollection.json",
+  "ticket_id": "CULAR-1937"
 }
 ```
 
 ingest_id is generated when a new ingest is queued by a user and persists through all of the steps for that ingest.
 
-Any other information needed for the ingest should be included to this JSON.
+data_path must include sub directory which matches depositor/collection as specified in the message. For above example, it must contain "RMC/RMA/RMA1234" sub-directory.
+
+ingest_manifest is used by the fixity comparison workers down in the pipeline.
+
+ticket_id is the JIRA ticket id which the application will comment its progress.
+
+When a new ingest is queued successfully, it will add comment to the ticket with a message containing the timestamp, depositor/collection and the message sent to the ingest queue, similar to the following.
+
+```ticket_update
+New ingest queued at 2019-03-28 15:29:39 -0400.
+Depositor/Collection: test_depositor/test_collection
+Ingest Info
+
+{ "ingest_id": "ee4b25f4-d67a-4110-9a8d-2dcf5497fd7a", "data_path": "/cul/app/archival_storage_ingest/data/source", "dest_path": "/cul/app/archival_storage_ingest/data/target", "depositor": "test_depositor", "collection": "test_collection", "ingest_manifest": "/cul/app/archival_storage_ingest/ingest/test/manifest/ingest_manifest/test.json", "ticket_id": "CULAR-1937" }
+```
+
+For each services, it will add comment to the ticket with its progress with timestamp, worker name, depositor/collection and the status such as the following.
+
+```ticket_update
+2019-03-28 15:30:29 -0400
+Ingest Initiator
+Depositor/Collection: test_depositor/test_collection
+Ingest ID: ee4b25f4-d67a-4110-9a8d-2dcf5497fd7a
+Status: Started
+```
 
 ## Behavior
 
@@ -148,6 +196,7 @@ Any other information needed for the ingest should be included to this JSON.
 * Each service is set to restart on failures. This means that if the service exits normally, systemd won't restart it automatically.
 * cular-ingest server uses ingest, transfer s3, transfer sfs, fixity check sfs and fixity compare services.
 * AWS fixity checking VM uses fixity check s3 service only.
+* Each services as well as the queuer will update the JIRA ticket specified in the ingest message its progress.
 
 ## Workflow
 

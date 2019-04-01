@@ -30,6 +30,10 @@ module FixityCompareWorker
       false
     end
 
+    def name
+      'Manifest Comparator'
+    end
+
     private
 
     def retrieve_manifest(msg, suffix)

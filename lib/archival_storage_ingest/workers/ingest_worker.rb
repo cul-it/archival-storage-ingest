@@ -8,6 +8,10 @@ class IngestWorker < Workers::Worker
     @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
   end
 
+  def name
+    'Ingest Initiator'
+  end
+
   def work(msg)
     s3_key = @s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_INGEST)
     @s3_manager.upload_file(s3_key, msg.ingest_manifest)

@@ -76,6 +76,10 @@ module FixityWorker
   end
 
   class IngestFixityS3Generator < IngestFixityGenerator
+    def name
+      'S3 Fixity Generator'
+    end
+
     def worker_type
       Workers::TYPE_S3
     end
@@ -86,6 +90,10 @@ module FixityWorker
   end
 
   class PeriodicFixityS3Generator < FixityGenerator
+    def name
+      'Periodic S3 Fixity Generator'
+    end
+
     def worker_type
       Workers::TYPE_S3
     end
@@ -105,6 +113,10 @@ module FixityWorker
 
   class IngestFixitySFSGenerator < IngestFixityGenerator
     BUFFER_SIZE = 4096
+
+    def name
+      'SFS Fixity Generator'
+    end
 
     def worker_type
       Workers::TYPE_SFS
@@ -127,6 +139,10 @@ module FixityWorker
 
   class PeriodicFixitySFSGenerator < FixityGenerator
     BUFFER_SIZE = 4096
+
+    def name
+      'Periodic SFS Fixity Generator'
+    end
 
     def worker_type
       Workers::TYPE_SFS

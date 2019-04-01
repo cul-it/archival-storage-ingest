@@ -10,18 +10,29 @@ ArchivalStorageIngest.configure do |config|
   config.log_path = ENV['asi_ingest_fixity_comparison_log_path'] ||
                     '/cul/app/archival_storage_ingest/logs/ingest_fixity_comparison.log'
   config.dry_run = ENV['asi_ingest_fixity_comparison_dry_run'] || false
-  config.debug = ENV['asi_ingest_fixity_comparison_debug'] || false
-  config.s3_bucket = ENV['asi_ingest_fixity_comparison_bucket'] || 's3-cular'
   config.polling_interval = ENV['asi_ingest_fixity_comparison_polling_interval'] if
                             ENV['asi_ingest_fixity_comparison_polling_interval']
-  config.message_queue_name = Queues::QUEUE_INGEST_FIXITY_COMPARISON
-  config.in_progress_queue_name = Queues::QUEUE_INGEST_FIXITY_COMPARISON_IN_PROGRESS
-  config.dest_queue_names = [Queues::QUEUE_COMPLETE]
   config.worker = FixityCompareWorker::ManifestComparator.new
   config.inhibit_file = ENV['asi_ingest_fixity_comparison_inhibit_file'] ||
                         '/cul/app/archival_storage_ingest/control/ingest_fixity_comparison.inhibit'
   config.global_inhibit_file = ENV['asi_global_inhibit_file'] ||
                                '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
+
+  if ENV['asi_develop'] || ENV['asi_ingest_fixity_comparison_develop']
+    config.s3_bucket = 's3-cular-dev'
+    config.debug = true
+    config.develop = true
+    config.message_queue_name = Queues::DEV_QUEUE_INGEST_FIXITY_COMPARISON
+    config.in_progress_queue_name = Queues::DEV_QUEUE_INGEST_FIXITY_COMPARISON_IN_PROGRESS
+    config.dest_queue_names = [Queues::DEV_QUEUE_COMPLETE]
+  else
+    config.s3_bucket = 's3-cular'
+    config.debug = ENV['asi_ingest_debug'] || false
+    config.develop = false
+    config.message_queue_name = Queues::QUEUE_INGEST_FIXITY_COMPARISON
+    config.in_progress_queue_name = Queues::QUEUE_INGEST_FIXITY_COMPARISON_IN_PROGRESS
+    config.dest_queue_names = [Queues::QUEUE_COMPLETE]
+  end
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

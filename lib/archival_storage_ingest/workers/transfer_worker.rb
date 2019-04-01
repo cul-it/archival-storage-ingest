@@ -44,6 +44,10 @@ module TransferWorker
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
     end
 
+    def name
+      'S3 Transferer'
+    end
+
     def work(msg)
       directory_walker = DirectoryWalker.new
 
@@ -79,6 +83,10 @@ module TransferWorker
   end
 
   class SFSTransferer < Workers::Worker
+    def name
+      'SFS Transferer'
+    end
+
     def work(msg)
       directory_walker = DirectoryWalker.new
 

@@ -151,11 +151,12 @@ module ArchivalStorageIngest
     def notify_and_quit(exception, ingest_msg)
       logger.fatal(exception)
 
+      error_msg = exception.to_s + "\n\n" + exception.backtrace.join("\n")
+
       if ingest_msg.nil?
-        notify_error(exception.backtrace.join("\n"))
+        notify_error(error_msg)
       else
-        notify_worker_error(ingest_msg: ingest_msg,
-                            error_msg: exception.backtrace.join("\n"))
+        notify_worker_error(ingest_msg: ingest_msg, error_msg: error_msg)
       end
 
       exit(0)
@@ -217,7 +218,10 @@ module ArchivalStorageIngest
 
     def check_wip
       msg = wip_q.retrieve_message
-      raise IngestException, "Ingest #{msg.ingest_id} crashed last run." unless msg.nil?
+      return if msg.nil?
+
+      notify_worker_error(ingest_msg: msg, error_msg: 'Incomplete work in progress detected.')
+      raise IngestException, "Incomplete work in progress for ingest #{msg.ingest_id} detected."
     end
 
     def move_msg_to_wip(msg)
@@ -324,10 +328,10 @@ module ArchivalStorageIngest
 
     def _queue_ingest(ingest_config)
       msg = IngestMessage::SQSMessage.new(
-        ingest_id: SecureRandom.uuid, ticket_id: ingest_config['ticket_id'],
-        depositor: ingest_config['depositor'], collection: ingest_config['collection'],
-        data_path: ingest_config['data_path'], dest_path: ingest_config['dest_path'],
-        ingest_manifest: ingest_config['ingest_manifest']
+          ingest_id: SecureRandom.uuid, ticket_id: ingest_config['ticket_id'],
+          depositor: ingest_config['depositor'], collection: ingest_config['collection'],
+          data_path: ingest_config['data_path'], dest_path: ingest_config['dest_path'],
+          ingest_manifest: ingest_config['ingest_manifest']
       )
       @queuer.put_message(@queue_name, msg)
       msg
@@ -343,6 +347,7 @@ module ArchivalStorageIngest
     end
 
     def confirm_ingest(ingest_config)
+      puts "Destination Queue: #{@queue_name}"
       ingest_config.keys.sort.each do |key|
         puts "#{key}: #{ingest_config[key]}"
       end

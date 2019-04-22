@@ -151,11 +151,12 @@ module ArchivalStorageIngest
     def notify_and_quit(exception, ingest_msg)
       logger.fatal(exception)
 
+      error_msg = exception.to_s + "\n\n" + exception.backtrace.join("\n")
+
       if ingest_msg.nil?
-        notify_error(exception.backtrace.join("\n"))
+        notify_error(error_msg)
       else
-        notify_worker_error(ingest_msg: ingest_msg,
-                            error_msg: exception.backtrace.join("\n"))
+        notify_worker_error(ingest_msg: ingest_msg, error_msg: error_msg)
       end
 
       exit(0)
@@ -194,8 +195,8 @@ module ArchivalStorageIngest
         remove_wip_msg
 
         logger.info("#{status} #{msg.ingest_id}")
-      rescue IngestException => ex
-        notify_and_quit(ex, msg)
+      rescue IngestException => e
+        notify_and_quit(e, msg)
       end
     end
     # rubocop:enable Metrics/MethodLength
@@ -217,7 +218,10 @@ module ArchivalStorageIngest
 
     def check_wip
       msg = wip_q.retrieve_message
-      raise IngestException, "Ingest #{msg.ingest_id} crashed last run." unless msg.nil?
+      return if msg.nil?
+
+      notify_worker_error(ingest_msg: msg, error_msg: 'Incomplete work in progress detected.')
+      raise IngestException, "Incomplete work in progress for ingest #{msg.ingest_id} detected."
     end
 
     def move_msg_to_wip(msg)
@@ -343,6 +347,7 @@ module ArchivalStorageIngest
     end
 
     def confirm_ingest(ingest_config)
+      puts "Destination Queue: #{@queue_name}"
       ingest_config.keys.sort.each do |key|
         puts "#{key}: #{ingest_config[key]}"
       end

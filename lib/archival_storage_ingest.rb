@@ -195,8 +195,8 @@ module ArchivalStorageIngest
         remove_wip_msg
 
         logger.info("#{status} #{msg.ingest_id}")
-      rescue IngestException => ex
-        notify_and_quit(ex, msg)
+      rescue IngestException => e
+        notify_and_quit(e, msg)
       end
     end
     # rubocop:enable Metrics/MethodLength

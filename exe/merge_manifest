@@ -1,0 +1,4 @@
+require 'misc/merge_manifest'
+
+mm = MergeManifest::MergeManifest.new()
+mm.merge_manifest(ARGV[0], ARGV[1])

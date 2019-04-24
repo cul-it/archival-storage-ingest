@@ -1,0 +1,4 @@
+require 'misc/convert_xml_to_json_metadata'
+
+cxtjm = ConvertXmlToJsonMetadata::ConvertXmlToJsonMetadata.new
+puts cxtjm.convert_xml_to_json_metadata(ARGV[0])

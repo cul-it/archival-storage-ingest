@@ -2,11 +2,8 @@
 
 require 'rspec'
 require 'archival_storage_ingest/monitor/dead_letter_monitor'
-require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/messages/ingest_queue'
 require 'json'
-require 'mail'
-require 'mail/network/delivery_methods/test_mailer'
 
 RSpec.describe 'DeadLetterMonitor' do # rubocop:disable BlockLength
   let(:dead_letter_queue_name) { %w[dlq1 dlq2] }

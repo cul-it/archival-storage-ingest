@@ -19,9 +19,7 @@ RSpec.describe 'DeadLetterMonitor' do # rubocop:disable BlockLength
   end
   let(:dead_letter_message) { JSON.generate(dead_letter_message_hash) }
   let(:queuer) do
-    logger = spy('logger')
-    sqs_queuer = IngestQueue::SQSQueuer.new(logger)
-
+    sqs_queuer = spy('sqs_queuer')
     sqs_response = spy('sqs_response')
     allow(sqs_response).to receive(:body) { dead_letter_message }
     allow(sqs_queuer).to receive(:retrieve_single_message).with(dead_letter_queue_name[0]) { sqs_response }

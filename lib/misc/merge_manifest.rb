@@ -16,42 +16,42 @@ module MergeManifest
 
       merge(im_items, cm_items)
       update_item_count(cm)
-      File.open("#{collection_manifest}.merged", 'w') { |file| file.write(JSON.pretty_generate(cm)) }
+      JSON.pretty_generate(cm)
     end
 
     def merge(im_obj, cm_obj)
       im_obj.each_key do |im_key|
         if cm_obj[im_key]
-          if is_dir?(im_obj[im_key])
-            merge(im_obj[im_key], cm_obj[im_key])
-          else
-            cm_obj[im_key] = im_obj[im_key]
-            puts "#{im_key} is duplicate file!"
-          end
+          handle_collision(im_key, im_obj, cm_obj)
         else
           cm_obj[im_key] = im_obj[im_key]
         end
       end
     end
 
-    def update_item_count(cm)
-      item_count = count_items(cm[DEPO_COLL][ITEMS])
-      cm[DEPO_COLL][NUMBER_FILES] = item_count
+    def handle_collision(im_key, im_obj, cm_obj)
+      if dir?(im_obj[im_key])
+        merge(im_obj[im_key], cm_obj[im_key])
+      else
+        cm_obj[im_key] = im_obj[im_key]
+        puts "#{im_key} is duplicate file!"
+      end
+    end
+
+    def update_item_count(collection_manifest)
+      item_count = count_items(collection_manifest[DEPO_COLL][ITEMS])
+      collection_manifest[DEPO_COLL][NUMBER_FILES] = item_count
     end
 
     def count_items(cm_items)
       count = 0
       cm_items.each_key do |key|
-        if is_dir?(cm_items[key])
-          count = count + count_items(cm_items[key])
-        else
-          count = count + 1
-        end
+        count += dir?(cm_items[key]) ? count_items(cm_items[key]) : 1
       end
-      return count
+      count
     end
 
-    def is_dir?(obj)
+    def dir?(obj)
       obj['sha1'].nil?
     end
 
@@ -61,4 +61,3 @@ module MergeManifest
     end
   end
 end
-

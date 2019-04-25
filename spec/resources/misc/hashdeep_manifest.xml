@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dfxml 
+  xmlns='http://www.forensicswiki.org/wiki/Category:Digital_Forensics_XML' 
+  xmlns:deep='http://md5deep.sourceforge.net/md5deep/' 
+  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' 
+  xmlns:dc='http://purl.org/dc/elements/1.1/' version='1.0'>
+  <deep:configuration>
+    <algorithms>
+      <algorithm name='md5' enabled='0'/>
+      <algorithm name='sha1' enabled='1'/>
+      <algorithm name='sha256' enabled='0'/>
+      <algorithm name='tiger' enabled='0'/>
+      <algorithm name='whirlpool' enabled='0'/>
+      <algorithm name='' enabled='0'/>
+    </algorithms>
+  </deep:configuration>
+  <metadata>
+    <dc:type>Hash List</dc:type>
+  </metadata>
+  <creator version='1.0'>
+    <program>MD5DEEP</program>
+    <version>4.4</version>
+    <build_environment>
+      <compiler>GCC 4.8</compiler>
+    </build_environment>
+    <execution_environment>
+      <command_line>hashdeep64.exe -d -r -c sha1 -l \*</command_line>
+      <start_time>2019-04-01T14:31:58Z</start_time>
+    </execution_environment>
+  </creator>
+  <fileobject>
+    <filename>\1001_Barton Hall\SUCF 161001 10069_2016_Flooring System Replacement\AsBuilts_01_2017\Images\285-408_G1-0_Gnrl Nts Abbrvtns and Symbls_A1.pdf</filename>
+    <filesize>509065</filesize>
+    <mtime>2019-03-14T11:30:15Z</mtime>
+    <ctime>2019-03-14T12:42:34Z</ctime>
+    <atime>2019-03-14T16:58:26Z</atime>
+    <hashdigest type='SHA1'>1df2314ccada2340777da47076c0d8ffa5da93ca</hashdigest>
+  </fileobject>
+  <fileobject>
+    <filename>\1001_Barton Hall\SUCF 161001 10069_2016_Flooring System Replacement\AsBuilts_01_2017\Images\285-410_G1-1_Code Assumptions Site Staging Pln_A3.pdf</filename>
+    <filesize>395412</filesize>
+    <mtime>2019-03-14T11:32:17Z</mtime>
+    <ctime>2019-03-14T12:42:36Z</ctime>
+    <atime>2019-03-14T14:57:41Z</atime>
+    <hashdigest type='SHA1'>686c21513f7d3eb537cabb71a90d96a380f60730</hashdigest>
+  </fileobject>
+  <fileobject>
+    <filename>\1001_Barton Hall\SUCF 161001 10069_2016_Flooring System Replacement\AsBuilts_01_2017\Images\285-417_D2-1_Demolition Dtls Base Bid_A10.pdf</filename>
+    <filesize>860060</filesize>
+    <mtime>2019-03-14T12:13:56Z</mtime>
+    <ctime>2019-03-14T12:42:40Z</ctime>
+    <atime>2019-03-14T15:08:18Z</atime>
+    <hashdigest type='SHA1'>3c3fc1b215d3653fb8b98bb881196db089c0e309</hashdigest>
+  </fileobject>
+  <fileobject>
+    <filename>\1001_Barton Hall\SUCF 161001 10069_2016_Flooring System Replacement\AsBuilts_01_2017\Images\285-418_D2-1A_Demolition Dtls Alter 1_A11.pdf</filename>
+    <filesize>881484</filesize>
+    <mtime>2019-03-14T12:14:38Z</mtime>
+    <ctime>2019-03-14T12:42:40Z</ctime>
+    <atime>2019-03-14T15:09:21Z</atime>
+    <hashdigest type='SHA1'>58bcbd5e888f35c1674c099ae49218b15f6def48</hashdigest>
+  </fileobject>
+</dfxml>

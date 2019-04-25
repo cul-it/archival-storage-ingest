@@ -36,7 +36,7 @@ module ConvertXmlToJsonMetadata
         IPP_DEPOSITOR_COLLECTION => {
           'phys_coll_id' => IPP_PHYSICAL_COLLECTION_ID,
           'steward' => IPP_STEWARD,
-          'items' => { }
+          'items' => {}
         }
       }
     end
@@ -46,7 +46,7 @@ module ConvertXmlToJsonMetadata
 
       current_position = items
       paths.each do |dir|
-        current_position[dir] = {} if !current_position[dir]
+        current_position[dir] = {} unless current_position[dir]
 
         current_position = current_position[dir]
       end

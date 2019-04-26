@@ -35,5 +35,5 @@ dead_letter_queues =
     ]
   end
 
-dead_letter_monitor = DeadLetterMonitor::DeadLetterMonitor.new(dead_letter_queues)
+dead_letter_monitor = DeadLetterMonitor::DeadLetterMonitor.new(dead_letter_queues: dead_letter_queues)
 dead_letter_monitor.check_dead_letter_queues

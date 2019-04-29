@@ -217,11 +217,11 @@ module ArchivalStorageIngest
     end
 
     def check_wip
-      msg = wip_q.retrieve_message
-      return if msg.nil?
+      wip_msg = wip_q.retrieve_message
+      return if wip_msg.nil?
 
-      notify_worker_error(ingest_msg: msg, error_msg: 'Incomplete work in progress detected.')
-      raise IngestException, "Incomplete work in progress for ingest #{msg.ingest_id} detected."
+      notify_worker_error(ingest_msg: wip_msg, error_msg: 'Incomplete work in progress detected.')
+      raise IngestException, "Incomplete work in progress for ingest #{wip_msg.ingest_id} detected."
     end
 
     def move_msg_to_wip(msg)

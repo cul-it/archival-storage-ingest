@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'misc/convert_xml_to_json_metadata'
+
+cxtjm = ConvertXmlToJsonMetadata::ConvertXmlToJsonMetadata.new
+puts cxtjm.convert_xml_to_json_metadata(ARGV[0])

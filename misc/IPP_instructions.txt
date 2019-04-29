@@ -1,0 +1,54 @@
+1. Convert XML into JSON (local)
+> convert_xml_to_json_metadata manifest.xml
+
+2. Populate missing checksums (cular-ingest)
+java -jar ingest.jar --op=script --script=populateMissingJsonAttribute --dataPath=/cul/app/ingest/rmc/RMA/RMA03487/20190206/data/RMC --jsonManifest=/cul/app/ingest/rmc/RMA/RMA03487/20190206/manifests/ingest_manifest/_EM_RMC_RMA_RMA03487_Cornell_University_Facilities_Construction_Records.json
+
+3. Merge collection manifest and detect overwrites (local)
+> merge_manifest ingest_manifest.json previous_collection_manifest.json
+
+3. RSYNC dry run (cular-ingest)
+rsync -rk --exclude=.DS_Store --exclude=thumbs.db /cul/app/ingest/rmc/RMA/RMA03487/20190206/data/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records/ /cul/data/archival02/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records -nv
+
+compare the number of files to be transferred to number of files in manifest
+
+
+4. RSYNC transfer (cular-ingest)
+time rsync -rk --exclude=.DS_Store --exclude=thumbs.db /cul/app/ingest/rmc/RMA/RMA03487/20190206/data/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records/ /cul/data/archival02/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records -v
+
+
+5. AWS dry run (cular-ingest)
+aws s3 cp --recursive --dryrun --exclude="*DS_Store" --exclude="*thumbs.db" /cul/app/ingest/rmc/RMA/RMA03487/20190206/data/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records s3://s3-cular/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records
+
+compare the number of files to be transferred to number of files in manifest
+
+
+6. AWS transfer (cular-ingest)
+time aws s3 cp --recursive --exclude="*DS_Store" --exclude="*thumbs.db" /cul/app/ingest/rmc/RMA/RMA03487/20190206/data/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records s3://s3-cular/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records
+
+
+7. SFS fixity check (cular-ingest)
+java -jar ingest.jar --op=script --script=generateManifestSFS --configPath=/cul/app/ingest/rmc/RMA/RMA03487/config/rma03487_fixity_config.json
+
+
+8. S3 fixity check (cular-ingest)
+java -jar ingest.jar --op=script --script=generateManifestS3 --configPath=/cul/app/cular/conf/rmc_rma_rma03487.conf
+
+
+9. Copy s3 manifest to cular-ingest then run (cular-ingest)
+cd /cul/app/ingest/overflow
+java -jar fixityDiff.jar manifest/RMCRMARMA03487_Cornell_University_Facilities_Construction_Records_SFS.json s3_manifest/RMCRMARMA03487_Cornell_University_Facilities_Construction_Records_S3.json 
+
+
+10. Transfer newly merged (step 2) collection manifest to SFS (cular-ingest)
+cp /cul/app/ingest/rmc/RMA/RMA03487/20190206/collection_manifest/_EM_RMC_RMA_RMA03487_Cornell_University_Facilities_Construction_Records.json /cul/data/archival02/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records/
+
+
+11. Transfer newly merged (step 2) collection manifest to S3 (cular-ingest)
+aws s3 cp /cul/app/ingest/rmc/RMA/RMA03487/20190206/collection_manifest/_EM_RMC_RMA_RMA03487_Cornell_University_Facilities_Construction_Records.json s3://s3-cular/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records/_EM_RMC_RMA_RMA03487_Cornell_University_Facilities_Construction_Records.json
+
+
+
+
+
+

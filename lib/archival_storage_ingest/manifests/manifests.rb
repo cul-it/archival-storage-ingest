@@ -1,57 +1,86 @@
 # frozen_string_literal: true
 
+require 'json'
+
 module Manifests
+  def self.read_manifest(filename:)
+    json_io = File.open(filename)
+    json_text = json_io.read
+    Manifests::Manifest.new(json_text: json_text)
+  end
+
   class Manifest
-    attr_reader :hash
-    attr_reader :files
-    attr_reader :filename
+    attr :collection_id, :depositor, :steward, :rights,
+         :locations, :number_packages, :packages
 
-    def initialize(filename:, json: nil)
-      @filename = filename
-      json_io = json || File.open(filename)
-      json_text = json_io.read
-      @hash = JSON.parse(json_text)
-      @files = flattened
+    # create clean slate manifest
+    def initialize
+
     end
 
-    def depcol
-      hash.keys[0]
+    # initialize from the json string
+    def initialize(json_text:)
+      json_hash = JSON.parse(json_text)
+      collection_id = json_hash['collection_id']
+      depositor = json_hash['depositor']
+      steward = json_hash['steward']
+      rights = json_hash['rights']
+      locations = json_hash['locations']
+      number_packages = json_hash['number_packages'] || json_hash['packages'].length
+      packages = json_hash['packages'].map { |package| Manifests::Package.new(package: package) }
     end
 
-    def size
-      files.length
+    def add_file(package_id:, filepath:, sha1:, size:)
+      # files[filepath] = { sha1: sha1, size: size }
+      # @number_files += 1
     end
 
-    def flattened
-      files = {}
-      items = hash[depcol]['items']
-      flatten_folder(files, items, depcol)
-      files
+    def update_filepath(package_id:, filepath:, sha1:, size:)
+
     end
 
-    def diff(manifest)
-      left = files.to_a
-      right = manifest.files.to_a
-      leftfiles = (left - right).to_h
-      rightfiles = (right - left).to_h
-
-      diff = {}
-      diff[filename] = leftfiles unless leftfiles.empty?
-      diff[manifest.filename] = rightfiles unless rightfiles.empty?
-      diff
+    def walk_packages
+      # files.each do |filepath, sha1|
+      #   yield(filepath, sha1)
+      # end
     end
 
-    private
+    def walk_filepath(package_id:)
 
-    def flatten_folder(files, items, prefix)
-      items.each do |key, file_hash|
-        fullkey = prefix + '/' + key
-        if file_hash.key?('sha1')
-          files[fullkey] = file_hash['sha1']
-        else
-          flatten_folder(files, file_hash, fullkey)
-        end
-      end
+    end
+
+    def compare_manifest(other_manifest:)
+
+    end
+
+    # json_type is either ingest or storage
+    # Details of the differences can be found at:
+    # https://github.com/cul-it/cular-metadata/
+    def to_json(json_type:)
+
+    end
+  end
+
+  # initializes a package from JSON snippet
+  class Package
+    attr :package_id, :source_path, :bibid, :local_id, :number_files, :files
+    def initialize(package:)
+      package_id = package['package_id']
+      source_path = package['source_path']
+      bibid = package['bibid']
+      local_id = package['local_id']
+      number_files = package['number_files'] || package['files'].length
+      files = package['files'].map { |file| Manifests::FileEntry.new(file: file) }
+    end
+  end
+
+  class FileEntry
+    attr_reader :filepath, :sha1, :md5, :size
+    def initialize(file:)
+      @filepath = file['filepath']
+      @sha1 = file['sha1']
+      @md5 = file['md5']
+      @size = file['size']
     end
   end
 end

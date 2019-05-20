@@ -10,9 +10,14 @@ module Manifests
 
   def self.read_manifest(filename:)
     json_io = File.open(filename)
+    read_manifest_io(json_io)
+  end
+
+  def self.read_manifest_io(json_io:)
     json_text = json_io.read
     Manifests::Manifest.new(json_text: json_text)
   end
+
 
   class Manifest
     attr_accessor :collection_id, :depositor, :steward, :rights, :locations, :number_packages, :packages
@@ -64,6 +69,14 @@ module Manifests
         package.walk_files do |file|
           yield(file)
         end
+      end
+    end
+
+    def flattened
+      all_files = {}
+      walk_all_filepath do |filepath|
+        all_files[filepath.filepath] = filepath
+      all_files
       end
     end
 
@@ -201,4 +214,5 @@ module Manifests
       }.compact
     end
   end
+
 end

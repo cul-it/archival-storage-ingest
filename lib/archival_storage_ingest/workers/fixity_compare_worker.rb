@@ -39,7 +39,7 @@ module FixityCompareWorker
     def retrieve_manifest(msg, suffix)
       manifest_name = s3_manager.manifest_key(msg.ingest_id, suffix)
       manifest_file = s3_manager.retrieve_file(manifest_name)
-      Manifests::Manifest.new(filename: manifest_name, json: manifest_file)
+      Manifests.read_manifest_io(json_io: manifest_file)
     end
   end
 end

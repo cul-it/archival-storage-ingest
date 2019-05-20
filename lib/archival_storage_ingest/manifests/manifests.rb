@@ -10,9 +10,14 @@ module Manifests
 
   def self.read_manifest(filename:)
     json_io = File.open(filename)
+    read_manifest_io(json_io)
+  end
+
+  def self.read_manifest_io(json_io:)
     json_text = json_io.read
     Manifests::Manifest.new(json_text: json_text)
   end
+
 
   class Manifest
     attr_accessor :collection_id, :depositor, :steward, :rights, :locations, :number_packages, :packages
@@ -197,4 +202,5 @@ module Manifests
       }.compact
     end
   end
+
 end

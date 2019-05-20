@@ -2,7 +2,7 @@
 
 require 'archival_storage_ingest/workers/worker'
 require 'archival_storage_ingest/manifests/manifests'
-require 'digest/sha1'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'find'
 require 'json'
 require 'pathname'
@@ -10,9 +10,6 @@ require 'pathname'
 # We don't expect to encounter symlinks on fixity checker!
 # We will store JSON on memory while generating it.
 # If memory usage becomes an issue, then we will try sax-like approach.
-#
-# Until CULAR-1588 gets finalized, use old manifest format.
-
 module FixityWorker
   FIXITY_TEMPORARY_PACKAGE_ID = 'fixity_temporary_package'
   FIXITY_MANIFEST_TEMPLATE = {
@@ -128,8 +125,6 @@ module FixityWorker
   end
 
   class IngestFixitySFSGenerator < IngestFixityGenerator
-    BUFFER_SIZE = 4096
-
     def name
       'SFS Fixity Generator'
     end
@@ -140,22 +135,11 @@ module FixityWorker
 
     def calculate_checksum(object_path, msg) # rubocop:disable Metrics/MethodLength
       full_path = File.join(msg.dest_path, object_path).to_s
-      size = 0
-      File.open(full_path, 'rb') do |file|
-        dig = Digest::SHA1.new
-        until file.eof?
-          buffer = file.read(BUFFER_SIZE)
-          dig.update(buffer)
-          size += buffer.length
-        end
-        return dig.hexdigest, size
-      end
+      IngestUtils.calculate_checksum(full_path)
     end
   end
 
   class PeriodicFixitySFSGenerator < FixityGenerator
-    BUFFER_SIZE = 4096
-
     def name
       'Periodic SFS Fixity Generator'
     end
@@ -168,14 +152,7 @@ module FixityWorker
 
     def calculate_checksum(file_path, msg)
       full_path = File.join(msg.dest_path, file_path).to_s
-      File.open(full_path, 'rb') do |file|
-        dig = Digest::SHA1.new
-        until file.eof?
-          buffer = file.read(BUFFER_SIZE)
-          dig.update(buffer)
-        end
-        dig.hexdigest
-      end
+      IngestUtils.calculate_checksum(full_path)
     end
 
     private

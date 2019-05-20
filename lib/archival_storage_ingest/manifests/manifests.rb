@@ -130,8 +130,12 @@ module Manifests
     end
 
     def add_file_entry(filepath:, sha1:, size:, md5: nil)
-      file = { filepath: filepath, sha1: sha1, md5: md5, size: size }
-      files << FileEntry.new(file: file)
+      file_hash = { filepath: filepath, sha1: sha1, md5: md5, size: size }
+      add_file(file: FileEntry.new(file: file_hash))
+    end
+
+    def add_file(file:)
+      files << file
       @number_files += 1
     end
 

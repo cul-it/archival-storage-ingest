@@ -1,43 +1,12 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/workers/worker'
 require 'fileutils'
 require 'find'
 require 'pathname'
 
 module TransferWorker
-  EXCLUDE_FILE_LIST = {
-    '.ds_store' => true,
-    'thumbs.db' => true,
-    '.bridgecache' => true,
-    '.bridgecachet' => true
-  }.freeze
-
-  # https://stackoverflow.com/questions/357754/can-i-traverse-symlinked-directories-in-ruby-with-a-glob
-  # I was able to follow symlink with Dir.glob('**/*/**')
-  # As was mentioned in the link above, it DOES NOT give you the immediate children (dir or file).
-  # I could not get the "fix" to work - **{,/*/**}/*.
-  # If I use **{,/*/**}/*, I get files in non-symlink'ed directories twice.
-  # I will process immediate children and then use **/*/**.
-
-  class DirectoryWalker
-    def process_immediate_children(dir)
-      Dir.glob("#{dir}/*").each do |path|
-        next if EXCLUDE_FILE_LIST[File.basename(path).downcase]
-
-        yield(path)
-      end
-    end
-
-    def process_rest(dir)
-      Dir.glob("#{dir}/**/*/**").each do |path|
-        next if EXCLUDE_FILE_LIST[File.basename(path).downcase]
-
-        yield(path)
-      end
-    end
-  end
-
   class S3Transferer < Workers::Worker
     # Pass s3_manager only for tests.
     def initialize(s3_manager = nil)
@@ -49,7 +18,7 @@ module TransferWorker
     end
 
     def work(msg)
-      directory_walker = DirectoryWalker.new
+      directory_walker = IngestUtils::DirectoryWalker.new
 
       path_to_trim = Pathname.new(msg.data_path)
 
@@ -73,12 +42,8 @@ module TransferWorker
       @s3_manager.upload_file(s3_key, path)
     end
 
-    # Example arguments
-    # file - /a/b/c/resource.txt
-    # path_to_trim - /a/b
-    # s3 key - c/resource.txt
-    def s3_key(file, path_to_trim)
-      Pathname.new(file).relative_path_from(path_to_trim).to_s
+    def s3_key(path, path_to_trim)
+      IngestUtils.relativize(path, path_to_trim)
     end
   end
 
@@ -88,7 +53,7 @@ module TransferWorker
     end
 
     def work(msg)
-      directory_walker = DirectoryWalker.new
+      directory_walker = IngestUtils::DirectoryWalker.new
 
       path_to_trim = Pathname.new(msg.data_path)
 

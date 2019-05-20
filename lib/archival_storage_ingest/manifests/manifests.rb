@@ -72,6 +72,14 @@ module Manifests
       end
     end
 
+    def flattened
+      all_files = {}
+      walk_all_filepath do |filepath|
+        all_files[filepath.filepath] = filepath
+      all_files
+      end
+    end
+
     def compare_manifest(_other_manifest:); end
 
     # json_type is either ingest or storage

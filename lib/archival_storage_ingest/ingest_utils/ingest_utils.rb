@@ -29,6 +29,10 @@ module IngestUtils
     end
   end
 
+  def self.relative_path(file, path_to_trim)
+    Pathname.new(file).relative_path_from(path_to_trim).to_s
+  end
+
   # https://stackoverflow.com/questions/357754/can-i-traverse-symlinked-directories-in-ruby-with-a-glob
   # I was able to follow symlink with Dir.glob('**/*/**')
   # As was mentioned in the link above, it DOES NOT give you the immediate children (dir or file).

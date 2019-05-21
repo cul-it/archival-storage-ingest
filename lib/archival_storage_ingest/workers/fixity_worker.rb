@@ -133,7 +133,7 @@ module FixityWorker
       Workers::TYPE_SFS
     end
 
-    def calculate_checksum(object_path, msg) # rubocop:disable Metrics/MethodLength
+    def calculate_checksum(object_path, msg)
       full_path = File.join(msg.dest_path, object_path).to_s
       IngestUtils.calculate_checksum(full_path)
     end

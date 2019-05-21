@@ -18,8 +18,6 @@ module Manifests
     Manifests::Manifest.new(json_text: json_text)
   end
 
-
-
   class Manifest
     attr_accessor :collection_id, :depositor, :steward, :rights, :locations, :number_packages, :packages
 
@@ -208,7 +206,7 @@ module Manifests
       @size = file[:size]
     end
 
-    def ==(other)
+    def ==(other) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metric/PerceivedComplexity
       return false unless other.instance_of?(FileEntry)
 
       return false unless filepath == other.filepath

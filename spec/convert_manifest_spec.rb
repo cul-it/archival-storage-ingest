@@ -14,7 +14,7 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
     # Do nothing
   end
 
-  context 'when converting manifest' do
+  context 'when converting manifest' do # rubocop:disable Metrics/BlockLength
     context 'it should have collection-level data' do
       it 'gets the steward' do
         expect(@manifest['steward']).to eq('swr1')
@@ -37,7 +37,8 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
         expect(@manifest['locations']).to include('smb://files.cornell.edu/lib/archival01/MATH/LecturesEvents')
       end
     end
-    context 'when looking at packages' do
+
+    context 'when looking at packages' do # rubocop:disable Metrics/BlockLength
       before do
         @packages = @manifest['packages']
         @package = @packages[0]
@@ -79,14 +80,13 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
         end
 
         it 'files have a size' do
-          expect(@file['size']).to eq(46215762895)
+          expect(@file['size']).to eq(46_215_762_895)
         end
 
         it 'files do not have a bibid' do
           expect(@file['bibid']).to be_nil
         end
       end
-
     end
   end
 end

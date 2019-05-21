@@ -1,11 +1,10 @@
+# frozen_string_literal: true
 
 require 'securerandom'
 require 'json'
 
 module ConvertManifest
-
-
-  def self.convert_manifest(filename:)
+  def self.convert_manifest(filename:) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
     json_io = File.open(filename)
 
     old = JSON.parse(json_io.read)
@@ -18,7 +17,6 @@ module ConvertManifest
     dep = depcolsplit[0..-2].join('/')
 
     locations = (collection['locations'] || {}).keys
-
 
     newman = {
       steward: collection['steward'],

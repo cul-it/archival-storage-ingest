@@ -18,13 +18,13 @@ RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
     s3
   end
 
-  let(:flat10) { File.open(resource('10ItemsShaOnly.json')) }
-  let(:full10) { File.open(resource('10ItemsFull.json')) }
-  let(:full10b) { File.open(resource('10ItemsFull.json')) }
-  let(:flat10reordered) { File.open(resource('10ItemsShaOnlyReordered.json')) }
-  let(:flat10error) { File.open(resource('10ItemsShaOnlyError.json')) }
-  let(:flat9) { File.open(resource('9ItemsShaOnlyReordered.json')) }
-  let(:ingest) { File.open(resource('10ItemsFull.json')) }
+  let(:flat10) { File.open(resource('10ItemsShaOnly.json.new')) }
+  let(:full10) { File.open(resource('10ItemsFull.json.new')) }
+  let(:full10b) { File.open(resource('10ItemsFull.json.new')) }
+  let(:flat10reordered) { File.open(resource('10ItemsShaOnlyReordered.json.new')) }
+  let(:flat10error) { File.open(resource('10ItemsShaOnlyError.json.new')) }
+  let(:flat9) { File.open(resource('9ItemsShaOnlyReordered.json.new')) }
+  let(:ingest) { File.open(resource('10ItemsFull.json.new')) }
 
   let(:sfs_key) { '.manifest/test_1234_sfs.json' }
   let(:s3_key) { '.manifest/test_1234_s3.json' }

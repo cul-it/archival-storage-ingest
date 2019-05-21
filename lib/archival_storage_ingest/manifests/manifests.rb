@@ -10,13 +10,14 @@ module Manifests
 
   def self.read_manifest(filename:)
     json_io = File.open(filename)
-    read_manifest_io(json_io)
+    read_manifest_io(json_io: json_io)
   end
 
   def self.read_manifest_io(json_io:)
     json_text = json_io.read
     Manifests::Manifest.new(json_text: json_text)
   end
+
 
 
   class Manifest
@@ -76,11 +77,27 @@ module Manifests
       all_files = {}
       walk_all_filepath do |filepath|
         all_files[filepath.filepath] = filepath
-      all_files
+        all_files
       end
+      all_files
     end
 
     def compare_manifest(_other_manifest:); end
+
+    def diff(other_manifest)
+      flat_me = flattened
+      flat_other = other_manifest.flattened
+
+      left = flat_me.to_a
+      right = flat_other.to_a
+      leftfiles = (left - right).to_h
+      rightfiles = (right - left).to_h
+
+      {
+        ingest: leftfiles,
+        other: rightfiles
+      }.compact
+    end
 
     # json_type is either ingest or storage
     # Details of the differences can be found at:
@@ -200,7 +217,9 @@ module Manifests
 
       return false unless md5 == other.md5
 
-      return false unless size == other.size
+      return false unless
+        size == other.size ||
+        size.nil? || other.size.nil?
 
       true
     end
@@ -214,5 +233,4 @@ module Manifests
       }.compact
     end
   end
-
 end

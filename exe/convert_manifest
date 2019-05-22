@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'misc/convert_manifest'
+
+old_manifest = ARGV[0]
+new_manifest = ConvertManifest.convert_manifest(filename: old_manifest)
+File.open("#{old_manifest}.new", 'w') { |file| file.write(new_manifest) }

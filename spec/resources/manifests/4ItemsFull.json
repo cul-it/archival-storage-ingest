@@ -1,0 +1,39 @@
+{
+  "RMC/RMA/RMA00507_Dexter_Simpson_Kimball_papers": {
+    "phys_coll_id": "RMA00507_Dexter_Simpson_Kimball_papers",
+    "steward": "eef46",
+    "number_files": 4,
+    "locations": {
+      "s3": [
+        {
+          "uri": "s3://s3-cular/RMC/RMA/RMA00507_Dexter_Simpson_Kimball_papers"
+        }
+      ],
+      "sfs": [
+        {
+          "uri": "smb://files.library.cornell.edu/lib/archival02/RMC/RMA/RMA00507_Dexter_Simpson_Kimball_papers"
+        }
+      ]
+    },
+    "items": {
+      "RMA00507_WR001": {
+        "RMA00507_WR001_wav_exiftool.xml": {
+          "size": 2428,
+          "sha1": "e77e7121473b7627e9e49f473f74ac5fdf7bb501"
+        },
+        "RMA00507_WR001_mp3_exiftool.xml": {
+          "size": 2389,
+          "sha1": "64145871103fb343efdb81795e3d1a73cc7ea7e6"
+        },
+        "RMA00507_WR001.mp3": {
+          "size": 15265792,
+          "sha1": "c18019fd011e47cc62ea579395dd26faeb1c4617"
+        },
+        "RMA00507_WR001.wav": {
+          "size": 366352498,
+          "sha1": "a8b3cfac3da1d7c9129954c53b4175f92fdac1f3"
+        }
+      }
+    }
+  }
+}

@@ -39,15 +39,60 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
       }
     }
   end
+  let(:ingest_manifest_hash) do
+    {
+      collection_id: collection,
+      depositor: depositor,
+      number_packages: 1,
+      packages: [
+        {
+          package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID,
+          files: [
+            {
+              filepath: '1/one.zip',
+              sha1: 'c19ed993b201bd33b3765c3f6ec59bd39f995629',
+              size: 168
+            },
+            {
+              filepath: '2/two.zip',
+              sha1: '86c6167b8a8245a699a5735a3c56890421c28689',
+              size: 168
+            }
+          ]
+        }
+      ]
+    }
+  end
+  let(:fixity_manifest_hash) do
+    {
+      packages: [
+        {
+          package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID,
+          files: [
+            {
+              filepath: '1/one.zip',
+              sha1: 'c19ed993b201bd33b3765c3f6ec59bd39f995629',
+              size: 168
+            },
+            {
+              filepath: '2/two.zip',
+              sha1: '86c6167b8a8245a699a5735a3c56890421c28689',
+              size: 168
+            }
+          ]
+        }
+      ]
+    }
+  end
   let(:s3_manager) do
     s3m = S3Manager.new('bogus_bucket')
 
     allow(s3m).to receive(:upload_string)
-      .with(".manifest/#{ingest_id}_s3.json", expected_old_ingest_hash.to_json) { true }
+      .with(".manifest/#{ingest_id}_s3.json", fixity_manifest_hash.to_json) { true }
     # .with(".manifest/#{ingest_id}_s3.json", expected_hash.to_json) { true }
 
     allow(s3m).to receive(:upload_string)
-      .with(".manifest/#{ingest_id}_sfs.json", expected_old_ingest_hash.to_json) { true }
+      .with(".manifest/#{ingest_id}_sfs.json", fixity_manifest_hash.to_json) { true }
     # .with(".manifest/#{ingest_id}_sfs.json", expected_hash.to_json) { true }
 
     allow(s3m).to receive(:upload_file)
@@ -74,7 +119,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
 
     allow(s3m).to receive(:manifest_key).with(any_args).and_call_original
     ingest_manifest_s3_key = s3m.manifest_key(ingest_id, Workers::TYPE_INGEST)
-    ingest_manifest = StringIO.new(expected_old_ingest_hash.to_json)
+    ingest_manifest = StringIO.new(ingest_manifest_hash.to_json)
     allow(s3m).to receive(:retrieve_file)
       .with(ingest_manifest_s3_key) { ingest_manifest }
 
@@ -95,8 +140,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
     context 'when generating manifest' do
       it 'returns manifest for objects in ingest manifest' do
         manifest = worker.generate_manifest(msg)
-        # expect(manifest.manifest_hash).to eq(expected_old_hash)
-        expect(manifest.to_old_manifest(depositor, collection)).to eq(expected_old_ingest_hash)
+        expect(manifest.to_json_fixity).to eq(fixity_manifest_hash.to_json)
       end
     end
   end
@@ -115,8 +159,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
     context 'when generating manifest' do
       it 'returns manifest for objects in ingest manifest' do
         manifest = worker.generate_manifest(msg)
-        # expect(manifest.manifest_hash).to eq(expected_hash)
-        expect(manifest.to_old_manifest(depositor, collection)).to eq(expected_old_ingest_hash)
+        expect(manifest.to_json_fixity).to eq(fixity_manifest_hash.to_json)
       end
     end
 

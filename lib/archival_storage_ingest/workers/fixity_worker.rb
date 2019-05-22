@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/workers/worker'
-require 'archival_storage_ingest/workers/manifest'
-require 'digest/sha1'
+require 'archival_storage_ingest/manifests/manifests'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'find'
 require 'json'
 require 'pathname'
@@ -10,10 +10,19 @@ require 'pathname'
 # We don't expect to encounter symlinks on fixity checker!
 # We will store JSON on memory while generating it.
 # If memory usage becomes an issue, then we will try sax-like approach.
-#
-# Until CULAR-1588 gets finalized, use old manifest format.
-
 module FixityWorker
+  FIXITY_TEMPORARY_PACKAGE_ID = 'fixity_temporary_package'
+  FIXITY_MANIFEST_TEMPLATE = {
+    locations: [],
+    packages: [
+      {
+        package_id: FIXITY_TEMPORARY_PACKAGE_ID,
+        files: []
+      }
+    ]
+  }.freeze
+  FIXITY_MANIFEST_TEMPLATE_STR = JSON.generate(FIXITY_MANIFEST_TEMPLATE)
+
   class FixityGenerator < Workers::Worker
     # Pass s3_manager only for tests.
     def initialize(s3_manager = nil)
@@ -29,8 +38,7 @@ module FixityWorker
 
       manifest_s3_key = @s3_manager.manifest_key(msg.ingest_id, worker_type)
       # data = manifest.manifest_hash.to_json
-      data = manifest.to_old_manifest(msg.depositor, msg.collection).to_json
-      @s3_manager.upload_string(manifest_s3_key, data)
+      @s3_manager.upload_string(manifest_s3_key, manifest.to_json(json_type: Manifests::MANIFEST_TYPE_FIXITY))
 
       true
     end
@@ -38,11 +46,12 @@ module FixityWorker
     # Return checksum manifest of all objects for a given depositor/collection.
     def generate_manifest(msg)
       object_paths = object_paths(msg) # returns a hash of keys (dep/col/resource) to paths.
-
-      manifest = WorkerManifest::Manifest.new
+      path_prefix = "#{msg.depositor}/#{msg.collection}"
+      manifest = Manifests::Manifest.new(json_text: FIXITY_MANIFEST_TEMPLATE_STR)
+      fixity_package = manifest.get_package(package_id: FIXITY_TEMPORARY_PACKAGE_ID)
       object_paths.each do |object_path|
-        (sha, size) = calculate_checksum(object_path, msg)
-        manifest.add_file(object_path, sha, size)
+        (sha, size) = calculate_checksum("#{path_prefix}/#{object_path}", msg)
+        fixity_package.add_file_entry(filepath: object_path, sha1: sha, size: size)
       end
 
       manifest
@@ -65,13 +74,17 @@ module FixityWorker
   class IngestFixityGenerator < FixityGenerator
     def object_paths(msg)
       ingest_manifest = fetch_ingest_manifest(msg)
-      ingest_manifest.files.keys
+      paths = []
+      ingest_manifest.walk_all_filepath do |file|
+        paths << file.filepath
+      end
+      paths
     end
 
     def fetch_ingest_manifest(msg)
       manifest_s3_key = @s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_INGEST)
       ingest_manifest = @s3_manager.retrieve_file(manifest_s3_key)
-      WorkerManifest.parse_old_manifest(ingest_manifest)
+      Manifests::Manifest.new(json_text: ingest_manifest.string)
     end
   end
 
@@ -112,8 +125,6 @@ module FixityWorker
   end
 
   class IngestFixitySFSGenerator < IngestFixityGenerator
-    BUFFER_SIZE = 4096
-
     def name
       'SFS Fixity Generator'
     end
@@ -122,24 +133,13 @@ module FixityWorker
       Workers::TYPE_SFS
     end
 
-    def calculate_checksum(object_path, msg) # rubocop:disable Metrics/MethodLength
+    def calculate_checksum(object_path, msg)
       full_path = File.join(msg.dest_path, object_path).to_s
-      size = 0
-      File.open(full_path, 'rb') do |file|
-        dig = Digest::SHA1.new
-        until file.eof?
-          buffer = file.read(BUFFER_SIZE)
-          dig.update(buffer)
-          size += buffer.length
-        end
-        return dig.hexdigest, size
-      end
+      IngestUtils.calculate_checksum(full_path)
     end
   end
 
   class PeriodicFixitySFSGenerator < FixityGenerator
-    BUFFER_SIZE = 4096
-
     def name
       'Periodic SFS Fixity Generator'
     end
@@ -152,14 +152,7 @@ module FixityWorker
 
     def calculate_checksum(file_path, msg)
       full_path = File.join(msg.dest_path, file_path).to_s
-      File.open(full_path, 'rb') do |file|
-        dig = Digest::SHA1.new
-        until file.eof?
-          buffer = file.read(BUFFER_SIZE)
-          dig.update(buffer)
-        end
-        dig.hexdigest
-      end
+      IngestUtils.calculate_checksum(full_path)
     end
 
     private

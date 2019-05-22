@@ -16,7 +16,12 @@ module ConvertManifest
     col = depcolsplit[-1]
     dep = depcolsplit[0..-2].join('/')
 
-    locations = (collection['locations'] || {}).keys
+    locs = collection['locations']
+    locations = if locs['s3'].nil?
+                  (locs || {}).keys
+                else
+                  locs.map { |_k, v| v[0]['uri'] }
+                end
 
     newman = {
       steward: collection['steward'],

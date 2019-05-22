@@ -5,17 +5,17 @@ require 'spec_helper'
 require 'misc/convert_manifest'
 
 RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
-  before do
-    manifest_json = ConvertManifest.convert_manifest(filename: resource('10ItemsFull.json'))
-    @manifest = JSON.parse(manifest_json)
-  end
-
   after do
     # Do nothing
   end
 
   context 'when converting manifest' do # rubocop:disable Metrics/BlockLength
-    context 'it should have collection-level data' do
+    before do
+      manifest_json = ConvertManifest.convert_manifest(filename: resource('10ItemsFull.json'))
+      @manifest = JSON.parse(manifest_json)
+    end
+
+    context 'it should have collection-level data' do # rubocop:disable Metrics/BlockLength
       it 'gets the steward' do
         expect(@manifest['steward']).to eq('swr1')
       end
@@ -33,8 +33,20 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
       end
 
       it 'gets the locations' do
-        expect(@manifest['locations']).to include('s3://s3-cular/MATH/LecturesEvents')
-        expect(@manifest['locations']).to include('smb://files.cornell.edu/lib/archival01/MATH/LecturesEvents')
+        expect(@manifest['locations']).to contain_exactly(
+          's3://s3-cular/MATH/LecturesEvents',
+          'smb://files.cornell.edu/lib/archival01/MATH/LecturesEvents'
+        )
+      end
+
+      it 'gets the locations in new format' do
+        manifest_json = ConvertManifest.convert_manifest(filename: resource('4ItemsFull.json'))
+        manifest = JSON.parse(manifest_json)
+
+        expect(manifest['locations']).to contain_exactly(
+          's3://s3-cular/RMC/RMA/RMA00507_Dexter_Simpson_Kimball_papers',
+          'smb://files.library.cornell.edu/lib/archival02/RMC/RMA/RMA00507_Dexter_Simpson_Kimball_papers'
+        )
       end
     end
 
@@ -68,23 +80,23 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
       context 'when looking at files in packages' do
         before do
           @files = @package['files']
-          @file = @files[0]
+          @asset = @files[0]
         end
 
         it 'files have a filepath' do
-          expect(@file['filepath']).to eq('MATH_2726859_V0098/MATH_2726859_V0098.mov')
+          expect(@asset['filepath']).to eq('MATH_2726859_V0098/MATH_2726859_V0098.mov')
         end
 
         it 'files have a sha1' do
-          expect(@file['sha1']).to match(/^\h{40}$/)
+          expect(@asset['sha1']).to match(/^\h{40}$/)
         end
 
         it 'files have a size' do
-          expect(@file['size']).to eq(46_215_762_895)
+          expect(@asset['size']).to eq(46_215_762_895)
         end
 
         it 'files do not have a bibid' do
-          expect(@file['bibid']).to be_nil
+          expect(@asset['bibid']).to be_nil
         end
       end
     end

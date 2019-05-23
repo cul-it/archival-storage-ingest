@@ -101,6 +101,30 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
       end
     end
   end
+
+  context 'when converting a manifest with nested paths' do
+    it 'should convert full nesting to the filepath' do
+      manifest_json = ConvertManifest.convert_manifest(filename: resource('arXiv.json'))
+      manifest = JSON.parse(manifest_json)
+      filepath = manifest['packages'][0]['files'][0]['filepath']
+      expect(filepath).to eq('9107/2017-11-22/9107.zip')
+    end
+
+    context 'with non-top-level packaging' do
+      before do
+        manifest_file = resource('nesteddeep.json')
+        manifest_json = ConvertManifest.convert_manifest(filename: manifest_file, depth: 2)
+        @manifest = JSON.parse(manifest_json)
+      end
+      it 'should get right number of packages' do
+        expect(@manifest['number_packages']).to eq(4)
+      end
+
+      it 'should have full path in filepaths' do
+        expect(@manifest['packages'][0]['files'][0]['filepath']).to eq('Simpsons/Season1/SimpsonsS1E1.mov')
+      end
+    end
+  end
 end
 
 def resource(filename)

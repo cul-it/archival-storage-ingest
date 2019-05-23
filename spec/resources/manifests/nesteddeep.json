@@ -1,0 +1,95 @@
+{
+  "arXiv/arXiv": {
+    "steward": "oyr1",
+    "locations": {
+      "s3": [
+        {
+          "uri": "s3://s3-cular/arXiv/arXiv"
+        }
+      ],
+      "sfs": [
+        {
+          "uri": "smb://files.library.cornell.edu/lib/archival02/arXiv/arXiv"
+        }
+      ]
+    },
+    "items": {
+      "Simpsons": {
+        "Season1": {
+          "SimpsonsS1E1.mov": {
+            "sha1": "12345...abcdef",
+            "size": 12345
+          },
+          "SimpsonsS1E2.mov": {
+            "sha1": "12345...abcdef",
+            "size": 12345
+          },
+          "SimpsonsS1E3.mov": {
+            "sha1": "12345...abcdef",
+            "size": 12345
+          },
+          "SimpsonsS1E4.mov": {
+            "sha1": "12345...abcdef",
+            "size": 12345
+          }
+        },
+        "Season2": {
+          "SimpsonsS2E1.mov": {
+            "sha1": "12345...abcdef",
+            "size": 12345
+          },
+          "SimpsonsS2E2.mov": {
+            "sha1": "12345...abcdef",
+            "size": 12345
+          },
+          "SimpsonsS2E3.mov": {
+            "sha1": "12345...abcdef",
+            "size": 12345
+          },
+          "SimpsonsS2E4.mov": {
+            "sha1": "12345...abcdef",
+            "size": 12345
+          }
+        }
+      },
+      "GameOfThrones": {
+        "Season1": {
+          "GOT_S1E1.mov": {
+            "sha1": "abcdef...12345",
+            "size": 54321
+          },
+          "GOT_S1E2.mov": {
+            "sha1": "abcdef...12345",
+            "size": 54321
+          },
+          "GOT_S1E3.mov": {
+            "sha1": "abcdef...12345",
+            "size": 54321
+          },
+          "GOT_S1E4.mov": {
+            "sha1": "abcdef...12345",
+            "size": 54321
+          }
+        },
+        "Season2": {
+          "GOT_S2E1.mov": {
+            "sha1": "abcdef...12345",
+            "size": 54321
+          },
+          "GOT_S2E2.mov": {
+            "sha1": "abcdef...12345",
+            "size": 54321
+          },
+          "GOT_S2E3.mov": {
+            "sha1": "abcdef...12345",
+            "size": 54321
+          },
+          "GOT_S2E4.mov": {
+            "sha1": "abcdef...12345",
+            "size": 54321
+          }
+        }
+      }
+    }
+  }
+}

@@ -4,7 +4,7 @@ require 'securerandom'
 require 'json'
 
 module ConvertManifest
-  def self.convert_manifest(filename:) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  def self.convert_manifest(filename:, depth: 1) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
     json_io = File.open(filename)
 
     old = JSON.parse(json_io.read)
@@ -23,55 +23,73 @@ module ConvertManifest
                   locs.map { |_k, v| v[0]['uri'] }
                 end
 
-    newman = {
+    items = collection['items']
+    packs = convert_packages(items, depth, nil)
+
+    JSON.pretty_generate({
       steward: collection['steward'],
       depositor: dep,
       collection_id: col,
       rights: 'TBD',
       locations: locations,
-      packages: []
-    }
-
-    packs = collection['items'].map do |path, files|
-      flattened = flatten(dirname: path, filehash: files)
-      bibid = flattened[0][:bibid]
-      flattened.each do |file|
-        file[:bibid] = nil
-        file.compact!
-      end
-      {
-        package_id: "urn:uuid:#{SecureRandom.uuid}",
-        bibid: bibid,
-        files: flattened,
-        number_files: flattened.length
-
-      }.compact
-    end
-    newman['packages'] = packs
-    compact = newman.compact
-    compact.to_json
+      packages: packs,
+      number_packages: packs.length
+    }.compact)
   end
 
   def self.flatten(dirname:, filehash:)
     filehash.map do |filename, attribs|
-      {
-        filepath: "#{dirname}/#{filename}",
-        sha1: attribs['sha1'],
-        size: attribs['size'],
-        md5: attribs['md5'],
-        bibid: attribs['bibid']
-      }
+      convert_file(attribs, "#{dirname}/#{filename}")
     end
   end
 
+  def self.flattened(dirname:, filehash:)
+    files = []
+    flatten_folder(files, filehash, dirname)
+    files
+  end
+
   def self.flatten_folder(files, items, prefix)
-    items.each do |key, file_hash|
-      fullkey = prefix + '/' + key
-      if file_hash.key?('sha1')
-        files[fullkey] = file_hash['sha1']
+    items.each do |key, attribs|
+      fullkey = [prefix, key]
+      if attribs.key?('sha1')
+        files << convert_file(attribs, fullkey)
       else
-        flatten_folder(files, file_hash, fullkey)
+        flatten_folder(files, attribs, fullkey)
       end
     end
+  end
+
+  def self.convert_file(attribs, fullkey)
+    fullkeys = fullkey.flatten.compact.join('/')
+    {
+      filepath: fullkeys,
+      sha1: attribs['sha1'],
+      size: attribs['size'],
+      md5: attribs['md5'],
+      bibid: attribs['bibid']
+    }
+  end
+
+  def self.convert_packages(items, depth, prefix)
+    if depth == 1
+      items.map { |path, files| convert_package(prefix, path, files) }
+    else
+      items.flat_map { |path, subitems| convert_packages(subitems, depth - 1, [prefix, path]) }
+    end
+  end
+
+  def self.convert_package(prefix, path, files)
+    flattened = flattened(dirname: [prefix, path], filehash: files)
+    bibid = flattened[0][:bibid]
+
+    flattened.each { |file| file.delete :bibid }
+    {
+      package_id: "urn:uuid:#{SecureRandom.uuid}",
+      bibid: bibid,
+      files: flattened,
+      number_files: flattened.length
+
+    }.compact
   end
 end

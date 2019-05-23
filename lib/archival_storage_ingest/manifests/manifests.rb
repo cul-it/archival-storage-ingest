@@ -75,7 +75,6 @@ module Manifests
       all_files = {}
       walk_all_filepath do |filepath|
         all_files[filepath.filepath] = filepath
-        all_files
       end
       all_files
     end
@@ -215,9 +214,7 @@ module Manifests
 
       return false unless md5 == other.md5
 
-      return false unless
-        size == other.size ||
-        size.nil? || other.size.nil?
+      return false unless size == other.size && !size.nil?
 
       true
     end

@@ -12,7 +12,6 @@ ArchivalStorageIngest.configure do |config|
   config.dry_run = ENV['asi_ingest_fixity_s3_dry_run'] || false
   config.polling_interval = ENV['asi_ingest_fixity_s3_polling_interval'] if
                             ENV['asi_ingest_fixity_s3_polling_interval']
-  config.worker = FixityWorker::IngestFixityS3Generator.new
   config.inhibit_file = ENV['asi_ingest_fixity_s3_inhibit_file'] ||
                         '/cul/app/archival_storage_ingest/control/ingest_fixity_s3.inhibit'
   config.global_inhibit_file = ENV['asi_global_inhibit_file'] ||
@@ -33,6 +32,8 @@ ArchivalStorageIngest.configure do |config|
     config.in_progress_queue_name = Queues::QUEUE_INGEST_FIXITY_S3_IN_PROGRESS
     config.dest_queue_names = [Queues::QUEUE_INGEST_FIXITY_COMPARISON]
   end
+
+  config.worker = FixityWorker::IngestFixityS3Generator.new
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

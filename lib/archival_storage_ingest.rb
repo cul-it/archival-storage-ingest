@@ -337,6 +337,7 @@ module ArchivalStorageIngest
     end
 
     def confirm_ingest(ingest_config)
+      puts "S3 bucket: #{@configuration.s3_bucket}"
       puts "Destination Queue: #{@queue_name}"
       ingest_config.keys.sort.each do |key|
         puts "#{key}: #{ingest_config[key]}"

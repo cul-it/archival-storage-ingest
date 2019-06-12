@@ -68,7 +68,7 @@ module ConvertManifest
       size: attribs['size'],
       md5: attribs['md5'],
       bibid: attribs['bibid']
-    }
+    }.compact
   end
 
   def self.convert_packages(items, depth, prefix)

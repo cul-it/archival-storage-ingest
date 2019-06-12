@@ -2,6 +2,61 @@
 
 require 'rspec'
 require 'misc/merge_manifest'
+require 'archival_storage_ingest/manifests/manifest_merger'
+require 'archival_storage_ingest/workers/fixity_worker'
+
+RSpec.describe 'MergeManifest' do # rubocop:disable BlockLength
+  let(:depositor) { 'RMC/RMA' }
+  let(:collection_id) { 'RMA01234' }
+  let(:ingest_manifest_hash) do
+    {
+      collection_id: collection_id,
+      depositor: depositor,
+      number_packages: 1,
+      packages: [
+        {
+          package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID,
+          files: [
+            {
+              filepath: '1/one.txt',
+              sha1: 'ef72cf86c1599c80612317fdd2f50f4863c3efb0',
+              size: 10
+            },
+            {
+              filepath: '2/two.txt',
+              sha1: '158481d59505dedf144ec5e4b87e92043f48ab68',
+              size: 10
+            }
+          ]
+        }
+      ]
+    }
+  end
+
+  before(:each) do
+    @storage_manifest = Manifests::Manifest.new
+    @ingest_manifest = Manifests::Manifest.new(json_text: ingest_manifest_hash.to_json)
+  end
+
+  context 'when storage manifest does not have a package in ingest manifest' do
+    it 'adds the package to the storage manifest' do
+      merge_manifest = Manifests::ManifestMerger.new
+      merge_manifest.merge_manifests(storage_manifest: @storage_manifest, ingest_manifest: @ingest_manifest)
+      expect(@storage_manifest.packages[0].to_json_fixity).to eq(@ingest_manifest.packages[0].to_json_fixity)
+    end
+  end
+
+  context 'when storage manifest does not have a file entry in ingest manifest' do
+    it 'addes the file to the package in storage manifest' do
+      test_package = Manifests::Package.new(package: { package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID })
+      test_package.add_file_entry(filepath: '1/one.txt', sha1: 'ef72cf86c1599c80612317fdd2f50f4863c3efb0', size: 10)
+      @storage_manifest.add_package(package: test_package)
+      merge_manifest = Manifests::ManifestMerger.new
+      merge_manifest.merge_manifests(storage_manifest: @storage_manifest, ingest_manifest: @ingest_manifest)
+      expect(@storage_manifest.packages[0].to_json_fixity).to eq(@ingest_manifest.packages[0].to_json_fixity)
+    end
+  end
+end
 
 RSpec.describe 'MergeManifest' do # rubocop:disable BlockLength
   let(:ingest_manifest) { File.join(File.dirname(__FILE__), 'resources', 'misc', 'ingest_manifest.json') }

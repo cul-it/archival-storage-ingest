@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'archival_storage_ingest/manifests/manifest_to_filesystem_comparator'
+require 'archival_storage_ingest/manifests/manifest_missing_attribute_populator'
+
+ingest_manifest = ARGV[0]
+data_path = ARGV[1]
+destination_file = ARGV[2] || "#{ingest_manifest}.fixed"
+
+abort('Usage: populate_missing_ingest_manifest_attribute PATH_TO_INGEST_MANIFEST [OPTIONAL_OUTPUT_PATH]') if ARGV.empty?
+
+mfc = Manifests::ManifestToFilesystemComparator.new
+mfc.compare_manifest_to_filesystem(manifest: ingest_manifest, data_path: data_path)
+
+mmap = Manifests::ManifestMissingAttributePopulator.new
+manifest = mmap.populate_missing_attribute(manifest: ingest_manifest, data_path: data_path)
+mmap.to_file(destination: destination_file, manifest: manifest)

@@ -30,7 +30,8 @@ module IngestUtils
   end
 
   def self.relative_path(file, path_to_trim)
-    Pathname.new(file).relative_path_from(path_to_trim).to_s
+    basepath = Pathname.new(path_to_trim)
+    Pathname.new(file).relative_path_from(basepath).to_s
   end
 
   # https://stackoverflow.com/questions/357754/can-i-traverse-symlinked-directories-in-ruby-with-a-glob

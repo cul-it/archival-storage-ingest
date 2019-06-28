@@ -28,8 +28,8 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
         expect(@manifest['collection_id']).to eq('LecturesEvents')
       end
 
-      it 'gets the rights' do
-        expect(@manifest['rights']).to eq('TBD')
+      it 'gets the documentation' do
+        expect(@manifest['documentation']).to eq('TBD')
       end
 
       it 'gets the locations' do

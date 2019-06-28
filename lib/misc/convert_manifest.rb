@@ -26,15 +26,15 @@ module ConvertManifest
     items = collection['items']
     packs = convert_packages(items, depth, nil)
 
-    JSON.pretty_generate({
-      steward: collection['steward'],
-      depositor: dep,
-      collection_id: col,
-      rights: 'TBD',
-      locations: locations,
-      packages: packs,
-      number_packages: packs.length
-    }.compact)
+    JSON.pretty_generate(
+      { steward: collection['steward'],
+        depositor: dep,
+        collection_id: col,
+        locations: locations,
+        documentation: 'TBD',
+        number_packages: packs.length,
+        packages: packs }.compact
+    )
   end
 
   def self.flatten(dirname:, filehash:)
@@ -65,7 +65,7 @@ module ConvertManifest
     {
       filepath: fullkeys,
       sha1: attribs['sha1'],
-      size: attribs['size'],
+      size: attribs['size'].to_i,
       md5: attribs['md5'],
       bibid: attribs['bibid']
     }.compact

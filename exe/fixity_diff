@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'archival_storage_ingest/manifests/manifests'
+require 'pp'
+
+left_manifest_fn = ARGV[0]
+right_manifest_fn = ARGV[1]
+
+left_manifest = Manifests::read_manifest(filename: left_manifest_fn)
+right_manifest = Manifests::read_manifest(filename: right_manifest_fn)
+
+diff_results = left_manifest.diff(right_manifest)
+
+pp diff_results
+

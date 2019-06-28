@@ -83,11 +83,16 @@ module Manifests
     def compare_manifest(_other_manifest:); end
 
     def diff(other_manifest)
-      flat_me = flattened
-      flat_other = other_manifest.flattened
+      lflat = flattened
+      rflat = other_manifest.flattened
 
-      left = flat_me.to_a
-      right = flat_other.to_a
+      lflat_h = {}
+      lflat.each { |k, v| lflat_h[k] = v.to_json_hash }
+      rflat_h = {}
+      rflat.each { |k, v| rflat_h[k] = v.to_json_hash }
+
+      left = lflat_h.to_a
+      right = rflat_h.to_a
       leftfiles = (left - right).to_h
       rightfiles = (right - left).to_h
 

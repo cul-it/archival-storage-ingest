@@ -83,22 +83,16 @@ module Manifests
     def compare_manifest(_other_manifest:); end
 
     def diff(other_manifest)
-      lflat = flattened
-      rflat = other_manifest.flattened
-
       lflat_h = {}
-      lflat.each { |k, v| lflat_h[k] = v.to_json_hash }
+      flattened.each { |k, v| lflat_h[k] = v.to_json_hash }
       rflat_h = {}
-      rflat.each { |k, v| rflat_h[k] = v.to_json_hash }
+      other_manifest.flattened.each { |k, v| rflat_h[k] = v.to_json_hash }
 
       left = lflat_h.to_a
       right = rflat_h.to_a
-      leftfiles = (left - right).to_h
-      rightfiles = (right - left).to_h
-
       {
-        ingest: leftfiles,
-        other: rightfiles
+        ingest: (left - right).to_h,
+        other: (right - left).to_h
       }.compact
     end
 
@@ -211,7 +205,7 @@ module Manifests
       @size = file[:size]
     end
 
-    def ==(other) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metric/PerceivedComplexity
+    def ==(other) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       return false unless other.instance_of?(FileEntry)
 
       return false unless filepath == other.filepath

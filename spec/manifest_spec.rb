@@ -59,8 +59,8 @@ def resource(filename)
   File.join(File.dirname(__FILE__), ['resources', 'manifests', filename])
 end
 
-RSpec.describe 'Manifests' do # rubocopx:disable Metrics/BlockLength
-  context 'loading manifest' do
+RSpec.describe 'Manifests' do # rubocop:disable Metrics/BlockLength
+  context 'loading manifest' do # rubocop:disable Metrics/BlockLength
     let(:manifest10) { Manifests.read_manifest(filename: resource('10ItemsFull.json.new')) }
     let(:manifest_arxiv) { Manifests.read_manifest(filename: resource('arXiv.json.new')) }
 
@@ -78,7 +78,8 @@ RSpec.describe 'Manifests' do # rubocopx:disable Metrics/BlockLength
     end
 
     it 'has shas from files' do
-      expect(manifest10.flattened.values.map(&:to_json_hash)).to include a_hash_including(sha1: '4a5d30968b132cd41644216cecb69da0a75d8c90')
+      expect(manifest10.flattened.values.map(&:to_json_hash))
+        .to include a_hash_including(sha1: '4a5d30968b132cd41644216cecb69da0a75d8c90')
     end
 
     it 'knows how many packages' do
@@ -112,7 +113,6 @@ RSpec.describe 'Manifests' do # rubocopx:disable Metrics/BlockLength
 
       expect(diff).to have_key(:ingest)
       expect(diff[:ingest].size).to eq(1)
-
     end
 
     it '9 items should differ from 10 items' do
@@ -120,7 +120,6 @@ RSpec.describe 'Manifests' do # rubocopx:disable Metrics/BlockLength
 
       expect(diff).to have_key(:other)
       expect(diff[:other].size).to eq(1)
-
     end
   end
 end

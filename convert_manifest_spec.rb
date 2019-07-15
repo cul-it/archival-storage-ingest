@@ -28,13 +28,8 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
         expect(@manifest['collection_id']).to eq('LecturesEvents')
       end
 
-<<<<<<< HEAD
-      it 'gets the rights' do
-        expect(@manifest['rights']).to eq('TBD')
-=======
       it 'gets the documentation' do
         expect(@manifest['documentation']).to eq('TBD')
->>>>>>> origin/CULAR-2066
       end
 
       it 'gets the locations' do
@@ -106,8 +101,6 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
       end
     end
   end
-<<<<<<< HEAD
-=======
 
   context 'when converting a manifest with nested paths' do
     it 'should convert full nesting to the filepath' do
@@ -132,7 +125,6 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
       end
     end
   end
->>>>>>> origin/CULAR-2066
 end
 
 def resource(filename)

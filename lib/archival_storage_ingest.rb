@@ -94,13 +94,10 @@ module ArchivalStorageIngest
   # Ingest manager to either start the server or queue new ingest.
   class IngestManager
     extend Forwardable
-    attr_reader :state
 
     def initialize
       @configuration = ArchivalStorageIngest.configuration
       @issue_tracker_helper = @configuration.issue_tracker_helper
-
-      @state = 'uninitialized'
     end
 
     def_delegators :@configuration, :logger, :msg_q, :wip_q, :dest_qs, :wip_removal_wait_time,
@@ -110,8 +107,6 @@ module ArchivalStorageIngest
                    :notify_worker_skipped, :notify_worker_error, :notify_error
 
     def start_server
-      initialize_server
-
       if develop
         run_dev_server
       else
@@ -129,15 +124,14 @@ module ArchivalStorageIngest
       end
     end
 
-    # rubocop:disable Metrics/AbcSize
     def run_dev_server
-      puts 'Message Queue Name: ' + @configuration.message_queue_name
-      puts 'In Progress Queue Name: ' + @configuration.in_progress_queue_name
-      puts 'Destination Queue Names: ' + @configuration.dest_queue_names.to_s
+      puts "S3 bucket: #{@configuration.s3_bucket}"
+      puts "Message Queue Name: #{@configuration.message_queue_name}"
+      puts "In Progress Queue Name: #{@configuration.in_progress_queue_name}"
+      puts "Destination Queue Names: #{@configuration.dest_queue_names}"
       puts 'Run? (Y/N)'
       do_work if 'y'.casecmp(gets.chomp).zero?
     end
-    # rubocop:enable Metrics/AbcSize
 
     def shutdown
       logger.info 'Gracefully shutting down'
@@ -160,10 +154,6 @@ module ArchivalStorageIngest
       end
 
       exit(0)
-    end
-
-    def initialize_server
-      @state = 'started'
     end
 
     # To test do_work, I need to pass in the queues, logger, and worker for it to use
@@ -347,6 +337,7 @@ module ArchivalStorageIngest
     end
 
     def confirm_ingest(ingest_config)
+      puts "S3 bucket: #{@configuration.s3_bucket}"
       puts "Destination Queue: #{@queue_name}"
       ingest_config.keys.sort.each do |key|
         puts "#{key}: #{ingest_config[key]}"

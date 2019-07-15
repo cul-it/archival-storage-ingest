@@ -75,6 +75,7 @@ module Manifests
       all_files = {}
       walk_all_filepath do |filepath|
         all_files[filepath.filepath] = filepath
+        all_files
       end
       all_files
     end
@@ -82,17 +83,16 @@ module Manifests
     def compare_manifest(_other_manifest:); end
 
     def diff(other_manifest)
-      flat_me = flattened
-      flat_other = other_manifest.flattened
+      lflat_h = {}
+      flattened.each { |k, v| lflat_h[k] = v.to_json_hash }
+      rflat_h = {}
+      other_manifest.flattened.each { |k, v| rflat_h[k] = v.to_json_hash }
 
-      left = flat_me.to_a
-      right = flat_other.to_a
-      leftfiles = (left - right).to_h
-      rightfiles = (right - left).to_h
-
+      left = lflat_h.to_a
+      right = rflat_h.to_a
       {
-        ingest: leftfiles,
-        other: rightfiles
+        ingest: (left - right).to_h,
+        other: (right - left).to_h
       }.compact
     end
 
@@ -205,7 +205,7 @@ module Manifests
       @size = file[:size]
     end
 
-    def ==(other) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metric/PerceivedComplexity
+    def ==(other) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       return false unless other.instance_of?(FileEntry)
 
       return false unless filepath == other.filepath
@@ -214,7 +214,9 @@ module Manifests
 
       return false unless md5 == other.md5
 
-      return false unless size == other.size && !size.nil?
+      return false unless
+        size == other.size ||
+        size.nil? || other.size.nil?
 
       true
     end

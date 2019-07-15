@@ -15,7 +15,6 @@ ArchivalStorageIngest.configure do |config|
   config.message_queue_name = Queues::QUEUE_PERIODIC_FIXITY_SFS
   config.in_progress_queue_name = Queues::QUEUE_PERIODIC_FIXITY_SFS_IN_PROGRESS
   config.dest_queue_names = [Queues::QUEUE_PERIODIC_FIXITY_COMPARISON]
-  config.worker = FixityWorker::PeriodicFixitySFSGenerator.new
   config.inhibit_file = ENV['asi_periodic_fixity_sfs_inhibit_file'] ||
                         '/cul/app/archival_storage_ingest/control/periodic_fixity_sfs.inhibit'
   config.global_inhibit_file = ENV['asi_global_inhibit_file'] ||
@@ -31,6 +30,8 @@ ArchivalStorageIngest.configure do |config|
     config.debug = ENV['asi_ingest_debug'] || false
     config.develop = false
   end
+
+  config.worker = FixityWorker::PeriodicFixitySFSGenerator.new
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

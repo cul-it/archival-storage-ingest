@@ -15,7 +15,6 @@ ArchivalStorageIngest.configure do |config|
   config.message_queue_name = Queues::QUEUE_PERIODIC_FIXITY_S3
   config.in_progress_queue_name = Queues::QUEUE_PERIODIC_FIXITY_S3_IN_PROGRESS
   config.dest_queue_names = [Queues::QUEUE_PERIODIC_FIXITY_COMPARISON]
-  config.worker = FixityWorker::PeriodicFixityS3Generator.new
   config.inhibit_file = ENV['asi_periodic_fixity_s3_inhibit_file'] ||
                         '/cul/app/archival_storage_ingest/control/periodic_fixity_s3.inhibit'
   config.global_inhibit_file = ENV['asi_global_inhibit_file'] ||
@@ -31,6 +30,8 @@ ArchivalStorageIngest.configure do |config|
     config.debug = ENV['asi_ingest_debug'] || false
     config.develop = false
   end
+
+  config.worker = FixityWorker::PeriodicFixityS3Generator.new
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

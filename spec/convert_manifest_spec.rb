@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-
 require 'misc/convert_manifest'
+require 'json'
 
 RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
   after do
@@ -11,7 +11,9 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
 
   context 'when converting manifest' do # rubocop:disable Metrics/BlockLength
     before do
-      manifest_json = ConvertManifest.convert_manifest(filename: resource('10ItemsFull.json'))
+      manifest_json = JSON.pretty_generate(
+        ConvertManifest.convert_manifest_to_new_hash(filename: resource('10ItemsFull.json'), depth: 1)
+      )
       @manifest = JSON.parse(manifest_json)
     end
 
@@ -40,7 +42,9 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
       end
 
       it 'gets the locations in new format' do
-        manifest_json = ConvertManifest.convert_manifest(filename: resource('4ItemsFull.json'))
+        manifest_json = JSON.pretty_generate(
+          ConvertManifest.convert_manifest_to_new_hash(filename: resource('4ItemsFull.json'), depth: 1)
+        )
         manifest = JSON.parse(manifest_json)
 
         expect(manifest['locations']).to contain_exactly(
@@ -104,7 +108,7 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
 
   context 'when converting a manifest with nested paths' do
     it 'should convert full nesting to the filepath' do
-      manifest_json = ConvertManifest.convert_manifest(filename: resource('arXiv.json'))
+      manifest_json = JSON.pretty_generate(ConvertManifest.convert_manifest_to_new_hash(filename: resource('arXiv.json'), depth: 1))
       manifest = JSON.parse(manifest_json)
       filepath = manifest['packages'][0]['files'][0]['filepath']
       expect(filepath).to eq('9107/2017-11-22/9107.zip')
@@ -113,7 +117,7 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
     context 'with non-top-level packaging' do
       before do
         manifest_file = resource('nesteddeep.json')
-        manifest_json = ConvertManifest.convert_manifest(filename: manifest_file, depth: 2)
+        manifest_json = JSON.pretty_generate(ConvertManifest.convert_manifest_to_new_hash(filename: manifest_file, depth: 2))
         @manifest = JSON.parse(manifest_json)
       end
       it 'should get right number of packages' do

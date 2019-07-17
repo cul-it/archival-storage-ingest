@@ -3,8 +3,12 @@
 require 'securerandom'
 require 'json'
 
-module ConvertManifest
-  def self.convert_manifest(filename:, depth: 1) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+module ConvertManifest # rubocop:disable Metrics/ModuleLength
+  class ConvertManifest
+    attr_reader
+  end
+
+  def self.convert_manifest_to_new_hash(filename:, depth:) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
     json_io = File.open(filename)
 
     old = JSON.parse(json_io.read)
@@ -26,15 +30,21 @@ module ConvertManifest
     items = collection['items']
     packs = convert_packages(items, depth, nil)
 
-    JSON.pretty_generate(
-      { steward: collection['steward'],
-        depositor: dep,
-        collection_id: col,
-        locations: locations,
-        documentation: 'TBD',
-        number_packages: packs.length,
-        packages: packs }.compact
-    )
+    {
+      steward: collection['steward'],
+      depositor: dep,
+      collection_id: col,
+      locations: locations,
+      documentation: 'TBD',
+      number_packages: packs.length,
+      packages: packs
+    }.compact
+  end
+
+  def self.convert_manifest(filename:, csv:, data_root:, depth: 1)
+    manifest_hash = convert_manifest_to_new_hash(filename: filename, depth: depth)
+    manifest_hash[:packages] = add_additional_metadata(packages: manifest_hash[:packages], data_root: data_root, csv: csv)
+    JSON.pretty_generate(manifest_hash)
   end
 
   def self.flatten(dirname:, filehash:)
@@ -63,10 +73,8 @@ module ConvertManifest
   def self.convert_file(attribs, fullkey)
     fullkeys = fullkey.flatten.compact.join('/')
     {
-      filepath: fullkeys,
-      sha1: attribs['sha1'],
-      size: attribs['size'].to_i,
-      md5: attribs['md5'],
+      filepath: fullkeys, sha1: attribs['sha1'],
+      size: attribs['size'].to_i, md5: attribs['md5'],
       bibid: attribs['bibid']
     }.compact
   end
@@ -86,10 +94,46 @@ module ConvertManifest
     flattened.each { |file| file.delete :bibid }
     {
       package_id: "urn:uuid:#{SecureRandom.uuid}",
-      bibid: bibid,
-      files: flattened,
+      bibid: bibid, files: flattened,
       number_files: flattened.length
-
     }.compact
+  end
+
+  def self.add_additional_metadata(packages:, csv:, data_root:) # rubocop:disable Metrics/AbcSize
+    csv_metadata = populate_metadata_from_csv(csv)
+
+    packages.each do |package|
+      file = package[:files][0]
+      package[:local_id] = csv_metadata[file[:filepath]]['local_id'] if csv_metadata[file[:filepath]]['local_id']
+      real_path = File.join(data_root, file[:filepath]).to_s
+      package[:files].each do |file_entry|
+        file_entry[:size] = size(real_path) unless file_entry[:size]
+      end
+    end
+
+    check_data(packages: packages, csv_metadata: csv_metadata)
+  end
+
+  def self.populate_metadata_from_csv(csv:)
+    raw = CSV.parse(csv)
+    csv_metadata = {}
+    raw.each do |row|
+      csv_metadata[row['filepath']] = row
+    end
+    csv_metadata
+  end
+
+  def self.check_data(packages:, csv_metadata:) # rubocop:disable Metrics/AbcSize
+    packages.each do |package|
+      package[:files].each do |file|
+        csv_data = csv_metadata[file[:filepath]]
+        puts "SHA1 mismatch! #{file[:filepath]}" unless file[:sha1] == csv_data['sha1']
+        puts "Size mismatch! #{file[:filepath]}" unless file[:size] == csv_data['size']
+        puts "BIBID mismatch! #{file[:filepath]}" if
+          (file[:bibid] || csv_data['bibid']) && file[:bibid] != csv_data['bibid']
+      end
+    end
+
+    packages
   end
 end

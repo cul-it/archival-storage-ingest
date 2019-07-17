@@ -4,6 +4,8 @@
 require 'misc/convert_manifest'
 
 old_manifest = ARGV[0]
-depth = ARGV[1] || '1'
-new_manifest = ConvertManifest.convert_manifest(filename: old_manifest, depth: depth.to_i)
-File.open("#{old_manifest}.new", 'w') { |file| file.write(new_manifest) }
+csv = ARGV[1]
+data_root = ARGV[2]
+depth = ARGV[3] || '1'
+new_manifest = ConvertManifest.convert_manifest(filename: old_manifest, csv: csv, data_root: data_root, depth: depth.to_i)
+File.open("#{old_manifest}.new.json", 'w') { |file| file.write(new_manifest) }

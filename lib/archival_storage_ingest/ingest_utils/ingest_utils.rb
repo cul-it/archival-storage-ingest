@@ -42,7 +42,7 @@ module IngestUtils
   # I will process immediate children and then use **/*/**.
   class DirectoryWalker
     def process_immediate_children(dir)
-      Dir.glob("#{dir}/*").each do |path|
+      Dir.glob("#{dir}/*").sort.each do |path|
         next if EXCLUDE_FILE_LIST[File.basename(path).downcase]
 
         yield(path)
@@ -50,7 +50,7 @@ module IngestUtils
     end
 
     def process_rest(dir)
-      Dir.glob("#{dir}/**/*/**").each do |path|
+      Dir.glob("#{dir}/**/*/**").sort.each do |path|
         next if EXCLUDE_FILE_LIST[File.basename(path).downcase]
 
         yield(path)

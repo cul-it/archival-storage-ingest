@@ -2,6 +2,7 @@
 
 require 'securerandom'
 require 'json'
+require 'csv'
 
 module ConvertManifest # rubocop:disable Metrics/ModuleLength
   class ConvertManifest

@@ -131,13 +131,17 @@ module ConvertManifest
 
     def add_package_metadata(package:, csv_metadata:) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
       filepath = package[:files][0][:filepath]
-      csv_entry = csv_metadata[filepath]
+      csv_entry = csv_data(csv_metadata: csv_metadata, filepath: filepath)
       csv_local_id = csv_entry['local_id']
       csv_bibid = csv_entry['bibid']
       package[:local_id] = csv_local_id if csv_local_id
       package[:bibid] = csv_bibid if !package[:bibid] && csv_bibid
       puts "BIBID mismatch! #{package[:bibid]} - #{csv_bibid}" if
         package[:bibid] && csv_bibid && package[:bibid].to_s != csv_bibid
+    end
+
+    def csv_data(csv_metadata:, filepath:)
+      csv_metadata[filepath] || {}
     end
 
     def add_file_metadata(package:, data_roots:)

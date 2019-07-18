@@ -100,7 +100,7 @@ module ConvertManifest # rubocop:disable Metrics/ModuleLength
   end
 
   def self.add_additional_metadata(packages:, csv:, data_root:) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
-    csv_metadata = populate_metadata_from_csv(csv)
+    csv_metadata = populate_metadata_from_csv(csv: csv)
     data_roots = data_root.split(',')
 
     packages.each do |package|

@@ -21,7 +21,7 @@ module ConvertManifest
 
     def documentation_pid(filename:)
       basename = File.basename(filename)
-      pid_list[basename]
+      pid_list[basename]['documentation_folder_pid']
     end
 
     def convert_manifest_to_new_hash(filename:, depth:) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength

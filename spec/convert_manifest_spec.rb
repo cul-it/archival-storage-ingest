@@ -9,10 +9,15 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
     # Do nothing
   end
 
+  let(:convert_manifest) do
+    pid_file = resource('pid_list.txt')
+    ConvertManifest::ConvertManifest.new(pid_file: pid_file)
+  end
+
   context 'when converting manifest' do # rubocop:disable Metrics/BlockLength
     before do
       manifest_json = JSON.pretty_generate(
-        ConvertManifest.convert_manifest_to_new_hash(filename: resource('10ItemsFull.json'), depth: 1)
+        convert_manifest.convert_manifest_to_new_hash(filename: resource('10ItemsFull.json'), depth: 1)
       )
       @manifest = JSON.parse(manifest_json)
     end
@@ -43,7 +48,7 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
 
       it 'gets the locations in new format' do
         manifest_json = JSON.pretty_generate(
-          ConvertManifest.convert_manifest_to_new_hash(filename: resource('4ItemsFull.json'), depth: 1)
+          convert_manifest.convert_manifest_to_new_hash(filename: resource('4ItemsFull.json'), depth: 1)
         )
         manifest = JSON.parse(manifest_json)
 
@@ -108,7 +113,11 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
 
   context 'when converting a manifest with nested paths' do
     it 'should convert full nesting to the filepath' do
-      manifest_json = JSON.pretty_generate(ConvertManifest.convert_manifest_to_new_hash(filename: resource('arXiv.json'), depth: 1))
+      manifest_json = JSON.pretty_generate(
+        convert_manifest.convert_manifest_to_new_hash(
+          filename: resource('arXiv.json'), depth: 1
+        )
+      )
       manifest = JSON.parse(manifest_json)
       filepath = manifest['packages'][0]['files'][0]['filepath']
       expect(filepath).to eq('9107/2017-11-22/9107.zip')
@@ -117,7 +126,9 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
     context 'with non-top-level packaging' do
       before do
         manifest_file = resource('nesteddeep.json')
-        manifest_json = JSON.pretty_generate(ConvertManifest.convert_manifest_to_new_hash(filename: manifest_file, depth: 2))
+        manifest_json = JSON.pretty_generate(
+          convert_manifest.convert_manifest_to_new_hash(filename: manifest_file, depth: 2)
+        )
         @manifest = JSON.parse(manifest_json)
       end
       it 'should get right number of packages' do
@@ -133,7 +144,7 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
   context 'when reading csv metadata' do
     it 'should return hash keyed off of filepath' do
       csv_file = resource('metadata.csv')
-      csv_metadata = ConvertManifest.populate_metadata_from_csv(csv: csv_file)
+      csv_metadata = convert_manifest.populate_csv(filename: csv_file, key: 'filepath')
       expect(csv_metadata.size).to eq(4)
     end
   end

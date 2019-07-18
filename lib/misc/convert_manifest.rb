@@ -21,12 +21,7 @@ module ConvertManifest # rubocop:disable Metrics/ModuleLength
     col = depcolsplit[-1]
     dep = depcolsplit[0..-2].join('/')
 
-    locs = collection['locations']
-    locations = if locs['s3'].nil?
-                  (locs || {}).keys
-                else
-                  locs.map { |_k, v| v[0]['uri'] }
-                end
+    locations = populate_locations(collection['locations'])
 
     items = collection['items']
     packs = convert_packages(items, depth, nil)
@@ -40,6 +35,18 @@ module ConvertManifest # rubocop:disable Metrics/ModuleLength
       number_packages: packs.length,
       packages: packs
     }.compact
+  end
+
+  def self.populate_locations(locations)
+    return (locations || {}).keys if (locations['s3']).nil?
+
+    locs = []
+    locations.keys.each do |storage_type|
+      locations[storage_type].each do |loc|
+        locs << loc['uri']
+      end
+    end
+    locs
   end
 
   def self.convert_manifest(filename:, csv:, data_root:, depth: 1)

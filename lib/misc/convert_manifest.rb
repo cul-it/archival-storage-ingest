@@ -113,14 +113,14 @@ module ConvertManifest # rubocop:disable Metrics/ModuleLength
           puts "#{file_entry[:filepath]} does not exists!"
           next
         end
-        file_entry[:size] = size(real_path) unless file_entry[:size]
+        file_entry[:size] = size(real_file_path) unless file_entry[:size]
       end
     end
 
     check_data(packages: packages, csv_metadata: csv_metadata)
   end
 
-  def real_path(data_roots:, filepath:)
+  def self.real_path(data_roots:, filepath:)
     data_roots.each do |data_root|
       file = File.join(data_root, filepath)
       return file if File.exist?(file)
@@ -128,9 +128,8 @@ module ConvertManifest # rubocop:disable Metrics/ModuleLength
   end
 
   def self.populate_metadata_from_csv(csv:)
-    raw = CSV.parse(csv)
     csv_metadata = {}
-    raw.each do |row|
+    CSV.foreach(csv, headers: true) do |row|
       csv_metadata[row['filepath']] = row
     end
     csv_metadata
@@ -140,9 +139,9 @@ module ConvertManifest # rubocop:disable Metrics/ModuleLength
     packages.each do |package|
       package[:files].each do |file|
         csv_data = csv_metadata[file[:filepath]]
-        puts "SHA1 mismatch! #{file[:filepath]}" unless file[:sha1] == csv_data['sha1']
-        puts "Size mismatch! #{file[:filepath]}" unless file[:size] == csv_data['size']
-        puts "BIBID mismatch! #{file[:filepath]}" if
+        puts "SHA1 mismatch! #{file[:filepath]} #{file[:sha1]} - #{csv_data['sha1']}" unless file[:sha1] == csv_data['sha1']
+        puts "Size mismatch! #{file[:filepath]} #{file[:size]} - #{csv_data['size']}" unless file[:size] == csv_data['size'].to_i
+        puts "BIBID mismatch! #{file[:filepath]} #{file[:bibid]} - #{csv_data['bibid']}" if
           (file[:bibid] || csv_data['bibid']) && file[:bibid] != csv_data['bibid']
       end
     end

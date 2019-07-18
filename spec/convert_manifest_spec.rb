@@ -129,6 +129,14 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
       end
     end
   end
+
+  context 'when reading csv metadata' do
+    it 'should return hash keyed off of filepath' do
+      csv_file = resource('metadata.csv')
+      csv_metadata = ConvertManifest.populate_metadata_from_csv(csv: csv_file)
+      expect(csv_metadata.size).to eq(4)
+    end
+  end
 end
 
 def resource(filename)

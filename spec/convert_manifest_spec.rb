@@ -36,7 +36,7 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
       end
 
       it 'gets the documentation' do
-        expect(@manifest['documentation']).to eq('TBD')
+        expect(@manifest['documentation']).to eq('cular:1')
       end
 
       it 'gets the locations' do

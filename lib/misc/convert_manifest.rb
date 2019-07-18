@@ -127,6 +127,8 @@ module ConvertManifest
       end
 
       check_data(packages: packages, csv_metadata: csv_metadata)
+
+      packages
     end
 
     def add_package_metadata(package:, csv_metadata:) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
@@ -166,14 +168,14 @@ module ConvertManifest
       packages.each do |package|
         package[:files].each do |file|
           csv_data = csv_metadata[file[:filepath]]
+          next unless csv_data
+
           puts "SHA1 mismatch! #{file[:filepath]} #{file[:sha1]} - #{csv_data['sha1']}" unless
             file[:sha1] == csv_data['sha1']
           puts "Size mismatch! #{file[:filepath]} #{file[:size]} - #{csv_data['size']}" unless
             file[:size] == csv_data['size'].to_i
         end
       end
-
-      packages
     end
   end
 end

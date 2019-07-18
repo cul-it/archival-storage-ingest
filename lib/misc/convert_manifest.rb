@@ -99,19 +99,31 @@ module ConvertManifest # rubocop:disable Metrics/ModuleLength
     }.compact
   end
 
-  def self.add_additional_metadata(packages:, csv:, data_root:) # rubocop:disable Metrics/AbcSize
+  def self.add_additional_metadata(packages:, csv:, data_root:) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
     csv_metadata = populate_metadata_from_csv(csv)
+    data_roots = data_root.split(',')
 
     packages.each do |package|
       file = package[:files][0]
       package[:local_id] = csv_metadata[file[:filepath]]['local_id'] if csv_metadata[file[:filepath]]['local_id']
-      real_path = File.join(data_root, file[:filepath]).to_s
       package[:files].each do |file_entry|
+        real_file_path = real_path(data_roots: data_roots, filepath: file_entry[:filepath])
+        unless real_file_path
+          puts "#{file_entry[:filepath]} does not exists!"
+          next
+        end
         file_entry[:size] = size(real_path) unless file_entry[:size]
       end
     end
 
     check_data(packages: packages, csv_metadata: csv_metadata)
+  end
+
+  def real_path(data_roots:, filepath:)
+    data_roots.each do |data_root|
+      file = File.join(data_root, filepath)
+      return file if File.exist?(file)
+    end
   end
 
   def self.populate_metadata_from_csv(csv:)

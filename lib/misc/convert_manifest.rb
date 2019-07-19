@@ -153,7 +153,7 @@ module ConvertManifest
           puts "#{file_entry[:filepath]} does not exists!"
           next
         end
-        file_entry[:size] = size(real_file_path) unless file_entry[:size]
+        file_entry[:size] = size(real_file_path) unless file_entry[:size]&.nonzero?
       end
     end
 

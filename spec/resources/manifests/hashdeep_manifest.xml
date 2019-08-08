@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dfxml
+        xmlns='http://www.forensicswiki.org/wiki/Category:Digital_Forensics_XML'
+        xmlns:deep='http://md5deep.sourceforge.net/md5deep/'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:dc='http://purl.org/dc/elements/1.1/' version='1.0'>
+  <deep:configuration>
+    <algorithms>
+      <algorithm name='md5' enabled='0'/>
+      <algorithm name='sha1' enabled='1'/>
+      <algorithm name='sha256' enabled='0'/>
+      <algorithm name='tiger' enabled='0'/>
+      <algorithm name='whirlpool' enabled='0'/>
+      <algorithm name='' enabled='0'/>
+    </algorithms>
+  </deep:configuration>
+  <metadata>
+    <dc:type>Hash List</dc:type>
+  </metadata>
+  <creator version='1.0'>
+    <program>MD5DEEP</program>
+    <version>4.4</version>
+    <build_environment>
+      <compiler>GCC 4.8</compiler>
+    </build_environment>
+    <execution_environment>
+      <command_line>hashdeep64.exe -d -r -c sha1 -l e:\*</command_line>
+      <start_time>2019-08-07T12:42:04Z</start_time>
+    </execution_environment>
+  </creator>
+  <fileobject>
+    <filename>\1001_Barton Hall\10362_SUCF 161013_2016_ROTC Force Protection\Construction_11_2016\Specification\679_097_Specifications_11_2016.pdf</filename>
+    <filesize>561710</filesize>
+    <mtime>2019-06-24T17:58:20Z</mtime>
+    <ctime>2019-06-24T17:58:18Z</ctime>
+    <atime>2019-07-05T11:59:18Z</atime>
+    <hashdigest type='SHA1'>deadbeef55555555deadbeef55555555deadbeef</hashdigest>
+  </fileobject>
+  <fileobject>
+    <filename>\1001_Barton Hall\10362_SUCF 161013_2016_ROTC Force Protection\705_161_161001032_Access Entrnc Cert of Cmpltn_11_2018.pdf</filename>
+    <filesize>561710</filesize>
+    <mtime>2019-06-24T17:58:20Z</mtime>
+    <ctime>2019-06-24T17:58:18Z</ctime>
+    <atime>2019-07-05T11:59:18Z</atime>
+    <hashdigest type='SHA1'>422a1b9befe56d4ff226e7c8d7788fd551c5c269</hashdigest>
+  </fileobject>
+  <fileobject>
+    <filename>\1002_Barton Hall\Permits_Agreements\705_161_161001032_Access Entrnc Cert of Cmpltn_11_2018.pdf</filename>
+    <filesize>561710</filesize>
+    <mtime>2019-06-24T17:58:20Z</mtime>
+    <ctime>2019-06-24T17:58:18Z</ctime>
+    <atime>2019-07-05T11:59:18Z</atime>
+    <hashdigest type='SHA1'>422a1b9befe56d4ff226e7c8d7788fd551c5c268</hashdigest>
+  </fileobject>
+  <fileobject>
+    <filename>\1001_Barton Hall\10362_SUCF 161013_2016_ROTC Force ProtectionZ\Construction_11_2016\Specification\679_097_Specifications_11_2016.pdf</filename>
+    <filesize>561710</filesize>
+    <mtime>2019-06-24T17:58:20Z</mtime>
+    <ctime>2019-06-24T17:58:18Z</ctime>
+    <atime>2019-07-05T11:59:18Z</atime>
+    <hashdigest type='SHA1'>422a1b9befe56d4ff226e7c8d7788fd551c5c268</hashdigest>
+  </fileobject>
+</dfxml>

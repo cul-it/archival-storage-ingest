@@ -1,0 +1,46 @@
+{
+  "steward": "efe4",
+  "depositor": "RMC/RMA",
+  "collection_id": "RMA03487_Cornell_University_Facilities_Construction_Records",
+  "number_packages": 3,
+  "packages": [
+    {
+      "package_id": "urn:uuid:14ebd815-9b82-472d-85cd-b458bdd8bd62",
+      "files": [
+        {
+          "filepath": "1001_Barton Hall/10362_SUCF 161013_2016_ROTC Force Protection/Construction_11_2016/Specification/679_097_Specifications_11_2016.pdf",
+          "sha1": "deadbeef55555555deadbeef55555555deadbeef",
+          "size": 561710
+        },
+        {
+          "filepath": "1001_Barton Hall/10362_SUCF 161013_2016_ROTC Force Protection/705_161_161001032_Access Entrnc Cert of Cmpltn_11_2018.pdf",
+          "sha1": "422a1b9befe56d4ff226e7c8d7788fd551c5c269",
+          "size": 561710
+        }
+      ],
+      "number_files": 2
+    },
+    {
+      "package_id": "urn:uuid:f86f9bf5-3b0c-4599-97d5-2fed68e4dab9",
+      "files": [
+        {
+          "filepath": "1002_Barton Hall/Permits_Agreements/705_161_161001032_Access Entrnc Cert of Cmpltn_11_2018.pdf",
+          "sha1": "422a1b9befe56d4ff226e7c8d7788fd551c5c268",
+          "size": 561710
+        }
+      ],
+      "number_files": 1
+    },
+    {
+      "package_id": "urn:uuid:c1604f14-cabf-49f6-bc0a-b851e404b7f1",
+      "files": [
+        {
+          "filepath": "1001_Barton Hall/10362_SUCF 161013_2016_ROTC Force ProtectionZ/Construction_11_2016/Specification/679_097_Specifications_11_2016.pdf",
+          "sha1": "422a1b9befe56d4ff226e7c8d7788fd551c5c268",
+          "size": 561710
+        }
+      ],
+      "number_files": 1
+    }
+  ]
+}

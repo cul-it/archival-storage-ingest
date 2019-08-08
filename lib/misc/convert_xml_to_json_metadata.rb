@@ -3,6 +3,9 @@
 require 'json'
 require 'nokogiri'
 
+## This module is deprecated!
+## Use ConvertXmlToJsonManifest class instead!!
+
 module ConvertXmlToJsonMetadata
   IPP_DEPOSITOR_COLLECTION = 'RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records'
   IPP_PHYSICAL_COLLECTION_ID = 'RMA02471'

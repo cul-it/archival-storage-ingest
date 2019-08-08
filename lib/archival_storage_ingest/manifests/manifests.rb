@@ -75,12 +75,9 @@ module Manifests
       all_files = {}
       walk_all_filepath do |filepath|
         all_files[filepath.filepath] = filepath
-        all_files
       end
       all_files
     end
-
-    def compare_manifest(_other_manifest:); end
 
     def diff(other_manifest)
       lflat_h = {}
@@ -127,7 +124,7 @@ module Manifests
         rights: rights,
         locations: locations,
         number_packages: number_packages,
-        packages: packages.map(&:to_json_storage)
+        packages: packages.map(&:to_json_hash_storage)
       }.compact.to_json
     end
 
@@ -159,12 +156,52 @@ module Manifests
     def add_file(file:)
       files << file
       @number_files += 1
+      file
     end
 
     def walk_files
       files.each do |file|
         yield(file)
       end
+    end
+
+    def find_file(filepath:)
+      index = files.index { |file| file.filepath == filepath }
+      return files[index] unless index.nil?
+
+      nil
+    end
+
+    def update_file_entry(filepath:, sha1:, size:, md5: nil)
+      file_hash = { filepath: filepath, sha1: sha1, md5: md5, size: size }
+      update_file(file: FileEntry.new(file: file_hash))
+    end
+
+    def update_file(file:)
+      file_to_update = find_file(filepath: file.filepath)
+      if file_to_update.nil?
+        file_to_update = add_file(file: file)
+      else
+        file_to_update.sha1 = file.sha1
+        file_to_update.size = file.size
+      end
+      file_to_update
+    end
+
+    def ==(other) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
+      return false unless other.instance_of?(Package)
+
+      return false unless source_path == other.source_path
+
+      return false unless bibid == other.bibid
+
+      return false unless local_id == other.local_id
+
+      return false unless number_files == other.number_files
+
+      return false unless files == other.files
+
+      true
     end
 
     def to_json_hash_storage

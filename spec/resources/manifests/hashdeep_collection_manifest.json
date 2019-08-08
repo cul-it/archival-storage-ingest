@@ -1,0 +1,46 @@
+{
+  "steward": "efe4",
+  "depositor": "RMC/RMA",
+  "collection_id": "RMA03487_Cornell_University_Facilities_Construction_Records",
+  "locations": [
+    "s3://s3-cular/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records",
+    "smb://files.library.cornell.edu/lib/archival02/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records"
+  ],
+  "documentation": "cular:abcd",
+  "number_packages": 3,
+  "packages": [
+    {
+      "package_id": "urn:uuid:14ebd815-9b82-472d-85cd-b458bdd8bd62",
+      "files": [
+        {
+          "filepath": "1001_Barton Hall/10362_SUCF 161013_2016_ROTC Force Protection/Construction_11_2016/Specification/679_097_Specifications_11_2016.pdf",
+          "sha1": "deadbeef11111111deadbeef11111111deadbeef",
+          "size": 1234
+        }
+      ],
+      "number_files": 1
+    },
+    {
+      "package_id": "urn:uuid:f86f9bf5-3b0c-4599-97d5-2fed68e4dab9",
+      "files": [
+        {
+          "filepath": "5356_Security Alarm Gen and Oper/S0856_2000_Securtity Overview Facility Condition Analysis/Report/695_005_FacilityConditionAnalysis_02_2000.pdf",
+          "sha1": "deadbeef22222222deadbeef22222222deadbeef",
+          "size": 2345
+        }
+      ],
+      "number_files": 1
+    },
+    {
+      "package_id": "urn:uuid:c1604f14-cabf-49f6-bc0a-b851e404b7f1",
+      "files": [
+        {
+          "filepath": "1511G_Gnva Roads/10994_2018_Pavement Rehab 2018/Construction_06_2018/Specification/1001_477_Specification_06_2018.pdf",
+          "sha1": "deadbeef33333333deadbeef33333333deadbeef",
+          "size": 3456
+        }
+      ],
+      "number_files": 1
+    }
+  ]
+}

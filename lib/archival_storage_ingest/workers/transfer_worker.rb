@@ -22,7 +22,11 @@ module TransferWorker
 
       path_to_trim = Pathname.new(msg.data_path)
 
-      directory_walker.process(msg.effective_data_path) do |path|
+      directory_walker.process_immediate_children(msg.effective_data_path) do |path|
+        process_path(path, path_to_trim)
+      end
+
+      directory_walker.process_rest(msg.effective_data_path) do |path|
         process_path(path, path_to_trim)
       end
 
@@ -55,7 +59,11 @@ module TransferWorker
 
       create_collection_dir(msg, path_to_trim)
 
-      directory_walker.process(msg.effective_data_path) do |path|
+      directory_walker.process_immediate_children(msg.effective_data_path) do |path|
+        process_path(path, path_to_trim, msg.dest_path)
+      end
+
+      directory_walker.process_rest(msg.effective_data_path) do |path|
         process_path(path, path_to_trim, msg.dest_path)
       end
 

@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/manifests/convert_xml_to_json_manifest'
+require 'json'
 
 collection_manifest_file = ARGV[0]
 hashdeep_manifest_file = ARGV[1]
@@ -19,4 +20,5 @@ overwrite_list.each do |filepath, files|
 end
 
 ingest_manifest = manifest_response.ingest_manifest
-puts ingest_manifest.to_json_ingest
+ingest_json = ingest_manifest.to_json_ingest
+puts JSON.pretty_generate(JSON.parse(ingest_json))

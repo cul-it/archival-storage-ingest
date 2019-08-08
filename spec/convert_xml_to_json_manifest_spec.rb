@@ -18,6 +18,7 @@ RSpec.describe 'ConvertXmlToJsonMetadata' do
       ingest_manifest = manifest_response.ingest_manifest
       overwrite_list = manifest_response.overwrite_list
       expected_ingest_manifest = Manifests.read_manifest(filename: ingest_manifest_file)
+      expect(ingest_manifest.number_packages).to eq(3)
       expect(ingest_manifest.packages).to eq(expected_ingest_manifest.packages)
       expect(ingest_manifest.packages[0].package_id).to eq('urn:uuid:14ebd815-9b82-472d-85cd-b458bdd8bd62')
       expect(overwrite_list.size).to eq(1)

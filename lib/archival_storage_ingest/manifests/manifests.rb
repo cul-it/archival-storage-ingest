@@ -37,6 +37,7 @@ module Manifests
       package_id = package.package_id
       raise IngestException, "Package id #{package_id} already exists and can't be added." if get_package(package_id: package_id)
 
+      @number_packages += 1
       packages << package
     end
 

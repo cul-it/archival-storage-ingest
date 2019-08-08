@@ -42,10 +42,7 @@ module Manifests
       prefix_to_trim = Pathname.new(data_path)
       filesystem_listing = []
       directory_walker = IngestUtils::DirectoryWalker.new
-      directory_walker.process_immediate_children(data_path) do |path|
-        filesystem_listing << IngestUtils.relative_path(path, prefix_to_trim) if File.file?(path)
-      end
-      directory_walker.process_rest(data_path) do |path|
+      directory_walker.process(data_path) do |path|
         filesystem_listing << IngestUtils.relative_path(path, prefix_to_trim) if File.file?(path)
       end
       filesystem_listing.sort

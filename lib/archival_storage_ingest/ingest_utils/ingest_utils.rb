@@ -34,12 +34,7 @@ module IngestUtils
     Pathname.new(file).relative_path_from(basepath).to_s
   end
 
-  # https://stackoverflow.com/questions/357754/can-i-traverse-symlinked-directories-in-ruby-with-a-glob
-  # I was able to follow symlink with Dir.glob('**/*/**')
-  # As was mentioned in the link above, it DOES NOT give you the immediate children (dir or file).
-  # I could not get the "fix" to work - **{,/*/**}/*.
-  # If I use **{,/*/**}/*, I get files in non-symlink'ed directories twice.
-  # I will process immediate children and then use **/*/**.
+  # deprecated, use process instead
   class DirectoryWalker
     def process_immediate_children(dir)
       Dir.glob("#{dir}/*").sort.each do |path|
@@ -49,8 +44,17 @@ module IngestUtils
       end
     end
 
+    # deprecated, use process instead
     def process_rest(dir)
       Dir.glob("#{dir}/**/*/**").sort.each do |path|
+        next if EXCLUDE_FILE_LIST[File.basename(path).downcase]
+
+        yield(path)
+      end
+    end
+
+    def process(dir)
+      Dir.glob("#{dir}{,/*/**}/*").sort.each do |path|
         next if EXCLUDE_FILE_LIST[File.basename(path).downcase]
 
         yield(path)

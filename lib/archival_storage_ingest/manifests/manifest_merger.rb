@@ -18,14 +18,19 @@ module Manifests
     def merge_packages(storage_package:, ingest_package:)
       storage_files = storage_file_listing(storage_package: storage_package)
       ingest_package.walk_files do |file|
-        storage_package.add_file(file: file) unless storage_files[file.filepath]
+        if storage_files[file.filepath].nil?
+          storage_package.add_file(file: file) unless storage_files[file.filepath]
+        else
+          puts "Overwrite detected for #{file.filepath}"
+          storage_files[file.filepath].copy(file)
+        end
       end
     end
 
     def storage_file_listing(storage_package:)
       filepath = {}
       storage_package.walk_files do |file|
-        filepath[file.filepath] = 1
+        filepath[file.filepath] = file
       end
       filepath
     end

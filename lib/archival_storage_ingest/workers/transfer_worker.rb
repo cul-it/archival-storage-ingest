@@ -1,99 +1,81 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/ingest_utils/ingest_utils'
+require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/workers/worker'
 require 'fileutils'
 require 'find'
 require 'pathname'
 
 module TransferWorker
-  class S3Transferer < Workers::Worker
+  class TransferWorker < Workers::Worker
+    attr_reader :s3_manager
     # Pass s3_manager only for tests.
     def initialize(s3_manager = nil)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
     end
 
+    def work(msg)
+      ingest_manifest = fetch_ingest_manifest(msg)
+      ingest_manifest.walk_packages do |package|
+        process_package(package: package, msg: msg)
+      end
+
+      true
+    end
+
+    def fetch_ingest_manifest(msg)
+      manifest_s3_key = s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_INGEST)
+      ingest_manifest = s3_manager.retrieve_file(manifest_s3_key)
+      Manifests::Manifest.new(json_text: ingest_manifest.string)
+    end
+
+    def process_package(package:, msg:)
+      source_path = package.source_path
+      package.walk_files do |file|
+        source = source(msg: msg, source_path: source_path, file: file)
+        target = target(msg: msg, file: file)
+        process_file(source: source, target: target)
+      end
+    end
+
+    def source(msg:, source_path:, file:)
+      File.join(source_path, msg.depositor, msg.collection, file.filepath)
+    end
+
+    def target(msg:, file:); end
+
+    def process_file(source:, target:); end
+  end
+
+  class S3Transferer < TransferWorker
     def name
       'S3 Transferer'
     end
 
-    def work(msg)
-      directory_walker = IngestUtils::DirectoryWalker.new
-
-      path_to_trim = Pathname.new(msg.data_path)
-
-      directory_walker.process_immediate_children(msg.effective_data_path) do |path|
-        process_path(path, path_to_trim)
-      end
-
-      directory_walker.process_rest(msg.effective_data_path) do |path|
-        process_path(path, path_to_trim)
-      end
-
-      true
+    # source is absolute file path of the asset
+    # target is s3_key
+    def process_file(source:, target:)
+      s3_manager.upload_file(target, source)
     end
 
-    # skip directory
-    # upload file
-    def process_path(path, path_to_trim)
-      return if File.directory?(path)
-
-      s3_key = s3_key(path, path_to_trim)
-      @s3_manager.upload_file(s3_key, path)
-    end
-
-    def s3_key(path, path_to_trim)
-      IngestUtils.relativize(path, path_to_trim)
+    def target(msg:, file:)
+      "#{msg.depositor}/#{msg.collection}/#{file.filepath}"
     end
   end
 
-  class SFSTransferer < Workers::Worker
+  class SFSTransferer < TransferWorker
     def name
       'SFS Transferer'
     end
 
-    def work(msg)
-      directory_walker = IngestUtils::DirectoryWalker.new
-
-      path_to_trim = Pathname.new(msg.data_path)
-
-      create_collection_dir(msg, path_to_trim)
-
-      directory_walker.process_immediate_children(msg.effective_data_path) do |path|
-        process_path(path, path_to_trim, msg.dest_path)
-      end
-
-      directory_walker.process_rest(msg.effective_data_path) do |path|
-        process_path(path, path_to_trim, msg.dest_path)
-      end
-
-      true
+    def process_file(source:, target:)
+      FileUtils.mkdir_p(File.dirname(target))
+      FileUtils.copy(source, target)
     end
 
-    def create_collection_dir(msg, path_to_trim)
-      deposit_root = generate_dest_path(msg.dest_path, msg.effective_data_path, path_to_trim)
-      FileUtils.mkdir_p(deposit_root) unless File.exist?(deposit_root)
-    end
-
-    # create directory if doesn't exist
-    # copy file
-    def process_path(path, path_to_trim, dest_root)
-      dest = generate_dest_path(dest_root, path, path_to_trim)
-
-      if File.directory?(path)
-        FileUtils.mkdir(dest) unless File.exist?(dest)
-      else
-        FileUtils.copy(path, dest)
-      end
-    end
-
-    # Example
-    # dest_root - /a
-    # path - /b/c/d/resource.txt
-    # path_to_trim - /b/c
-    # return - /a/d/resource.txt
-    def generate_dest_path(dest_root, path, path_to_trim)
-      File.join(dest_root, Pathname.new(path).relative_path_from(path_to_trim).to_s)
+    def target(msg:, file:)
+      File.join(msg.dest_path, msg.depositor, msg.collection, file.filepath)
     end
   end
 end

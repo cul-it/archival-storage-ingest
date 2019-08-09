@@ -105,34 +105,42 @@ module Manifests
       to_json_storage
     end
 
-    def to_json_ingest
+    def to_json_ingest_hash
       {
-        collection_id: collection_id,
-        depositor: depositor,
-        steward: steward,
-        rights: rights,
+        depositor: depositor, collection_id: collection_id,
+        steward: steward, rights: rights,
         locations: locations,
         number_packages: number_packages,
         packages: packages.map(&:to_json_ingest)
-      }.compact.to_json
+      }.compact
     end
 
-    def to_json_storage
+    def to_json_ingest
+      to_json_ingest_hash.to_json
+    end
+
+    def to_json_storage_hash
       {
-        collection_id: collection_id,
-        depositor: depositor,
-        steward: steward,
-        rights: rights,
+        depositor: depositor, collection_id: collection_id,
+        steward: steward, rights: rights,
         locations: locations,
         number_packages: number_packages,
         packages: packages.map(&:to_json_hash_storage)
-      }.compact.to_json
+      }.compact
+    end
+
+    def to_json_storage
+      to_json_storage_hash.to_json
+    end
+
+    def to_json_fixity_hash
+      {
+        packages: packages.map(&:to_json_fixity)
+      }
     end
 
     def to_json_fixity
-      {
-        packages: packages.map(&:to_json_fixity)
-      }.to_json
+      to_json_fixity_hash.to_json
     end
   end
 
@@ -241,6 +249,14 @@ module Manifests
       @sha1 = file[:sha1]
       @md5 = file[:md5]
       @size = file[:size]
+    end
+
+    def copy(other)
+      return unless filepath == other.filepath
+
+      @sha1 = other.sha1
+      @md5 = other.md5
+      @size = other.size
     end
 
     def ==(other) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity

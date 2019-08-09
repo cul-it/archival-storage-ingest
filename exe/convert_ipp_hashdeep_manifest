@@ -19,6 +19,4 @@ overwrite_list.each do |filepath, files|
   puts "  New SHA1: #{files[:ingest_file_entry].sha1}"
 end
 
-ingest_manifest = manifest_response.ingest_manifest
-ingest_json = ingest_manifest.to_json_ingest
-puts JSON.pretty_generate(JSON.parse(ingest_json))
+puts JSON.pretty_generate(ingest_manifest.to_json_ingest_hash)

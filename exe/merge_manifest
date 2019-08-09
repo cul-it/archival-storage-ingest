@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'misc/merge_manifest'
+require 'archival_storage_ingest/manifests/manifest_merger'
 
-mm = MergeManifest::MergeManifest.new
-ingest_manifest = ARGV[0]
-collection_manifest = ARGV[1]
-merged = mm.merge_manifest(ingest_manifest, collection_manifest)
-File.open("#{collection_manifest}.merged", 'w') { |file| file.write(merged) }
+mm = MergeManifest::ManifestMerger.new
+collection_manifest = ARGV[0]
+ingest_manifest = ARGV[1]
+merged_manifest = mm.merge_manifests(storage_manifest: collection_manifest, ingest_manifest: ingest_manifest)
+json_to_store = JSON.pretty_generate(merged_manifest.to_json_storage_hash)
+File.open("#{collection_manifest}.merged", 'w') { |file| file.write(json_to_store) }

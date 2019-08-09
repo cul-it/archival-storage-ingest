@@ -2,6 +2,8 @@
 
 require 'json'
 
+# Uses deprecated old manifest
+# Use Manifest::ManifestMerger instead!
 module MergeManifest
   DEPO_COLL = 'RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records'
   NUMBER_FILES = 'number_files'

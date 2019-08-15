@@ -34,6 +34,16 @@ module IngestUtils
     Pathname.new(file).relative_path_from(basepath).to_s
   end
 
+  def self.blank?(str)
+    str.to_s.strip.empty?
+  end
+
+  def self.if_empty(str, replacement)
+    return replacement if blank?(str)
+
+    str
+  end
+
   # deprecated, use process instead
   class DirectoryWalker
     def process_immediate_children(dir)

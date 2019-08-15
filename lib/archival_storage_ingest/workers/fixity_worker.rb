@@ -99,7 +99,7 @@ module FixityWorker
     end
 
     def calculate_checksum(object_path, msg)
-      s3_key = "#{msg.depositor}/#{msg.collection}/#{object_path}"
+      s3_key = "#{msg.collection_s3_prefix}/#{object_path}"
       @s3_manager.calculate_checksum(s3_key)
     end
   end
@@ -114,7 +114,7 @@ module FixityWorker
     end
 
     def calculate_checksum(path, msg)
-      s3_key = "#{msg.depositor}/#{msg.collection}/#{path}"
+      s3_key = "#{msg.collection_s3_prefix}/#{path}"
       @s3_manager.calculate_checksum(s3_key)
     end
 

@@ -57,7 +57,7 @@ module IngestMessage
     attr_reader :ingest_id, :original_msg, :dest_path, :depositor, :collection, :ingest_manifest, :ticket_id
 
     def collection_s3_prefix
-      File.join(depositor, collection).to_s
+      "#{depositor}/#{collection}"
     end
 
     def to_hash

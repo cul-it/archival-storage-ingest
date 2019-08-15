@@ -5,12 +5,15 @@ require 'archival_storage_ingest/manifests/convert_xml_to_json_manifest'
 require 'json'
 
 collection_manifest_file = ARGV[0]
-hashdeep_manifest_file = ARGV[1]
+hashdeep_manifest_file   = ARGV[1]
+source_path              = ARGV[2]
 
 manifest_converter = Manifests::ConvertXmlToJsonManifest.new
 collection_manifest = Manifests.read_manifest(filename: collection_manifest_file)
 manifest_response = manifest_converter.generate_ingest_manifest(xml: hashdeep_manifest_file,
-                                                                manifest: collection_manifest, depth: 2)
+                                                                manifest: collection_manifest,
+                                                                depth: 2,
+                                                                source_path: source_path)
 
 overwrite_list = manifest_response.overwrite_list
 overwrite_list.each do |filepath, files|

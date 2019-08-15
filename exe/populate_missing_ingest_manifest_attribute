@@ -8,16 +8,14 @@ require 'json'
 
 ingest_manifest_file = ARGV[0]
 ingest_manifest = Manifests.read_manifest(filename: ingest_manifest_file)
-data_path = ARGV[1]
-# destination_file = ARGV[2] || "#{ingest_manifest}.fixed"
+source_path = ARGV[1]
 
-abort('Usage: populate_missing_ingest_manifest_attribute PATH_TO_INGEST_MANIFEST [OPTIONAL_OUTPUT_PATH]') if ARGV.empty?
+abort('Usage: populate_missing_ingest_manifest_attribute PATH_TO_INGEST_MANIFEST SOURCE_PATH') if ARGV.empty?
 
 mfc = Manifests::ManifestToFilesystemComparator.new
-mfc.compare_manifest_to_filesystem(manifest: ingest_manifest, data_path: data_path)
+abort unless mfc.compare_manifest_to_filesystem(manifest: ingest_manifest, source_path: source_path)
 
 mmap = Manifests::ManifestMissingAttributePopulator.new
-manifest = mmap.populate_missing_attribute(manifest: ingest_manifest, data_path: data_path)
-# mmap.to_file(destination: destination_file, manifest: manifest)
+manifest = mmap.populate_missing_attribute(manifest: ingest_manifest, source_path: source_path)
 ingest_json = manifest.to_json_ingest
-puts JSON.pretty_generate(JSON.parse(ingest_json))
+puts JSON.pretty_generate(ingest_json)

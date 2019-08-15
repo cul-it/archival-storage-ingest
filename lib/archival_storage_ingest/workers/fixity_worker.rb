@@ -57,11 +57,12 @@ module FixityWorker
       manifest
     end
 
-    # This method must return a list of file paths starting from the depositor/collection.
-    # It must not contain prefix such as /cul/data/archival01.
-    # E.g. [RMC/RMA/RMA1234/dir1/file1.txt,
-    #       RMC/RMA/RMA1234/dir2/file2.txt]
-    # Not /cul/data/archival01/RMC/RMA/RMA1234/dir1/file1.txt
+    # This method must return a list of file paths same as what's in the manifest.
+    # It must not contain prefix such as /cul/data/archival01, depositor or collection.
+    # E.g. [dir1/file1.txt,
+    #       dir2/file2.txt]
+    # Not /cul/data/archival01/RMC/RMA/RMA1234/dir1/file1.txt or
+    #     RMC/RMA/RMA1234/dir1/file1.txt
     def object_paths(_msg)
       raise NotImplementedError
     end
@@ -154,12 +155,11 @@ module FixityWorker
     end
 
     def object_paths(msg)
-      assets_dir = msg.effective_dest_path
-      path_to_trim = Pathname.new(msg.dest_path)
+      assets_dir = msg.dest_path
 
       Find.find(assets_dir)
           .reject { |path| File.directory?(path) }
-          .map { |path| Pathname.new(path).relative_path_from(path_to_trim).to_s }
+          .map { |path| Pathname.new(path).relative_path_from(assets_dir).to_s }
     end
   end
 end

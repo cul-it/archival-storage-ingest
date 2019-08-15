@@ -32,8 +32,7 @@ RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
 
   let(:msg) do
     IngestMessage::SQSMessage.new(
-      ingest_id: 'test_1234',
-      data_path: ''
+      ingest_id: 'test_1234'
     )
   end
 

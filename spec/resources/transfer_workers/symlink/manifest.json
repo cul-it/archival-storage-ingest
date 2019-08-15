@@ -1,0 +1,44 @@
+{
+  "steward": "t123",
+  "depositor": "RMC/RMA",
+  "collection_id": "RMA0001234",
+  "number_packages": 3,
+  "packages": [
+    {
+      "package_id": "urn:uuid:28872ed7-f2f3-4c20-836b-3908c3ad8ef2",
+      "source_path": "REPLACE_ME",
+      "files": [
+        {
+          "filepath": "1/resource1.txt",
+          "sha1": "ef72cf86c1599c80612317fdd2f50f4863c3efb0",
+          "size": 10
+        }
+      ],
+      "number_files": 1
+    },
+    {
+      "package_id": "urn:uuid:28872ed7-f2f3-4c20-836b-3908c3ad8ef3",
+      "source_path": "REPLACE_ME",
+      "files": [
+        {
+          "filepath": "2/resource2.txt",
+          "sha1": "a168fd78713a6cb925436e348df77f4e7effc48e",
+          "size": 21
+        }
+      ],
+      "number_files": 1
+    },
+    {
+      "package_id": "urn:uuid:28872ed7-f2f3-4c20-836b-3908c3ad8ef4",
+      "source_path": "REPLACE_ME",
+      "files": [
+        {
+          "filepath": "4/resource4.txt",
+          "sha1": "0e0da7c9f3fa768c75bc3a0fa7131f03fad7bc9c",
+          "size": 21
+        }
+      ],
+      "number_files": 1
+    }
+  ]
+}

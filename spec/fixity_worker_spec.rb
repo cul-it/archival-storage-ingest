@@ -11,16 +11,15 @@ require 'archival_storage_ingest/workers/worker'
 # TODO: Refactor tests so that variables are defined locally to their use as much as possible.
 
 RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
-  let(:dest_path) { File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'sfs', 'archival01') }
   let(:manifest_dir) { File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'manifest') }
   let(:ingest_id) { 'test_1234' }
   let(:depositor) { 'RMC/RMA' }
   let(:collection) { 'RMA0123' }
+  let(:dest_path) { File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'sfs', 'archival01', depositor, collection) }
   let(:msg) do
     IngestMessage::SQSMessage.new(
       ingest_id: ingest_id,
       dest_path: dest_path.to_s,
-      manifest_dir: manifest_dir,
       depositor: depositor,
       collection: collection
     )
@@ -165,7 +164,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
 
     context 'when calculating checksum' do
       it 'should return checksum hex' do
-        (sha1, size) = worker.calculate_checksum("#{depositor}/#{collection}/1/one.zip", msg)
+        (sha1, size) = worker.calculate_checksum('1/one.zip', msg)
         expect(sha1).to eq('c19ed993b201bd33b3765c3f6ec59bd39f995629')
         expect(size).to eq(168)
       end

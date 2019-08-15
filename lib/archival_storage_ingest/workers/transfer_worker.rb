@@ -33,14 +33,14 @@ module TransferWorker
     def process_package(package:, msg:)
       source_path = package.source_path
       package.walk_files do |file|
-        source = source(msg: msg, source_path: source_path, file: file)
+        source = source(source_path: source_path, file: file)
         target = target(msg: msg, file: file)
         process_file(source: source, target: target)
       end
     end
 
-    def source(msg:, source_path:, file:)
-      File.join(source_path, msg.depositor, msg.collection, file.filepath)
+    def source(source_path:, file:)
+      File.join(source_path, file.filepath)
     end
 
     def target(msg:, file:); end
@@ -59,6 +59,7 @@ module TransferWorker
       s3_manager.upload_file(target, source)
     end
 
+    # needs to be updated when we adopt OCFL
     def target(msg:, file:)
       "#{msg.depositor}/#{msg.collection}/#{file.filepath}"
     end
@@ -74,8 +75,9 @@ module TransferWorker
       FileUtils.copy(source, target)
     end
 
+    # needs to be updated when we adopt OCFL
     def target(msg:, file:)
-      File.join(msg.dest_path, msg.depositor, msg.collection, file.filepath)
+      File.join(msg.dest_path, file.filepath)
     end
   end
 end

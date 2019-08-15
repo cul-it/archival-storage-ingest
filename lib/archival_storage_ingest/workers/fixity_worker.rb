@@ -10,6 +10,7 @@ require 'pathname'
 # We don't expect to encounter symlinks on fixity checker!
 # We will store JSON on memory while generating it.
 # If memory usage becomes an issue, then we will try sax-like approach.
+# SFS workers expect dest_path/filepath to be the absolute path of an asset.
 module FixityWorker
   FIXITY_TEMPORARY_PACKAGE_ID = 'fixity_temporary_package'
   FIXITY_MANIFEST_TEMPLATE = {
@@ -46,11 +47,10 @@ module FixityWorker
     # Return checksum manifest of all objects for a given depositor/collection.
     def generate_manifest(msg)
       object_paths = object_paths(msg) # returns a hash of keys (dep/col/resource) to paths.
-      path_prefix = "#{msg.depositor}/#{msg.collection}"
       manifest = Manifests::Manifest.new(json_text: FIXITY_MANIFEST_TEMPLATE_STR)
       fixity_package = manifest.get_package(package_id: FIXITY_TEMPORARY_PACKAGE_ID)
       object_paths.each do |object_path|
-        (sha, size) = calculate_checksum("#{path_prefix}/#{object_path}", msg)
+        (sha, size) = calculate_checksum(object_path, msg)
         fixity_package.add_file_entry(filepath: object_path, sha1: sha, size: size)
       end
 
@@ -97,8 +97,9 @@ module FixityWorker
       Workers::TYPE_S3
     end
 
-    def calculate_checksum(object_path, _msg)
-      @s3_manager.calculate_checksum(object_path)
+    def calculate_checksum(object_path, msg)
+      s3_key = "#{msg.depositor}/#{msg.collection}/#{object_path}"
+      @s3_manager.calculate_checksum(s3_key)
     end
   end
 
@@ -111,13 +112,10 @@ module FixityWorker
       Workers::TYPE_S3
     end
 
-    # Pass s3_manager only for tests.
-
-    def calculate_checksum(path, _msg)
-      @s3_manager.calculate_checksum(path)
+    def calculate_checksum(path, msg)
+      s3_key = "#{msg.depositor}/#{msg.collection}/#{path}"
+      @s3_manager.calculate_checksum(s3_key)
     end
-
-    private
 
     def object_paths(msg)
       @s3_manager.list_object_keys(msg.collection_s3_prefix)
@@ -154,8 +152,6 @@ module FixityWorker
       full_path = File.join(msg.dest_path, file_path).to_s
       IngestUtils.calculate_checksum(full_path)
     end
-
-    private
 
     def object_paths(msg)
       assets_dir = msg.effective_dest_path

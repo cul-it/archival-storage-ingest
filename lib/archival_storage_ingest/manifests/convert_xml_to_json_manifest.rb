@@ -5,10 +5,12 @@ require 'archival_storage_ingest/manifests/package_helper'
 require 'nokogiri'
 
 module Manifests
+  # It currently assumes that source_path is same for all packages.
+  # Change the logic if that is not the case.
   class ConvertXmlToJsonManifest
-    def generate_ingest_manifest(xml:, manifest:, depth:)
+    def generate_ingest_manifest(xml:, manifest:, depth:, source_path:)
       ingest_manifest = generate_base_manifest(manifest: manifest)
-      package_helper = Manifests::PackageHelper.new(manifest: manifest, depth: depth)
+      package_helper = Manifests::PackageHelper.new(manifest: manifest, depth: depth, source_path: source_path)
       walk_xml(xml) do |node|
         add_to_json_manifest(node: node, package_helper: package_helper, ingest_manifest: ingest_manifest)
       end
@@ -18,8 +20,7 @@ module Manifests
 
     def add_to_json_manifest(node:, package_helper:, ingest_manifest:)
       filepath = clean_filepath(filepath: node.at_css('filename').content)
-      package_id = package_helper.find_package_id(filepath: filepath)
-      package = get_package(ingest_manifest: ingest_manifest, package_id: package_id)
+      package = get_package(ingest_manifest: ingest_manifest, package_helper: package_helper, filepath: filepath)
 
       size = node.at_css('filesize').content.to_s.to_i
       sha1 = node.at_css('hashdigest[type="SHA1"]').content.to_s
@@ -32,11 +33,12 @@ module Manifests
       filepath.gsub('\\', '/')
     end
 
-    def get_package(ingest_manifest:, package_id:)
+    def get_package(ingest_manifest:, package_helper:, filepath:)
+      package_id = package_helper.find_package_id(filepath: filepath)
       package = ingest_manifest.get_package(package_id: package_id)
       unless package
         package = Manifests::Package.new(
-          package: { package_id: package_id }
+          package: { package_id: package_id, source_path: package_helper.source_path }
         )
         ingest_manifest.add_package(package: package)
       end
@@ -67,9 +69,9 @@ module Manifests
         collection_package = collection_manifest.get_package(package_id: ingest_package.package_id)
         next if collection_package.nil?
 
-        _list_overwrite(collection_package: collection_package,
-                        ingest_package: ingest_package,
-                        overwrite_list: overwrite_list)
+        overwrite_list = _list_overwrite(collection_package: collection_package,
+                                         ingest_package: ingest_package,
+                                         overwrite_list: overwrite_list)
       end
       overwrite_list
     end
@@ -84,6 +86,7 @@ module Manifests
           ingest_file_entry: ingest_file
         }
       end
+      overwrite_list
     end
   end
 

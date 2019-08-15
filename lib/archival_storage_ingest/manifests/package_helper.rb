@@ -5,11 +5,12 @@ require 'securerandom'
 
 module Manifests
   class PackageHelper
-    attr_reader :package_id_map, :new_packages, :depth
+    attr_reader :package_id_map, :new_packages, :depth, :source_path
 
-    def initialize(manifest:, depth:)
+    def initialize(manifest:, depth:, source_path:)
       @package_id_map = {}
       @depth = depth
+      @source_path = source_path
       @new_packages = []
       manifest.walk_packages do |package|
         package_id_path = package_identifier(filepath: package.files[0].filepath)

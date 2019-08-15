@@ -5,10 +5,12 @@ require 'archival_storage_ingest/manifests/manifests'
 require 'pathname'
 
 module Manifests
+  # It expects to find absolute path by combining source_path and filepath.
+  # It will traverse source_path directly, not modifying it with depositor/collection information.
   class ManifestToFilesystemComparator
-    def compare_manifest_to_filesystem(manifest:, data_path:)
+    def compare_manifest_to_filesystem(manifest:, source_path:)
       manifest_listing = populate_manifest_files(manifest: manifest)
-      filesystem_listing = populate_filesystem(data_path: data_path)
+      filesystem_listing = populate_filesystem(source_path: source_path)
 
       return true if manifest_listing == filesystem_listing
 
@@ -30,20 +32,18 @@ module Manifests
     end
 
     def populate_manifest_files(manifest:)
-      depositor_collection = "#{manifest.depositor}/#{manifest.collection_id}"
       manifest_listing = []
       manifest.walk_all_filepath do |file|
-        manifest_listing << "#{depositor_collection}/#{file.filepath}"
+        manifest_listing << file.filepath
       end
       manifest_listing.sort
     end
 
-    def populate_filesystem(data_path:)
-      prefix_to_trim = Pathname.new(data_path)
+    def populate_filesystem(source_path:)
       filesystem_listing = []
       directory_walker = IngestUtils::DirectoryWalker.new
-      directory_walker.process(data_path) do |path|
-        filesystem_listing << IngestUtils.relative_path(path, prefix_to_trim) if File.file?(path)
+      directory_walker.process(source_path) do |path|
+        filesystem_listing << IngestUtils.relative_path(path, source_path) if File.file?(path)
       end
       filesystem_listing.sort
     end

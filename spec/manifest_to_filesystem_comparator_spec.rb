@@ -7,7 +7,9 @@ require 'archival_storage_ingest/manifests/manifest_to_filesystem_comparator'
 require 'archival_storage_ingest/workers/fixity_worker'
 
 RSpec.describe 'ManifestToFilesystemComparator' do # rubocop:disable BlockLength
-  let(:data_path) { File.join(File.dirname(__FILE__), 'resources', 'manifests', 'manifest_to_filesystem_comparator') }
+  let(:source_path) do
+    File.join(File.dirname(__FILE__), 'resources', 'manifests', 'manifest_to_filesystem_comparator', 'RMC', 'RMA', 'RMA01234')
+  end
   let(:depositor) { 'RMC/RMA' }
   let(:collection_id) { 'RMA01234' }
   let(:ingest_manifest_hash) do
@@ -18,6 +20,7 @@ RSpec.describe 'ManifestToFilesystemComparator' do # rubocop:disable BlockLength
       packages: [
         {
           package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID,
+          number_files: 2,
           files: [
             {
               filepath: '1/one.txt',
@@ -39,7 +42,7 @@ RSpec.describe 'ManifestToFilesystemComparator' do # rubocop:disable BlockLength
     it 'succeeds' do
       manifest = Manifests::Manifest.new(json_text: ingest_manifest_hash.to_json)
       comparator = Manifests::ManifestToFilesystemComparator.new
-      status = comparator.compare_manifest_to_filesystem(manifest: manifest, data_path: data_path)
+      status = comparator.compare_manifest_to_filesystem(manifest: manifest, source_path: source_path)
       expect(status).to eq(true)
     end
   end
@@ -49,7 +52,7 @@ RSpec.describe 'ManifestToFilesystemComparator' do # rubocop:disable BlockLength
       manifest = Manifests::Manifest.new(json_text: ingest_manifest_hash.to_json)
       manifest.get_package(package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID).files.pop
       comparator = Manifests::ManifestToFilesystemComparator.new
-      status = comparator.compare_manifest_to_filesystem(manifest: manifest, data_path: data_path)
+      status = comparator.compare_manifest_to_filesystem(manifest: manifest, source_path: source_path)
       expect(status).to eq(false)
     end
   end
@@ -59,7 +62,7 @@ RSpec.describe 'ManifestToFilesystemComparator' do # rubocop:disable BlockLength
       manifest = Manifests::Manifest.new(json_text: ingest_manifest_hash.to_json)
       manifest.add_filepath(package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID, filepath: 'bogus', sha1: 'deadbeef', size: 1)
       comparator = Manifests::ManifestToFilesystemComparator.new
-      status = comparator.compare_manifest_to_filesystem(manifest: manifest, data_path: data_path)
+      status = comparator.compare_manifest_to_filesystem(manifest: manifest, source_path: source_path)
       expect(status).to eq(false)
     end
   end

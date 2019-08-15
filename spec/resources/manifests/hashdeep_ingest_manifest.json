@@ -6,6 +6,7 @@
   "packages": [
     {
       "package_id": "urn:uuid:14ebd815-9b82-472d-85cd-b458bdd8bd62",
+      "source_path": "bogus_source_path",
       "files": [
         {
           "filepath": "1001_Barton Hall/10362_SUCF 161013_2016_ROTC Force Protection/Construction_11_2016/Specification/679_097_Specifications_11_2016.pdf",
@@ -22,6 +23,7 @@
     },
     {
       "package_id": "urn:uuid:f86f9bf5-3b0c-4599-97d5-2fed68e4dab9",
+      "source_path": "bogus_source_path",
       "files": [
         {
           "filepath": "1002_Barton Hall/Permits_Agreements/705_161_161001032_Access Entrnc Cert of Cmpltn_11_2018.pdf",
@@ -33,6 +35,7 @@
     },
     {
       "package_id": "urn:uuid:c1604f14-cabf-49f6-bc0a-b851e404b7f1",
+      "source_path": "bogus_source_path",
       "files": [
         {
           "filepath": "1001_Barton Hall/10362_SUCF 161013_2016_ROTC Force ProtectionZ/Construction_11_2016/Specification/679_097_Specifications_11_2016.pdf",

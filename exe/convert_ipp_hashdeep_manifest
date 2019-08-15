@@ -22,4 +22,4 @@ overwrite_list.each do |filepath, files|
   puts "  New SHA1: #{files[:ingest_file_entry].sha1}"
 end
 
-puts JSON.pretty_generate(ingest_manifest.to_json_ingest_hash)
+puts JSON.pretty_generate(manifest_response.ingest_manifest.to_json_ingest_hash)

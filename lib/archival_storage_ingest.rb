@@ -2,7 +2,9 @@
 
 require 'archival_storage_ingest/version'
 require 'archival_storage_ingest/exception/ingest_exception'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
+require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/messages/ingest_queue'
 require 'archival_storage_ingest/messages/queues'
@@ -296,17 +298,23 @@ module ArchivalStorageIngest
     end
 
     def queue_ingest(ingest_config)
-      config_errors = config_errors(ingest_config)
-      if config_errors.size.positive?
-        puts config_errors
+      input_checker = check_input(ingest_config)
+      if input_checker.errors.size.positive?
+        puts input_checker.errors
         return
       end
 
-      return unless confirm_ingest(ingest_config)
+      return unless confirm_ingest(ingest_config, input_checker.ingest_manifest)
 
       ingest_msg = _queue_ingest(ingest_config)
 
       send_notification(ingest_msg)
+    end
+
+    def check_input(ingest_config)
+      input_checker = InputChecker.new
+      input_checker.check_input(ingest_config)
+      input_checker
     end
 
     def send_notification(ingest_msg)
@@ -320,30 +328,76 @@ module ArchivalStorageIngest
       msg = IngestMessage::SQSMessage.new(
         ingest_id: SecureRandom.uuid, ticket_id: ingest_config['ticket_id'],
         depositor: ingest_config['depositor'], collection: ingest_config['collection'],
-        data_path: ingest_config['data_path'], dest_path: ingest_config['dest_path'],
+        dest_path: ingest_config['dest_path'],
         ingest_manifest: ingest_config['ingest_manifest']
       )
       @queuer.put_message(@queue_name, msg)
       msg
     end
 
-    def config_errors(ingest_config)
-      fields = %w[data_path dest_path ingest_manifest]
-      errors = []
-      fields.each do |field|
-        errors << "Invalid #{field} #{ingest_config[field]}!" if ingest_config[field] && !File.exist?(ingest_config[field])
-      end
-      errors
-    end
-
-    def confirm_ingest(ingest_config)
+    def confirm_ingest(ingest_config, ingest_manifest)
       puts "S3 bucket: #{@configuration.s3_bucket}"
       puts "Destination Queue: #{@queue_name}"
+      print_config_settings(ingest_config)
+      puts "Source path: #{ingest_manifest.packages[0].source_path}"
+      puts 'Queue ingest? (Y/N)'
+      'y'.casecmp(gets.chomp).zero?
+    end
+
+    def print_config_settings(ingest_config)
       ingest_config.keys.sort.each do |key|
         puts "#{key}: #{ingest_config[key]}"
       end
-      puts 'Queue ingest? (Y/N)'
-      'y'.casecmp(gets.chomp).zero?
+    end
+  end
+
+  class InputChecker
+    attr_accessor :ingest_manifest, :errors
+    def initialize
+      @errors = []
+    end
+
+    def check_input(ingest_config)
+      return false unless config_ok?(ingest_config)
+
+      ingest_manifest_errors(ingest_config['ingest_manifest'])
+    end
+
+    def config_ok?(ingest_config)
+      # if dest_path is blank, use empty string '' to avoid errors printing it
+      dest_path = IngestUtils.if_empty(ingest_config['dest_path'], '')
+      @errors << "dest_path '#{dest_path}' does not exist!" unless
+        dest_path_ok?(dest_path)
+
+      ingest_manifest = ingest_config['ingest_manifest'].to_s.strip
+      @errors << "ingest_manifest #{ingest_manifest} does not exist!" unless
+        File.exist?(ingest_manifest)
+
+      @errors.size.zero?
+    end
+
+    def dest_path_ok?(dest_path)
+      return true if File.exist?(dest_path)
+
+      # We store data under /cul/data/archivalxx/DEPOSITOR/COLLECTION
+      # If we can find up to archivalxx, we should be OK.
+      # We may need to change this behavior when we adopt OCFL.
+      without_collection = File.dirname(dest_path)
+      without_depositor  = File.dirname(without_collection)
+
+      # The most likely case for '.' is when dest_path is blank.
+      return false if without_depositor == '.'
+
+      File.exist?(without_depositor)
+    end
+
+    def ingest_manifest_errors(input_ingest_manifest)
+      @ingest_manifest = Manifests.read_manifest(filename: input_ingest_manifest)
+      @ingest_manifest.walk_packages do |package|
+        @errors << "Source path for package #{package.package_id} is not valid!" unless
+          File.exist?(package.source_path.to_s)
+      end
+      @errors.size.zero?
     end
   end
 

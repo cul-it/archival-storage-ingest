@@ -29,7 +29,7 @@ module IngestMessage
   def self.convert_sqs_response(sqs_message)
     json = JSON.parse(sqs_message.body)
     SQSMessage.new(
-      ingest_id: json['ingest_id'], data_path: json['data_path'],
+      ingest_id: json['ingest_id'],
       dest_path: json['dest_path'], depositor: json['depositor'],
       collection: json['collection'], ingest_manifest: json['ingest_manifest'],
       ticket_id: json['ticket_id'], original_msg: sqs_message
@@ -42,11 +42,11 @@ module IngestMessage
 
   # SQS message implementation
   # original_msg is the message returned by the AWS SQS client
+  # data_path is removed
   class SQSMessage
     def initialize(params)
       @ingest_id = params[:ingest_id]
       @original_msg = params[:original_msg]
-      @data_path = params[:data_path]
       @dest_path = params[:dest_path]
       @depositor = params[:depositor]
       @collection = params[:collection]
@@ -54,15 +54,7 @@ module IngestMessage
       @ticket_id = params[:ticket_id]
     end
 
-    attr_reader :ingest_id, :original_msg, :data_path, :dest_path, :depositor, :collection, :ingest_manifest, :ticket_id
-
-    def effective_data_path
-      File.join(data_path, depositor, collection).to_s
-    end
-
-    def effective_dest_path
-      File.join(dest_path, depositor, collection).to_s
-    end
+    attr_reader :ingest_id, :original_msg, :dest_path, :depositor, :collection, :ingest_manifest, :ticket_id
 
     def collection_s3_prefix
       File.join(depositor, collection).to_s
@@ -71,7 +63,6 @@ module IngestMessage
     def to_hash
       {
         ingest_id: ingest_id,
-        data_path: data_path,
         dest_path: dest_path,
         depositor: depositor,
         collection: collection,

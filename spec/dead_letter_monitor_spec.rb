@@ -12,7 +12,6 @@ RSpec.describe 'DeadLetterMonitor' do # rubocop:disable BlockLength
   let(:dead_letter_message_hash) do
     {
       ingest_id: '21daed0d-f687-4fd1-94e2-0bc68c3c1f19',
-      data_path: '/cul/app/archival_storage_ingest/data/source',
       dest_path: '/cul/app/archival_storage_ingest/data/target',
       depositor: 'test_depositor', "collection": 'test_collection',
       ingest_manifest: '/cul/app/archival_storage_ingest/ingest/test/manifest/ingest_manifest/test.json',

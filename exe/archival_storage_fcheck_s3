@@ -39,13 +39,11 @@ class FixityCheck
     manifest_list.reverse.map do |path|
       path.strip!
       dirs = path.split('/') # TODO: Fix this part to be more generic
-      data_path = dirs[0..4].join('/') # "root" is element 0, cul is element 1, so depositor is 4
       collection = dirs[-2]
       depositor = File.join(dirs[4...-2])
       ingest_manifest = File.join(dirs[4..-1])
 
       IngestMessage::SQSMessage.new(
-        data_path: data_path,
         depositor: depositor,
         collection: collection,
         ingest_manifest: ingest_manifest

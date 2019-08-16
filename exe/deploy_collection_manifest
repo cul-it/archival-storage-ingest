@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'archival_storage_ingest/manifests/deploy_collection_manifest'
+require 'archival_storage_ingest/s3/s3_manager'
+
+new_collection_manifest = ARGV[0]
+sfs = ARGV[1]
+
+manifest_def = '/cul/app/archival_storage_ingest/manifest_of_manifests/manifest_of_manifests.json'
+manifest_def = ENV['asi_manifest_of_manifest'] if ENV['asi_manifest_of_manifest']
+
+s3_bucket = ENV['asi_develop'] || ENV['asi_queue_develop'] ? 's3-cular-dev' : 's3-cular'
+s3_manager = S3Manager.new(s3_bucket)
+
+deployer = Manifests::CollectionManifestDeployer.new(manifests_path: manifest_def, s3_manager: s3_manager)
+manifest_definition = deployer.prepare_manifest_definition(
+  collection_manifest: new_collection_manifest,
+  sfs: sfs
+)
+
+puts 'Deployment Summary'
+puts "S3 bucket: #{s3_bucket}"
+deployer.describe_deployment(manifest_def: manifest_definition)
+puts 'Proceed with deployment? (Y/N)'
+unless 'y'.casecmp(gets.chomp).zero?
+  puts 'Deployment terminated by user input.'
+  exit(true)
+end
+
+deployer.deploy_collection_manifest(manifest_def: manifest_definition, collection_manifest: new_collection_manifest, sfs: sfs)

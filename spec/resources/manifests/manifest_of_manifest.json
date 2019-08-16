@@ -1,0 +1,11 @@
+[
+  {
+    "depositor": "test_depositor",
+    "collection": "test_collection",
+    "sha1": "deadbeef",
+    "sfs": ["archivalxx"],
+    "depcol": "test_depositor/test_collection",
+    "path": "_EM_test_depositor_test_collection.json",
+    "s3key": "test_depositor/test_collection/_EM_test_depositor_test_collection.json"
+  }
+]

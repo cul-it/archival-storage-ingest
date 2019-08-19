@@ -8,12 +8,13 @@ require 'json'
 module Manifests
   SFS_PREFIX = '/cul/data'
   class CollectionManifestDeployer
-    def initialize(manifests_path:, s3_manager:)
+    def initialize(manifests_path:, s3_manager:, sfs_prefix: SFS_PREFIX)
       f = File.new(manifests_path, 'r')
       @manifest_of_manifests = JSON.parse(f.read, symbolize_names: true)
       f.close
       @mom_path = manifests_path
       @s3_manager = s3_manager
+      @sfs_prefix = sfs_prefix
     end
 
     def prepare_manifest_definition(collection_manifest:, sfs: nil)
@@ -66,7 +67,7 @@ module Manifests
 
     def deploy_sfs(cm_path:, manifest_def:)
       manifest_def[:sfs].each do |sfs|
-        target = File.join(SFS_PREFIX, sfs, manifest_def[:depositor], manifest_def[:collection], manifest_def[:path])
+        target = File.join(@sfs_prefix, sfs, manifest_def[:depositor], manifest_def[:collection], manifest_def[:path])
         FileUtils.copy(cm_path, target)
       end
     end

@@ -89,7 +89,7 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
 
     it 'aborts if sfs is not supplied for new collection' do
       arxiv_manifest = resolve_filename(%w[manifests arXiv.json.new])
-      expect(@deployer.prepare_manifest_definition(collection_manifest: arxiv_manifest)).to raise_error SystemExit
+      expect{ @deployer.prepare_manifest_definition(collection_manifest: arxiv_manifest) }.to raise_error(SystemExit)
     end
   end
 

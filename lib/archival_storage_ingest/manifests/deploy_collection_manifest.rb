@@ -45,7 +45,7 @@ module Manifests
       collection = collection_manifest.collection_id
       manifest_definition = {
         depositor: depositor, collection: collection, sha1: IngestUtils.calculate_checksum(cm_path)[0],
-        sfs: [sfs], path: cm_path, s3key: "#{depositor}/#{collection}/#{File.basename(cm_path)}",
+        sfs: [sfs], path: File.basename(cm_path), s3key: "#{depositor}/#{collection}/#{File.basename(cm_path)}",
         depcol: "#{collection_manifest.depositor}/#{collection_manifest.collection_id}"
       }
       @manifest_of_manifests << manifest_definition

@@ -59,7 +59,6 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
   end
 
   before(:each) do
-    # rubocop: disable Metrics/LineLength
     FileUtils.cp(man_of_man_source, man_of_man)
     @deployer = Manifests::CollectionManifestDeployer.new(manifests_path: man_of_man, s3_manager: s3_manager)
     allow(FileUtils).to receive(:copy)
@@ -67,8 +66,7 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
             '/cul/data/archivalxx/test_depositor/test_collection/_EM_test_depositor_test_collection.json') { nil }
     allow(FileUtils).to receive(:copy)
       .with(arxiv_manifest_path,
-            '/cul/data/archivalyy/arXiv/arXiv/cul/app/archival_storage_ingest/archival-storage-ingest/spec/resources/manifests/arXiv.json.new') { nil }
-    # rubocop: enable Metrics/LineLength
+            '/cul/data/archivalyy/arXiv/arXiv/arXiv.json.new') { nil }
   end
 
   after(:each) do
@@ -89,7 +87,7 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
 
     it 'aborts if sfs is not supplied for new collection' do
       arxiv_manifest = resolve_filename(%w[manifests arXiv.json.new])
-      expect{ @deployer.prepare_manifest_definition(collection_manifest: arxiv_manifest) }.to raise_error(SystemExit)
+      expect { @deployer.prepare_manifest_definition(collection_manifest: arxiv_manifest) }.to raise_error(SystemExit)
     end
   end
 
@@ -107,9 +105,8 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
     it 'adds new definition for new collection' do
       mom = get_mom(man_of_man)
       expect(mom.size).to eq(1)
-      arxiv_manifest = resolve_filename(%w[manifests arXiv.json.new])
-      manifest_definition = @deployer.prepare_manifest_definition(collection_manifest: arxiv_manifest, sfs: 'archivalyy')
-      @deployer.deploy_collection_manifest(manifest_def: manifest_definition, collection_manifest: arxiv_manifest)
+      manifest_definition = @deployer.prepare_manifest_definition(collection_manifest: arxiv_manifest_path, sfs: 'archivalyy')
+      @deployer.deploy_collection_manifest(manifest_def: manifest_definition, collection_manifest: arxiv_manifest_path)
       expect(s3_manager).to have_received(:upload_file).exactly(1).times
       mom = get_mom(man_of_man)
       expect(mom.size).to eq(2)

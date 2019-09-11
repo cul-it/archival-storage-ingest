@@ -17,5 +17,5 @@ abort unless mfc.compare_manifest_to_filesystem(manifest: ingest_manifest, sourc
 
 mmap = Manifests::ManifestMissingAttributePopulator.new
 manifest = mmap.populate_missing_attribute(manifest: ingest_manifest, source_path: source_path)
-ingest_json = manifest.to_json_ingest
+ingest_json = manifest.to_json_ingest_hash
 puts JSON.pretty_generate(ingest_json)

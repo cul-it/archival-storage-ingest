@@ -32,9 +32,9 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
         allow(ingest_queuer).to receive(:confirm_ingest) { true }
         allow(ingest_queuer).to receive(:check_input)
           .with(anything) { input_checker }
-        ingest_queuer.queue_ingest('ingest_id' => 'test_id',
-                                   'dest_path' => dir,
-                                   'ingest_manifest' => file)
+        ingest_queuer.queue_ingest(ingest_id: 'test_id',
+                                   dest_path: dir,
+                                   ingest_manifest: file)
         expect(queuer).to have_received(:put_message).exactly(1).times
       end
     end
@@ -42,22 +42,22 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
     context 'when not supplying required fields' do
       it 'should return errors' do
         input_checker = ArchivalStorageIngest::InputChecker.new
-        empty_dest_path = input_checker.config_ok?('ingest_id' => 'test_id',
-                                                   'ingest_manifest' => 'bogus_path')
+        empty_dest_path = input_checker.config_ok?(ingest_id: 'test_id',
+                                                   ingest_manifest: 'bogus_path')
         expect(empty_dest_path).to eq(false)
         expect(input_checker.errors.size).to eq(2)
 
         input_checker = ArchivalStorageIngest::InputChecker.new
-        invalid_dest_path = input_checker.config_ok?('ingest_id' => 'test_id',
-                                                     'dest_path' => 'bogus_path',
-                                                     'ingest_manifest' => 'bogus_path')
+        invalid_dest_path = input_checker.config_ok?(ingest_id: 'test_id',
+                                                     dest_path: 'bogus_path',
+                                                     ingest_manifest: 'bogus_path')
         expect(invalid_dest_path).to eq(false)
         expect(input_checker.errors.size).to eq(2)
 
         input_checker = ArchivalStorageIngest::InputChecker.new
-        valid_output = input_checker.config_ok?('ingest_id' => 'test_id',
-                                                'dest_path' => dir,
-                                                'ingest_manifest' => file)
+        valid_output = input_checker.config_ok?(ingest_id: 'test_id',
+                                                dest_path: dir,
+                                                ingest_manifest: file)
         puts input_checker.errors
         expect(valid_output).to eq(true)
         expect(input_checker.errors.size).to eq(0)
@@ -67,9 +67,9 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
     context 'when invalid ingest manifest path is given' do
       it 'should return errors' do
         input_checker = ArchivalStorageIngest::InputChecker.new
-        bogus_im_path_output = input_checker.check_input('ingest_id' => 'test_id',
-                                                         'dest_path' => dir,
-                                                         'ingest_manifest' => 'bogus_path')
+        bogus_im_path_output = input_checker.check_input(ingest_id: 'test_id',
+                                                         dest_path: dir,
+                                                         ingest_manifest: 'bogus_path')
         expect(bogus_im_path_output).to eq(false)
         expect(input_checker.errors.size).to eq(1)
 
@@ -77,9 +77,9 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
         # I don't know how to efficiently test the success case as the test ingest manifest FILE
         # must have valid source_path attributes, unlike the transfer worker tests.
         input_checker = ArchivalStorageIngest::InputChecker.new
-        valid_output = input_checker.check_input('ingest_id' => 'test_id',
-                                                 'dest_path' => dir,
-                                                 'ingest_manifest' => file)
+        valid_output = input_checker.check_input(ingest_id: 'test_id',
+                                                 dest_path: dir,
+                                                 ingest_manifest: file)
         expect(valid_output).to eq(false)
         expect(input_checker.errors.size).to eq(2)
       end

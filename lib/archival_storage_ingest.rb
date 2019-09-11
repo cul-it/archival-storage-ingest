@@ -326,10 +326,10 @@ module ArchivalStorageIngest
 
     def _queue_ingest(ingest_config)
       msg = IngestMessage::SQSMessage.new(
-        ingest_id: SecureRandom.uuid, ticket_id: ingest_config['ticket_id'],
-        depositor: ingest_config['depositor'], collection: ingest_config['collection'],
-        dest_path: ingest_config['dest_path'],
-        ingest_manifest: ingest_config['ingest_manifest']
+        ingest_id: SecureRandom.uuid, ticket_id: ingest_config[:ticket_id],
+        depositor: ingest_config[:depositor], collection: ingest_config[:collection],
+        dest_path: ingest_config[:dest_path],
+        ingest_manifest: ingest_config[:ingest_manifest]
       )
       @queuer.put_message(@queue_name, msg)
       msg
@@ -360,16 +360,16 @@ module ArchivalStorageIngest
     def check_input(ingest_config)
       return false unless config_ok?(ingest_config)
 
-      ingest_manifest_errors(ingest_config['ingest_manifest'])
+      ingest_manifest_errors(ingest_config[:ingest_manifest])
     end
 
     def config_ok?(ingest_config)
       # if dest_path is blank, use empty string '' to avoid errors printing it
-      dest_path = IngestUtils.if_empty(ingest_config['dest_path'], '')
+      dest_path = IngestUtils.if_empty(ingest_config[:dest_path], '')
       @errors << "dest_path '#{dest_path}' does not exist!" unless
         dest_path_ok?(dest_path)
 
-      ingest_manifest = ingest_config['ingest_manifest'].to_s.strip
+      ingest_manifest = ingest_config[:ingest_manifest].to_s.strip
       @errors << "ingest_manifest #{ingest_manifest} does not exist!" unless
         File.exist?(ingest_manifest)
 

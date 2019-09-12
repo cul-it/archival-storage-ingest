@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/preingest/ingest_env_initializer'
 
 # it expect data to be in the form /.../depositor/collection
@@ -9,6 +10,10 @@ cmf = ARGV[1]
 imf = ARGV[2]
 sfs = ARGV[3]
 ticket_id = ARGV[4]
+ingest_root = ARGV[5]
+ingest_root = Preingest::DEFAULT_INGEST_ROOT if IngestUtils.blank?(ingest_root)
+sfs_root = ARGV[6]
+sfs_root = Preingest::DEFAULT_SFS_ROOT if IngestUtils.blank?(sfs_root)
 
-env_initializer = Preingest::IngestEnvInitializer.new
+env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root)
 env_initializer.initialize_ingest_env(data: data, cmf: cmf, imf: imf, sfs_location: sfs, ticket_id: ticket_id)

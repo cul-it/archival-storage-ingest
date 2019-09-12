@@ -1,0 +1,101 @@
+# frozen_string_literal: true
+
+require 'archival_storage_ingest/manifests/manifests'
+require 'archival_storage_ingest/preingest/ingest_env_initializer'
+
+require 'fileutils'
+require 'rspec'
+require 'yaml'
+
+RSpec.describe 'IngestEnvInitializer' do # rubocop:disable BlockLength
+  let(:depositor) { 'test_depositor' }
+  let(:collection) { 'test_collection' }
+  let(:ingest_root) do
+    File.join(File.dirname(__FILE__), 'resources', 'preingest', 'ingest_root')
+  end
+  let(:sfs_root) do
+    File.join(File.dirname(__FILE__), 'resources', 'preingest', 'sfs_root')
+  end
+  let(:source_data) do
+    File.join(File.dirname(__FILE__), 'resources', 'preingest', 'source_data')
+  end
+  let(:collection_manifest) do
+    File.join(source_data, '_EM_collection_manifest.json')
+  end
+  let(:ingest_manifest) do
+    File.join(source_data, '_EM_ingest_manifest.json')
+  end
+  let(:merged_manifest) do
+    File.join(source_data, '_EM_merged_collection_manifest.json')
+  end
+  let(:expected_ingest_config) do
+    File.join(source_data, 'expected_ingest_config.yaml')
+  end
+  let(:data) do
+    File.join(source_data, depositor, collection)
+  end
+  let(:sfs_location) { 'archival0x' }
+  let(:ticket_id) { 'CULAR-xxxx' }
+  let(:dir_to_clean) do
+    File.join(ingest_root, depositor)
+  end
+
+  after(:each) do
+    FileUtils.remove_dir(dir_to_clean)
+  end
+
+  context 'when initializing ingest env' do # rubocop:disable BlockLength
+    it 'creates ingest env' do # rubocop:disable BlockLength
+      env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root)
+      env_initializer.initialize_ingest_env(data: data, cmf: collection_manifest, imf: ingest_manifest,
+                                            sfs_location: sfs_location, ticket_id: ticket_id)
+      got_path = File.join(ingest_root, depositor, collection)
+      got_manifest_path = File.join(got_path, 'manifest')
+
+      # compare ingest manifest
+      source_imf = Manifests.read_manifest(filename: ingest_manifest)
+      expected_source_path = File.join(ingest_root, depositor, collection, 'data', depositor, collection)
+      source_imf.walk_packages do |package|
+        package.source_path = expected_source_path
+      end
+      got_imf_path = File.join(got_manifest_path, 'ingest_manifest', File.basename(ingest_manifest))
+      got_imf = Manifests.read_manifest(filename: got_imf_path)
+      got_imf.walk_packages do |package|
+        source_package = source_imf.get_package(package_id: package.package_id)
+        expect(package).to eq(source_package)
+      end
+      expect(got_imf.number_packages).to eq(source_imf.number_packages)
+
+      # compare merged collection manifest
+      expected_mm = Manifests.read_manifest(filename: merged_manifest)
+      got_mm_path = File.join(got_manifest_path, 'collection_manifest', File.basename(collection_manifest))
+      got_mm = Manifests.read_manifest(filename: got_mm_path)
+      got_mm.walk_packages do |package|
+        expected_package = expected_mm.get_package(package_id: package.package_id)
+        expect(package).to eq(expected_package)
+      end
+      expect(got_mm.number_packages).to eq(expected_mm.number_packages)
+
+      expected_yaml = YAML.load_file(expected_ingest_config)
+      expected_yaml[:dest_path] = File.join(sfs_root, expected_yaml[:dest_path])
+      expected_yaml[:ingest_manifest] = File.join(got_manifest_path, 'ingest_manifest', expected_yaml[:ingest_manifest])
+      got_yaml_path = File.join(got_path, 'config', 'ingest_config.yaml')
+      got_yaml = YAML.load_file(got_yaml_path)
+      expect(got_yaml[:depositor]).to eq(expected_yaml[:depositor])
+      expect(got_yaml[:collection]).to eq(expected_yaml[:collection])
+      expect(got_yaml[:dest_path]).to eq(expected_yaml[:dest_path])
+      expect(got_yaml[:ingest_manifest]).to eq(expected_yaml[:ingest_manifest])
+      expect(got_yaml[:ticket_id]).to eq(expected_yaml[:ticket_id])
+    end
+  end
+
+  context 'when initializing ingest env without collection manifest' do
+    it 'creates ingest env without merged collection manifest' do
+      env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root)
+      env_initializer.initialize_ingest_env(data: data, cmf: 'none', imf: ingest_manifest,
+                                            sfs_location: sfs_location, ticket_id: ticket_id)
+      collection_manifest = File.join(ingest_root, 'manifest', 'collection_manifest', '_EM_collection_manifest.json')
+      expect(File.exist?(collection_manifest)).to eq(false)
+    end
+  end
+end

@@ -1,0 +1,6 @@
+---
+:depositor: test_depositor
+:collection: test_collection
+:dest_path: archival0x
+:ingest_manifest: _EM_ingest_manifest.json
+:ticket_id: CULAR-xxxx

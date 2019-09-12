@@ -9,6 +9,11 @@ require 'archival_storage_ingest/manifests/manifests'
 # If each package may have different source_path, the this module needs to be updated.
 module Manifests
   class ManifestMissingAttributePopulator
+    def populate_missing_attribute_from_file(manifest:, source_path:)
+      manif = Manifests.read_manifest(filename: manifest)
+      populate_missing_attribute(manifest: manif, source_path: source_path)
+    end
+
     def populate_missing_attribute(manifest:, source_path:)
       manifest.walk_packages do |package|
         package.source_path = source_path

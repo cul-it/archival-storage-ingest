@@ -1,0 +1,55 @@
+{
+  "steward": "t123",
+  "depositor": "test_depositor",
+  "collection_id": "test_collection",
+  "locations": [
+    "s3://some_bucket/test_depositor/test_collection",
+    "smb://files.library.cornell.edu/lib/archival0x/test_depositor/test_collection"
+  ],
+  "documentation": "cular:xxxx",
+  "number_packages": 2,
+  "packages": [
+    {
+      "package_id": "urn:uuid:28872ed7-f2f3-4c20-836b-3908c3ad8ef2",
+      "files": [
+        {
+          "filepath": "1/one.txt",
+          "sha1": "c7059bb19433cc3cabaa6236c83d56668a843dd2",
+          "size": 4
+        },
+        {
+          "filepath": "1/more/resource1.txt",
+          "sha1": "f7aa11a22a605d4655e1d1ae122ceb43ddcfe5a9",
+          "size": 16
+        },
+        {
+          "filepath": "1/more/resource2.txt",
+          "sha1": "6662c3da403be36f1b24a6e8c3fa42f7f4215066",
+          "size": 16
+        }
+      ],
+      "number_files": 3
+    },
+    {
+      "package_id": "urn:uuid:28872ed7-f2f3-4c20-836b-3908c3ad8ef3",
+      "files": [
+        {
+          "filepath": "2/two.txt",
+          "sha1": "7bbef45b3bc70855010e02460717643125c3beca",
+          "size": 4
+        },
+        {
+          "filepath": "2/dir1/random.txt",
+          "sha1": "5d64b71392b1e00a3ad893db02d381d58262c2d6",
+          "size": 7
+        },
+        {
+          "filepath": "2/dir2/data.txt",
+          "sha1": "c5d84736ba451747dd5f0eb9d17e104f3697ef47",
+          "size": 5
+        }
+      ],
+      "number_files": 3
+    }
+  ]
+}

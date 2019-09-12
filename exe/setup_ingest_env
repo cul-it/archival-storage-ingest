@@ -1,9 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'archival_storage_ingest/manifests/manifests'
-require 'fileutils'
-require 'yaml'
+require 'archival_storage_ingest/preingest/ingest_env_initializer'
 
 # it expect data to be in the form /.../depositor/collection
 data = ARGV[0]
@@ -12,43 +10,5 @@ imf = ARGV[2]
 sfs = ARGV[3]
 ticket_id = ARGV[4]
 
-manifest = Manifests.read_manifest(filename: imf)
-depositor = manifest.depositor
-collection_id = manifest.collection_id
-
-INGEST_ROOT = File.join('/cul/app/archival_storage_ingest/ingest', depositor, collection_id)
-
-# set up data dir with symlink to assets
-data_root = File.join(INGEST_ROOT, 'data')
-depositor_dir = File.join(data_root, depositor)
-FileUtils.mkdir_p(depositor_dir)
-FileUtils.ln_s(data, depositor_dir)
-
-# set up manifest dir with collection and ingest manifests
-manifest_dir = File.join(INGEST_ROOT, 'manifest')
-# collection manifest
-unless cmf.eql?('none')
-  collection_manifest_dir = File.join(manifest_dir, 'collection_manifest')
-  FileUtils.mkdir_p(collection_manifest_dir)
-  collection_manifest_file = File.join(collection_manifest_dir, File.basename(cmf))
-  FileUtils.copy_file(cmf, collection_manifest_file)
-end
-# ingest manifest
-ingest_manifest_dir = File.join(manifest_dir, 'ingest_manifest')
-FileUtils.mkdir_p(ingest_manifest_dir)
-ingest_manifest_file = File.join(ingest_manifest_dir, File.basename(imf))
-FileUtils.copy_file(imf, ingest_manifest_file)
-
-# set up config dir with ingest yaml
-config_dir = File.join(INGEST_ROOT, 'config')
-FileUtils.mkdir_p(config_dir)
-dest_path = File.join('/cul/data', sfs)
-ingest_config = {
-  depositor: depositor,
-  collection: collection_id,
-  dest_path: dest_path,
-  ingest_manifest: ingest_manifest_file,
-  ticket_id: ticket_id
-}
-ingest_config_file = File.join(config_dir, 'ingest_config.yaml')
-File.open(ingest_config_file, 'w') { |file| file.write(ingest_config.to_yaml) }
+env_initializer = Preingest::IngestEnvInitializer.new
+env_initializer.initialize_ingest_env(data: data, cmf: cmf, imf: imf, sfs_location: sfs, ticket_id: ticket_id)

@@ -1,8 +1,16 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/manifests/manifests'
+
 module Manifests
   class ManifestMerger
     # Merges packages of ingest manifest to storage manifest
+    def merge_manifest_files(storage_manifest:, ingest_manifest:)
+      sm = Manifests.read_manifest(filename: storage_manifest)
+      im = Manifests.read_manifest(filename: ingest_manifest)
+      merge_manifests(storage_manifest: sm, ingest_manifest: im)
+    end
+
     def merge_manifests(storage_manifest:, ingest_manifest:)
       ingest_manifest.walk_packages do |ingest_package|
         storage_package = storage_manifest.get_package(package_id: ingest_package.package_id)

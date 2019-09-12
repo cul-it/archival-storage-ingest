@@ -80,7 +80,7 @@ module Preingest
     def _initialize_config(collection_root:, sfs_location:, ingest_manifest_path:, ticket_id:)
       config_dir = File.join(collection_root, 'config')
       FileUtils.mkdir_p(config_dir)
-      dest_path = File.join(sfs_root, sfs_location)
+      dest_path = File.join(sfs_root, sfs_location, depositor, collection_id)
       ingest_config = {
         depositor: depositor, collection: collection_id,
         dest_path: dest_path, ingest_manifest: ingest_manifest_path,

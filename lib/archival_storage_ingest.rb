@@ -118,6 +118,8 @@ module ArchivalStorageIngest
 
     def run_server
       loop do
+        sleep(polling_interval)
+
         shutdown if shutdown?
 
         do_work
@@ -215,8 +217,6 @@ module ArchivalStorageIngest
     end
 
     def move_msg_to_wip(msg)
-      sleep(polling_interval)
-
       wip_q.send_message(msg)
       msg_q.delete_message(msg)
     end

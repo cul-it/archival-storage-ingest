@@ -4,12 +4,19 @@
 require 'archival_storage_ingest/manifests/manifest_generator'
 require 'json'
 
+# If ingest_manifest is supplied, it will generate checksums for only assets in the manifest.
+# Otherwise, it will generate checksums for all assets.
+
 depositor = ARGV[0]
 collection_id = ARGV[1]
 sfs_location = ARGV[2]
+ingest_manifest = ARGV[3]
 
 data_path = File.join('/cul/data', sfs_location, depositor, collection_id)
 
-manifest_generator = Manifests::ManifestGeneratorSFS.new(depositor: depositor, collection_id: collection_id, data_path: data_path)
+manifest_generator = Manifests::ManifestGeneratorSFS.new(depositor: depositor,
+                                                         collection_id: collection_id,
+                                                         data_path: data_path,
+                                                         ingest_manifest: ingest_manifest)
 manifest = manifest_generator.generate_manifest
 puts JSON.pretty_generate(manifest.to_json_fixity_hash)

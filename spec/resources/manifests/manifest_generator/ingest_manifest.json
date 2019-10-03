@@ -1,0 +1,15 @@
+{
+  "number_packages": 1,
+  "packages": [
+    {
+      "package_id": "fixity_temporary_package",
+      "files": [
+        {
+          "filepath": "1/one.txt",
+          "sha1": "ef72cf86c1599c80612317fdd2f50f4863c3efb0",
+          "size": 10
+        }
+      ]
+    }
+  ]
+}

@@ -26,7 +26,9 @@ manifest_hash = {
 
 depositor = 'RMC/RMA'
 collection_id = 'RMA01234'
-data_path = File.join(File.dirname(__FILE__), 'resources', 'manifests', 'manifest_to_filesystem_comparator')
+data_path = File.join(File.dirname(__FILE__), 'resources',
+                      'manifests', 'manifest_to_filesystem_comparator', 'RMC', 'RMA', 'RMA01234')
+ingest_manifest = File.join(File.dirname(__FILE__), 'resources', 'manifests', 'manifest_generator', 'ingest_manifest.json')
 
 RSpec.describe 'ManifestGeneratorS3' do # rubocop:disable BlockLength
   let(:s3_manager) do
@@ -68,6 +70,18 @@ RSpec.describe 'ManifestGeneratorS3' do # rubocop:disable BlockLength
       )
       manifest = s3_manifest_generator.generate_manifest
       expect(manifest.packages[0].to_json_fixity).to eq(manifest_hash[:packages][0])
+      expect(manifest.packages[0].number_files).to eq(2)
+    end
+  end
+
+  context 'when generating update s3 manifest' do
+    it 'only checks items in ingest manifest' do
+      s3_manifest_generator = Manifests::ManifestGeneratorS3.new(
+        depositor: depositor, collection_id: collection_id, s3_manager: s3_manager,
+        ingest_manifest: ingest_manifest
+      )
+      manifest = s3_manifest_generator.generate_manifest
+      expect(manifest.packages[0].number_files).to eq(1)
     end
   end
 end
@@ -80,6 +94,18 @@ RSpec.describe 'ManifestGeneratorSFS' do
       )
       manifest = sfs_manifest_generator.generate_manifest
       expect(manifest.packages[0].to_json_fixity).to eq(manifest_hash[:packages][0])
+      expect(manifest.packages[0].number_files).to eq(2)
+    end
+  end
+
+  context 'when generating update sfs manifest' do
+    it 'only checks items in ingest manifest' do
+      sfs_manifest_generator = Manifests::ManifestGeneratorSFS.new(
+        depositor: depositor, collection_id: collection_id, data_path: data_path,
+        ingest_manifest: ingest_manifest
+      )
+      manifest = sfs_manifest_generator.generate_manifest
+      expect(manifest.packages[0].number_files).to eq(1)
     end
   end
 end

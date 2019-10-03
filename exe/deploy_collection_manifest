@@ -4,8 +4,10 @@
 require 'archival_storage_ingest/manifests/deploy_collection_manifest'
 require 'archival_storage_ingest/s3/s3_manager'
 
-new_collection_manifest = ARGV[0]
-sfs = ARGV[1]
+# These MUST be shifted so that gets will get user input properly!
+# https://www.ruby-forum.com/t/argv-stdin-and-gets/166427/3
+new_collection_manifest = ARGV.shift
+sfs = ARGV.shift
 
 manifest_def = '/cul/app/archival_storage_ingest/manifest_of_manifests/manifest_of_manifests.json'
 manifest_def = ENV['asi_manifest_of_manifest'] if ENV['asi_manifest_of_manifest']
@@ -28,4 +30,4 @@ unless 'y'.casecmp(gets.chomp).zero?
   exit(true)
 end
 
-deployer.deploy_collection_manifest(manifest_def: manifest_definition, collection_manifest: new_collection_manifest, sfs: sfs)
+deployer.deploy_collection_manifest(manifest_def: manifest_definition, collection_manifest: new_collection_manifest)

@@ -43,13 +43,7 @@ module Manifests
 
     def im_key_to_regular_key(_key); end
 
-    def manifest_key(key)
-      return _manifest_key(key) if @ingest_manifest.nil?
-
-      key
-    end
-
-    def _manifest_key(key); end
+    def manifest_key(key); end
   end
 
   class ManifestGeneratorS3 < Manifests::ManifestGenerator
@@ -73,7 +67,7 @@ module Manifests
       s3_manager.calculate_checksum(s3_key)
     end
 
-    def _manifest_key(s3_key)
+    def manifest_key(s3_key)
       IngestUtils.relative_path(s3_key, s3_prefix)
     end
   end
@@ -106,7 +100,7 @@ module Manifests
       IngestUtils.calculate_checksum(filepath)
     end
 
-    def _manifest_key(filepath)
+    def manifest_key(filepath)
       IngestUtils.relative_path(filepath, data_path)
     end
   end

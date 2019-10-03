@@ -71,6 +71,7 @@ RSpec.describe 'ManifestGeneratorS3' do # rubocop:disable BlockLength
       manifest = s3_manifest_generator.generate_manifest
       expect(manifest.packages[0].to_json_fixity).to eq(manifest_hash[:packages][0])
       expect(manifest.packages[0].number_files).to eq(2)
+      expect(manifest.packages[0].files[0].filepath).to eq(manifest_hash[:packages][0][:files][0][:filepath])
     end
   end
 
@@ -82,6 +83,7 @@ RSpec.describe 'ManifestGeneratorS3' do # rubocop:disable BlockLength
       )
       manifest = s3_manifest_generator.generate_manifest
       expect(manifest.packages[0].number_files).to eq(1)
+      expect(manifest.packages[0].files[0].filepath).to eq(manifest_hash[:packages][0][:files][0][:filepath])
     end
   end
 end
@@ -95,6 +97,7 @@ RSpec.describe 'ManifestGeneratorSFS' do
       manifest = sfs_manifest_generator.generate_manifest
       expect(manifest.packages[0].to_json_fixity).to eq(manifest_hash[:packages][0])
       expect(manifest.packages[0].number_files).to eq(2)
+      expect(manifest.packages[0].files[0].filepath).to eq(manifest_hash[:packages][0][:files][0][:filepath])
     end
   end
 
@@ -106,6 +109,7 @@ RSpec.describe 'ManifestGeneratorSFS' do
       )
       manifest = sfs_manifest_generator.generate_manifest
       expect(manifest.packages[0].number_files).to eq(1)
+      expect(manifest.packages[0].files[0].filepath).to eq(manifest_hash[:packages][0][:files][0][:filepath])
     end
   end
 end

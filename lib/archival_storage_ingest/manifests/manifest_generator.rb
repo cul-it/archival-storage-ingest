@@ -20,7 +20,6 @@ module Manifests
       package = manifest.packages[0]
       keys = list_keys
       keys.each do |key|
-        puts "key: #{key}, manifest key: #{manifest_key(key)}"
         (sha1, size) = calculate_checksum(key)
         package.add_file_entry(filepath: manifest_key(key), sha1: sha1, size: size)
       end

@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'archival_storage_ingest/options/command_parser'
+require 'yaml'
+
+require 'archival_storage_ingest'
+require 'archival_storage_ingest/workers/worker'
+require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
+require 'archival_storage_ingest/messages/queues'
+require 'archival_storage_ingest/work_queuer/work_queuer'
+
+ArchivalStorageIngest.configure do |config|
+  config.log_path = ENV['asi_ingest_queue_log_path'] ||
+                    '/cul/app/archival_storage_ingest/logs/ingest_queue.log'
+  config.dry_run = ENV['asi_ingest_queue_dry_run'] || false
+  config.dest_queue_names = []
+
+  if ENV['asi_develop'] || ENV['asi_periodic_queue_develop']
+    config.s3_bucket = 's3-cular-dev'
+    config.debug = true
+    config.develop = true
+    config.message_queue_name = Queues::DEV_QUEUE_PERIODIC_FIXITY
+  else
+    config.s3_bucket = 's3-cular'
+    config.debug = ENV['asi_ingest_debug'] || false
+    config.develop = false
+    config.message_queue_name = Queues::QUEUE_PERIODIC_FIXITY
+  end
+
+  config.worker = Workers::Worker.new
+end
+
+option_parser = CommandParser::IngestCommandParser.new
+option_parser.parse!(ARGV)
+ingest_config = YAML.load_file(option_parser.ingest_config)
+
+ingest_queuer = WorkQueuer::PeriodicFixityQueuer.new
+ingest_queuer.queue_periodic_fixity_check(ingest_config)

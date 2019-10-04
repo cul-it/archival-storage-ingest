@@ -6,6 +6,8 @@ require 'spec_helper'
 require 'archival_storage_ingest'
 require 'archival_storage_ingest/messages/ingest_queue'
 require 'archival_storage_ingest/messages/queues'
+require 'archival_storage_ingest/work_queuer/input_checker'
+require 'archival_storage_ingest/work_queuer/work_queuer'
 require 'json'
 
 RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
@@ -22,51 +24,52 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
       it 'should send message to ingest queue' do
         allow(queuer).to receive(:put_message)
           .with(Queues::QUEUE_INGEST, anything).and_return(1) # doesn't matter what we return as we don't use it
-        input_checker = ArchivalStorageIngest::InputChecker.new
+        input_checker = WorkQueuer::IngestInputChecker.new
         input_checker.ingest_manifest = Manifests.read_manifest(filename: file)
         ArchivalStorageIngest.configure do |config|
           config.queuer = queuer
           config.message_queue_name = Queues::QUEUE_INGEST
         end
-        ingest_queuer = ArchivalStorageIngest::IngestQueuer.new
-        allow(ingest_queuer).to receive(:confirm_ingest) { true }
-        allow(ingest_queuer).to receive(:check_input)
-          .with(anything) { input_checker }
-        ingest_queuer.queue_ingest(ingest_id: 'test_id',
-                                   dest_path: dir,
-                                   ingest_manifest: file)
+        ingest_queuer = WorkQueuer::IngestQueuer.new
+        allow(ingest_queuer).to receive(:confirm_work) { true }
+        allow(ingest_queuer).to receive(:input_checker_impl) { WorkQueuer::YesManInputChecker.new }
+        ingest_queuer.queue_work(ingest_id: 'test_id',
+                                 dest_path: dir,
+                                 ingest_manifest: file)
         expect(queuer).to have_received(:put_message).exactly(1).times
       end
     end
 
     context 'when not supplying required fields' do
       it 'should return errors' do
-        input_checker = ArchivalStorageIngest::InputChecker.new
-        empty_dest_path = input_checker.config_ok?(ingest_id: 'test_id',
-                                                   ingest_manifest: 'bogus_path')
+        input_checker = WorkQueuer::IngestInputChecker.new
+        empty_dest_path = input_checker.check_input(ingest_id: 'test_id',
+                                                    ingest_manifest: 'bogus_path')
         expect(empty_dest_path).to eq(false)
         expect(input_checker.errors.size).to eq(2)
 
-        input_checker = ArchivalStorageIngest::InputChecker.new
-        invalid_dest_path = input_checker.config_ok?(ingest_id: 'test_id',
-                                                     dest_path: 'bogus_path',
-                                                     ingest_manifest: 'bogus_path')
+        input_checker = WorkQueuer::IngestInputChecker.new
+        invalid_dest_path = input_checker.check_input(ingest_id: 'test_id',
+                                                      dest_path: 'bogus_path',
+                                                      ingest_manifest: 'bogus_path')
         expect(invalid_dest_path).to eq(false)
         expect(input_checker.errors.size).to eq(2)
 
-        input_checker = ArchivalStorageIngest::InputChecker.new
-        valid_output = input_checker.config_ok?(ingest_id: 'test_id',
-                                                dest_path: dir,
-                                                ingest_manifest: file)
-        puts input_checker.errors
-        expect(valid_output).to eq(true)
-        expect(input_checker.errors.size).to eq(0)
+        # Both of these errors are invalid source_path errors.
+        # I don't know how to efficiently test the success case as the test ingest manifest FILE
+        # must have valid source_path attributes, unlike the transfer worker tests.
+        input_checker = WorkQueuer::IngestInputChecker.new
+        valid_output = input_checker.check_input(ingest_id: 'test_id',
+                                                 dest_path: dir,
+                                                 ingest_manifest: file)
+        expect(valid_output).to eq(false)
+        expect(input_checker.errors.size).to eq(2)
       end
     end
 
     context 'when invalid ingest manifest path is given' do
       it 'should return errors' do
-        input_checker = ArchivalStorageIngest::InputChecker.new
+        input_checker = WorkQueuer::IngestInputChecker.new
         bogus_im_path_output = input_checker.check_input(ingest_id: 'test_id',
                                                          dest_path: dir,
                                                          ingest_manifest: 'bogus_path')
@@ -76,7 +79,7 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
         # Both of these errors are invalid source_path errors.
         # I don't know how to efficiently test the success case as the test ingest manifest FILE
         # must have valid source_path attributes, unlike the transfer worker tests.
-        input_checker = ArchivalStorageIngest::InputChecker.new
+        input_checker = WorkQueuer::IngestInputChecker.new
         valid_output = input_checker.check_input(ingest_id: 'test_id',
                                                  dest_path: dir,
                                                  ingest_manifest: file)

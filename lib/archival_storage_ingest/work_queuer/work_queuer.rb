@@ -59,7 +59,7 @@ module WorkQueuer
     end
 
     def input_checker_impl
-      WorkQueuer::IngestInputChecker.new
+      IngestInputChecker.new
     end
 
     def send_notification(work_msg)
@@ -86,7 +86,7 @@ module WorkQueuer
     end
 
     def input_checker_impl
-      WorkQueuer::InputChecker.new
+      InputChecker.new
     end
 
     def send_notification(work_msg)

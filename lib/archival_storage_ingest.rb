@@ -94,7 +94,7 @@ module ArchivalStorageIngest
   end
 
   # Ingest manager to either start the server or queue new ingest.
-  class IngestManager
+  class IngestManager # rubocop:disable ClassLength
     extend Forwardable
 
     def initialize
@@ -227,10 +227,23 @@ module ArchivalStorageIngest
     # reaches here, the message may not be available, yet.
     # Waiting for 10 seconds will ensure we get the message.
     def remove_wip_msg
-      sleep wip_removal_wait_time
-      msg = wip_q.retrieve_message
+      msg = nil
+      3.times do
+        msg = retrieve_wip_msg
+        break if msg
+      end
+
       # report error if this is nil?
-      wip_q.delete_message(msg)
+      if msg
+        wip_q.delete_message(msg) if msg
+      else
+        raise IngestException, 'Failed to retrieve Work In Progress message.' unless msg
+      end
+    end
+
+    def retrieve_wip_msg
+      sleep wip_removal_wait_time
+      wip_q.retrieve_message
     end
 
     def send_next_message(msg)

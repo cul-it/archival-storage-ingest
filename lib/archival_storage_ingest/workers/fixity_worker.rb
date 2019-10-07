@@ -45,6 +45,7 @@ module FixityWorker
     end
 
     # Return checksum manifest of all objects for a given depositor/collection.
+    # It is expected that object_path DOES NOT contain depositor/collection prefix!
     def generate_manifest(msg)
       object_paths = object_paths(msg) # returns a hash of keys (dep/col/resource) to paths.
       manifest = Manifests::Manifest.new(json_text: FIXITY_MANIFEST_TEMPLATE_STR)
@@ -113,13 +114,16 @@ module FixityWorker
       Workers::TYPE_S3
     end
 
-    def calculate_checksum(path, msg)
-      s3_key = "#{msg.collection_s3_prefix}/#{path}"
+    def calculate_checksum(object_path, msg)
+      s3_key = "#{msg.collection_s3_prefix}/#{object_path}"
       @s3_manager.calculate_checksum(s3_key)
     end
 
+    # We expect object_paths to return same format as filepath in manifest.
+    # Remove collection prefix.
     def object_paths(msg)
-      @s3_manager.list_object_keys(msg.collection_s3_prefix)
+      object_paths = @s3_manager.list_object_keys(msg.collection_s3_prefix)
+      object_paths.map { |path| path.sub(msg.collection_s3_prefix + '/', '') }
     end
   end
 

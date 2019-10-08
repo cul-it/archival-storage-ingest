@@ -170,7 +170,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
     end
 
     context 'when generating periodic manifest' do
-      it 'returns manifest for objects in ingest manifest' do
+      it 'returns manifest for objects in s3 listing' do
         allow(s3_manager).to receive(:calculate_checksum)
           .with("#{depositor}/#{collection}/3/two.zip") { ['86c6167b8a8245a699a5735a3c56890421c28689', 168] }
         periodic_worker = FixityWorker::PeriodicFixityS3Generator.new(s3_manager)
@@ -180,7 +180,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
     end
   end
 
-  describe 'IngestSFSFixityGenerator' do
+  describe 'IngestSFSFixityGenerator' do # rubocop:disable BlockLength
     let(:worker) { FixityWorker::IngestFixitySFSGenerator.new(s3_manager) }
 
     context 'when doing work' do
@@ -206,12 +206,27 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
       end
     end
 
-    context 'when generating periodic manifest' do
-      it 'returns manifest for objects in ingest manifest' do
-        # Unlike periodic S3 test, it doesn't have 3/two.zip in this test.
+    context 'when generating periodic sfs manifest' do
+      it 'returns manifest for all objects' do
         periodic_worker = FixityWorker::PeriodicFixitySFSGenerator.new(s3_manager)
         manifest = periodic_worker.generate_manifest(msg)
         expect(manifest.to_json_fixity).to eq(fixity_manifest_hash.to_json)
+      end
+    end
+
+    context 'when generating periodic sfs manifest with split archival buckets' do
+      it 'returns manifest for all objects in all of the split archival buckets' do
+        second_dest_path = File.join(File.dirname(__FILE__), 'resources',
+                                     'fixity_workers', 'sfs', 'archival02', depositor, collection)
+        periodic_msg = IngestMessage::SQSMessage.new(
+          ingest_id: ingest_id,
+          dest_path: "#{dest_path},#{second_dest_path}",
+          depositor: depositor,
+          collection: collection
+        )
+        periodic_worker = FixityWorker::PeriodicFixitySFSGenerator.new(s3_manager)
+        manifest = periodic_worker.generate_manifest(periodic_msg)
+        expect(manifest.to_json_fixity).to eq(periodic_fixity_manifest_hash.to_json)
       end
     end
   end

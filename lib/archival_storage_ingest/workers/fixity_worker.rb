@@ -143,6 +143,8 @@ module FixityWorker
   end
 
   class PeriodicFixitySFSGenerator < FixityGenerator
+    DEST_PATH_DELIMITER = ','
+
     def name
       'Periodic SFS Fixity Generator'
     end
@@ -151,19 +153,25 @@ module FixityWorker
       Workers::TYPE_SFS
     end
 
-    # Pass s3_manager only for tests.
-
     def calculate_checksum(file_path, msg)
-      full_path = File.join(msg.dest_path, file_path).to_s
-      IngestUtils.calculate_checksum(full_path)
+      checksum = ''
+      msg.dest_path.split(DEST_PATH_DELIMITER).each do |dest_path|
+        full_path = File.join(dest_path, file_path).to_s
+        next unless File.exist?(full_path)
+
+        checksum = IngestUtils.calculate_checksum(full_path)
+      end
+      checksum
     end
 
     def object_paths(msg)
-      assets_dir = msg.dest_path
-
-      Find.find(assets_dir)
-          .reject { |path| File.directory?(path) }
-          .map { |path| Pathname.new(path).relative_path_from(assets_dir).to_s }
+      obj_paths = []
+      msg.dest_path.split(DEST_PATH_DELIMITER).each do |dest_path|
+        obj_paths += Find.find(dest_path)
+                         .reject { |path| File.directory?(path) }
+                         .map { |path| Pathname.new(path).relative_path_from(dest_path).to_s }
+      end
+      obj_paths
     end
   end
 end

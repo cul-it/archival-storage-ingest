@@ -30,6 +30,11 @@ module Preingest
       File.open(periodic_fixity_config_file, 'w') { |file| file.write(periodic_fixity_config.to_yaml) }
     end
 
+    # Skip this step for periodic fixity check
+    def _compare_asset_existence(*)
+      true
+    end
+
     def dest_path(sfs_location:)
       dest_paths = []
       sfs_location.split(FixityWorker::PeriodicFixitySFSGenerator::DEST_PATH_DELIMITER).each do |sfs|

@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/exception/ingest_exception'
 require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/manifests/manifest_merger'
 require 'archival_storage_ingest/manifests/manifest_missing_attribute_populator'
+require 'archival_storage_ingest/manifests/manifest_to_filesystem_comparator'
 require 'fileutils'
 require 'yaml'
 
@@ -44,16 +46,22 @@ module Preingest
       # ingest manifest
       ingest_manifest_dir = File.join(manifest_dir, 'ingest_manifest')
       im_path = _initialize_manifest(manifest_dir: ingest_manifest_dir, manifest_file: imf)
-      _populate_missing_attribute(ingest_manifest: im_path, source_path: data_root)
+      manifest = _populate_missing_attribute(ingest_manifest: im_path, source_path: data_root)
+      raise IngestException unless _compare_asset_existence(ingest_manifest: manifest)
 
       # collection manifest
-      unless cmf.eql?('none')
-        collection_manifest_dir = File.join(manifest_dir, 'collection_manifest')
-        cm_path = _initialize_manifest(manifest_dir: collection_manifest_dir, manifest_file: cmf)
-        _merge_manifests(collection_manifest: cm_path, ingest_manifest: im_path)
-      end
+      cm_path = setup_collection_manifest(manifest_dir: manifest_dir, im_path: im_path, cmf: cmf)
 
       [im_path, cm_path]
+    end
+
+    def setup_collection_manifest(manifest_dir:, im_path:, cmf:)
+      return if cmf.eql?('none')
+
+      collection_manifest_dir = File.join(manifest_dir, 'collection_manifest')
+      cm_path = _initialize_manifest(manifest_dir: collection_manifest_dir, manifest_file: cmf)
+      _merge_manifests(collection_manifest: cm_path, ingest_manifest: im_path)
+      cm_path
     end
 
     def _initialize_manifest(manifest_dir:, manifest_file:)
@@ -68,6 +76,12 @@ module Preingest
       manifest = mmap.populate_missing_attribute_from_file(manifest: ingest_manifest, source_path: source_path)
       json_to_write = JSON.pretty_generate(manifest.to_json_ingest_hash)
       File.open(ingest_manifest, 'w') { |file| file.write(json_to_write) }
+      manifest
+    end
+
+    def _compare_asset_existence(ingest_manifest:)
+      mfc = Manifests::ManifestToFilesystemComparator.new
+      mfc.compare_manifest_to_filesystem(manifest: ingest_manifest)
     end
 
     def _merge_manifests(collection_manifest:, ingest_manifest:)

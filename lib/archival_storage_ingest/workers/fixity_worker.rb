@@ -45,6 +45,7 @@ module FixityWorker
     end
 
     # Return checksum manifest of all objects for a given depositor/collection.
+    # It is expected that object_path DOES NOT contain depositor/collection prefix!
     def generate_manifest(msg)
       object_paths = object_paths(msg) # returns a hash of keys (dep/col/resource) to paths.
       manifest = Manifests::Manifest.new(json_text: FIXITY_MANIFEST_TEMPLATE_STR)
@@ -113,13 +114,16 @@ module FixityWorker
       Workers::TYPE_S3
     end
 
-    def calculate_checksum(path, msg)
-      s3_key = "#{msg.collection_s3_prefix}/#{path}"
+    def calculate_checksum(object_path, msg)
+      s3_key = "#{msg.collection_s3_prefix}/#{object_path}"
       @s3_manager.calculate_checksum(s3_key)
     end
 
+    # We expect object_paths to return same format as filepath in manifest.
+    # Remove collection prefix.
     def object_paths(msg)
-      @s3_manager.list_object_keys(msg.collection_s3_prefix)
+      object_paths = @s3_manager.list_object_keys(msg.collection_s3_prefix)
+      object_paths.map { |path| path.sub(msg.collection_s3_prefix + '/', '') }
     end
   end
 
@@ -139,6 +143,8 @@ module FixityWorker
   end
 
   class PeriodicFixitySFSGenerator < FixityGenerator
+    DEST_PATH_DELIMITER = ','
+
     def name
       'Periodic SFS Fixity Generator'
     end
@@ -147,19 +153,25 @@ module FixityWorker
       Workers::TYPE_SFS
     end
 
-    # Pass s3_manager only for tests.
-
     def calculate_checksum(file_path, msg)
-      full_path = File.join(msg.dest_path, file_path).to_s
-      IngestUtils.calculate_checksum(full_path)
+      checksum = ''
+      msg.dest_path.split(DEST_PATH_DELIMITER).each do |dest_path|
+        full_path = File.join(dest_path, file_path).to_s
+        next unless File.exist?(full_path)
+
+        checksum = IngestUtils.calculate_checksum(full_path)
+      end
+      checksum
     end
 
     def object_paths(msg)
-      assets_dir = msg.dest_path
-
-      Find.find(assets_dir)
-          .reject { |path| File.directory?(path) }
-          .map { |path| Pathname.new(path).relative_path_from(assets_dir).to_s }
+      obj_paths = []
+      msg.dest_path.split(DEST_PATH_DELIMITER).each do |dest_path|
+        obj_paths += Find.find(dest_path)
+                         .reject { |path| File.directory?(path) }
+                         .map { |path| Pathname.new(path).relative_path_from(dest_path).to_s }
+      end
+      obj_paths
     end
   end
 end

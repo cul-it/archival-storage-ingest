@@ -24,6 +24,8 @@ module Queues
   QUEUE_INGEST_FIXITY_COMPARISON_IN_PROGRESS = 'cular_ingest_fixity_comparison_in_progress'
   QUEUE_INGEST_FIXITY_COMPARISON_FAILURES = 'cular_ingest_fixity_comparison_failures'
 
+  QUEUE_PERIODIC_FIXITY = 'cular_periodic_fixity'
+  QUEUE_PERIODIC_FIXITY_IN_PROGRESS = 'cular_periodic_fixity_in_progress'
   QUEUE_PERIODIC_FIXITY_S3 = 'cular_periodic_fixity_s3'
   QUEUE_PERIODIC_FIXITY_S3_IN_PROGRESS = 'cular_periodic_fixity_s3_in_progress'
   QUEUE_PERIODIC_FIXITY_S3_FAILURES = 'cular_periodic_fixity_s3_failures'
@@ -57,6 +59,18 @@ module Queues
   DEV_QUEUE_INGEST_FIXITY_COMPARISON = 'cular_development_comparison'
   DEV_QUEUE_INGEST_FIXITY_COMPARISON_IN_PROGRESS = 'cular_development_comparison_in_progress'
   DEV_QUEUE_INGEST_FIXITY_COMPARISON_FAILURES = 'cular_development_comparison_failures'
+
+  DEV_QUEUE_PERIODIC_FIXITY = 'cular_development_periodic_fixity'
+  DEV_QUEUE_PERIODIC_FIXITY_IN_PROGRESS = 'cular_development_periodic_fixity_in_progress'
+  DEV_QUEUE_PERIODIC_FIXITY_S3 = 'cular_development_periodic_fixity_s3'
+  DEV_QUEUE_PERIODIC_FIXITY_S3_IN_PROGRESS = 'cular_development_periodic_fixity_s3_in_progress'
+  DEV_QUEUE_PERIODIC_FIXITY_S3_FAILURES = 'cular_development_periodic_fixity_s3_failures'
+  DEV_QUEUE_PERIODIC_FIXITY_SFS = 'cular_development_periodic_fixity_sfs'
+  DEV_QUEUE_PERIODIC_FIXITY_SFS_IN_PROGRESS = 'cular_development_periodic_fixity_sfs_in_progress'
+  DEV_QUEUE_PERIODIC_FIXITY_SFS_FAILURES = 'cular_development_periodic_fixity_sfs_failures'
+  DEV_QUEUE_PERIODIC_FIXITY_COMPARISON = 'cular_development_periodic_fixity_comparison'
+  DEV_QUEUE_PERIODIC_FIXITY_COMPARISON_IN_PROGRESS = 'cular_development_periodic_fixity_comparison_in_progress'
+  DEV_QUEUE_PERIODIC_FIXITY_COMPARISON_FAILURES = 'cular_development_periodic_fixity_comparison_failures'
 
   DEV_QUEUE_ERROR = 'cular_development_error'
   DEV_QUEUE_COMPLETE = 'cular_development_done'

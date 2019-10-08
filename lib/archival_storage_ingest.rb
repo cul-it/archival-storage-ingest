@@ -94,7 +94,7 @@ module ArchivalStorageIngest
   end
 
   # Ingest manager to either start the server or queue new ingest.
-  class IngestManager
+  class IngestManager # rubocop:disable ClassLength
     extend Forwardable
 
     def initialize
@@ -227,10 +227,23 @@ module ArchivalStorageIngest
     # reaches here, the message may not be available, yet.
     # Waiting for 10 seconds will ensure we get the message.
     def remove_wip_msg
-      sleep wip_removal_wait_time
-      msg = wip_q.retrieve_message
+      msg = nil
+      3.times do
+        msg = retrieve_wip_msg
+        break if msg
+      end
+
       # report error if this is nil?
-      wip_q.delete_message(msg)
+      if msg
+        wip_q.delete_message(msg) if msg
+      else
+        raise IngestException, 'Failed to retrieve Work In Progress message.' unless msg
+      end
+    end
+
+    def retrieve_wip_msg
+      sleep wip_removal_wait_time
+      wip_q.retrieve_message
     end
 
     def send_next_message(msg)
@@ -284,120 +297,6 @@ module ArchivalStorageIngest
       subject = "#{worker_name} service has terminated due to fatal error."
       body = "#{Time.new}\n#{error_msg}"
       ticket_handler.update_issue_tracker(subject: subject, body: body)
-    end
-  end
-
-  class IngestQueuer
-    def initialize
-      @configuration = ArchivalStorageIngest.configuration
-
-      @queuer = @configuration.queuer
-      @queue_name = @configuration.message_queue_name
-      @ticket_handler = @configuration.ticket_handler
-      @develop = @configuration.develop
-    end
-
-    def queue_ingest(ingest_config)
-      input_checker = check_input(ingest_config)
-      if input_checker.errors.size.positive?
-        puts input_checker.errors
-        return
-      end
-
-      return unless confirm_ingest(ingest_config, input_checker.ingest_manifest)
-
-      ingest_msg = _queue_ingest(ingest_config)
-
-      send_notification(ingest_msg)
-    end
-
-    def check_input(ingest_config)
-      input_checker = InputChecker.new
-      input_checker.check_input(ingest_config)
-      input_checker
-    end
-
-    def send_notification(ingest_msg)
-      body = "New ingest queued at #{Time.new}.\n" \
-             "Depositor/Collection: #{ingest_msg.depositor}/#{ingest_msg.collection}\n" \
-             "Ingest Info\n#{ingest_msg.to_pretty_json}"
-      @ticket_handler.update_issue_tracker(subject: ingest_msg.ticket_id, body: body)
-    end
-
-    def _queue_ingest(ingest_config)
-      msg = IngestMessage::SQSMessage.new(
-        ingest_id: SecureRandom.uuid, ticket_id: ingest_config[:ticket_id],
-        depositor: ingest_config[:depositor], collection: ingest_config[:collection],
-        dest_path: ingest_config[:dest_path],
-        ingest_manifest: ingest_config[:ingest_manifest]
-      )
-      @queuer.put_message(@queue_name, msg)
-      msg
-    end
-
-    def confirm_ingest(ingest_config, ingest_manifest)
-      puts "S3 bucket: #{@configuration.s3_bucket}"
-      puts "Destination Queue: #{@queue_name}"
-      print_config_settings(ingest_config)
-      puts "Source path: #{ingest_manifest.packages[0].source_path}"
-      puts 'Queue ingest? (Y/N)'
-      'y'.casecmp(gets.chomp).zero?
-    end
-
-    def print_config_settings(ingest_config)
-      ingest_config.keys.sort.each do |key|
-        puts "#{key}: #{ingest_config[key]}"
-      end
-    end
-  end
-
-  class InputChecker
-    attr_accessor :ingest_manifest, :errors
-    def initialize
-      @errors = []
-    end
-
-    def check_input(ingest_config)
-      return false unless config_ok?(ingest_config)
-
-      ingest_manifest_errors(ingest_config[:ingest_manifest])
-    end
-
-    def config_ok?(ingest_config)
-      # if dest_path is blank, use empty string '' to avoid errors printing it
-      dest_path = IngestUtils.if_empty(ingest_config[:dest_path], '')
-      @errors << "dest_path '#{dest_path}' does not exist!" unless
-        dest_path_ok?(dest_path)
-
-      ingest_manifest = ingest_config[:ingest_manifest].to_s.strip
-      @errors << "ingest_manifest #{ingest_manifest} does not exist!" unless
-        File.exist?(ingest_manifest)
-
-      @errors.size.zero?
-    end
-
-    def dest_path_ok?(dest_path)
-      return true if File.exist?(dest_path)
-
-      # We store data under /cul/data/archivalxx/DEPOSITOR/COLLECTION
-      # If we can find up to archivalxx, we should be OK.
-      # We may need to change this behavior when we adopt OCFL.
-      without_collection = File.dirname(dest_path)
-      without_depositor  = File.dirname(without_collection)
-
-      # The most likely case for '.' is when dest_path is blank.
-      return false if without_depositor == '.'
-
-      File.exist?(without_depositor)
-    end
-
-    def ingest_manifest_errors(input_ingest_manifest)
-      @ingest_manifest = Manifests.read_manifest(filename: input_ingest_manifest)
-      @ingest_manifest.walk_packages do |package|
-        @errors << "Source path for package #{package.package_id} is not valid!" unless
-          File.exist?(package.source_path.to_s)
-      end
-      @errors.size.zero?
     end
   end
 

@@ -5,6 +5,7 @@
 require 'spec_helper'
 require 'rspec/mocks'
 require 'archival_storage_ingest'
+require 'archival_storage_ingest/messages/ingest_message'
 require 'mail'
 
 RSpec.describe 'IngestManager' do
@@ -37,6 +38,8 @@ RSpec.describe 'IngestManager' do
     allow(@wip_q).to receive(:retrieve_message).and_return nil
 
     @manager = ArchivalStorageIngest::IngestManager.new
+    allow(@manager).to receive(:check_wip).and_return nil
+    allow(@manager).to receive(:remove_wip_msg).and_return nil
   end
 
   context 'when shutting down' do
@@ -79,18 +82,6 @@ RSpec.describe 'IngestManager' do
         @manager.do_work
 
         expect(@worker).to have_received(:work).with(message)
-      end
-
-      context 'when there is an existing message in WIP queue' do
-        it 'will send error notification and exit' do
-          allow(@wip_q).to receive(:retrieve_message).and_return message
-
-          expect { @manager.do_work }.to raise_error(SystemExit)
-          expect(@worker).to_not have_received(:work)
-          expect(@issue_tracker_helper).to have_received(:notify_error).once
-          expect(@issue_tracker_helper).to_not have_received(:notify_worker_started)
-          expect(@dest1_q).to_not have_received(:send_message)
-        end
       end
 
       context 'Successful processing' do
@@ -172,6 +163,58 @@ RSpec.describe 'IngestManager' do
           expect(@issue_tracker_helper).to have_received(:notify_worker_skipped).once
         end
       end
+    end
+  end
+end
+
+RSpec.describe 'IngestManager' do
+  let(:message) do
+    IngestMessage::SQSMessage.new(
+      ingest_id: 'test_id',
+      depositor: 'TestDepositor',
+      collection: 'TestCollection'
+    )
+  end
+  before(:each) do
+    @logger = spy('logger')
+    @queuer = spy('queuer')
+    @msg_q = spy('message q')
+    @wip_q = spy('wip q')
+    @dest1_q = spy('dest1 q')
+    @dest2_q = spy('dest2 q')
+    @worker = spy('worker')
+    @issue_tracker_helper = spy('issue_tracker_helper')
+    allow(@issue_tracker_helper).to receive(:notify_worker_started).and_return nil
+    allow(@issue_tracker_helper).to receive(:notify_worker_completed).and_return nil
+    allow(@issue_tracker_helper).to receive(:notify_worker_skipped).and_return nil
+    allow(@issue_tracker_helper).to receive(:notify_worker_error).and_return nil
+    allow(@issue_tracker_helper).to receive(:notify_error).and_return nil
+
+    ArchivalStorageIngest.configure do |config|
+      config.logger = @logger
+      config.queuer = @queuer
+      config.msg_q = @msg_q
+      config.wip_q = @wip_q
+      config.dest_qs = [@dest1_q, @dest2_q]
+      config.worker = @worker
+      config.wip_removal_wait_time = 0
+      config.issue_tracker_helper = @issue_tracker_helper
+    end
+
+    allow(@wip_q).to receive(:retrieve_message).and_return message
+
+    @manager = ArchivalStorageIngest::IngestManager.new
+  end
+
+  context 'when there is an existing message in WIP queue' do
+    it 'will send error notification and exit' do
+      allow(@wip_q).to receive(:retrieve_message).and_return message
+
+      expect { @manager.do_work }.to raise_error(SystemExit)
+      expect(@worker).to_not have_received(:work)
+      expect(@issue_tracker_helper).to have_received(:notify_error).once
+      expect(@issue_tracker_helper).to_not have_received(:notify_worker_started)
+      expect(@dest1_q).to_not have_received(:send_message)
     end
   end
 end

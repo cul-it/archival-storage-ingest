@@ -70,8 +70,15 @@ class S3Manager
   # Doing so could cause file corruption on the client end by starting over mid-stream.
   #
   # We will need to put a retry mechanism for this function.
-  def calculate_checksum(s3_key) # rubocop:disable Metrics/MethodLength
+  def calculate_checksum(s3_key)
     retries ||= 0
+    _calculate_checksum(s3_key)
+  rescue Aws::S3::Errors::ServiceError => e
+    retry if (retries += 1) < @max_retry
+    raise IngestException, "S3 calculate_checksum failed for #{s3_key}!\n" + parse_s3_error(e)
+  end
+
+  def _calculate_checksum(s3_key)
     size = 0
 
     dig = Digest::SHA1.new
@@ -80,9 +87,6 @@ class S3Manager
       size += chunk.length
     end
     [dig, size]
-  rescue Aws::S3::Errors::ServiceError => e
-    retry if (retries += 1) < @max_retry
-    raise IngestException, "S3 calculate_checksum failed for #{s3_key}!\n" + parse_s3_error(e)
   end
 
   def manifest_key(ingest_id, type)

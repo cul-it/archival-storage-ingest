@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# export asi_s3_periodic_fixity_log_path='/cul/app/archival_storage_ingest/logs/periodic_fixity.log'
+# export asi_periodic_fixity_log_path='/cul/app/archival_storage_ingest/logs/periodic_fixity.log'
 # export asi_periodic_fixity_dry_run=true
 # export asi_periodic_fixity_polling_interval=60
 # export asi_periodic_fixity_develop=true

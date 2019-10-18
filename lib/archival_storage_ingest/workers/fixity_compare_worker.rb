@@ -22,7 +22,7 @@ module FixityCompareWorker
       end
 
       if ingest_manifest.flattened != s3_manifest.flattened
-        raise IngestException, "Ingest and S3 manifests do not match: #{ingest_manifest.diff(sfs_manifest)}"
+        raise IngestException, "Ingest and S3 manifests do not match: #{ingest_manifest.diff(s3_manifest)}"
       end
 
       true

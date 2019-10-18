@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
 require 'aws-sdk-s3'
 require 'digest/sha1'
 
@@ -12,6 +13,7 @@ require 'digest/sha1'
 # See Plugins::RetryErrors for more details.
 class S3Manager
   MAX_RETRY = 3
+  RETRY_INTERVAL = 60
 
   attr_writer :s3
 
@@ -74,8 +76,11 @@ class S3Manager
     retries ||= 0
     _calculate_checksum(s3_key)
   rescue Aws::S3::Errors::ServiceError => e
-    retry if (retries += 1) < @max_retry
-    raise IngestException, "S3 calculate_checksum failed for #{s3_key}!\n" + parse_s3_error(e)
+    retries += 1
+    raise IngestException, "S3 calculate_checksum failed for #{s3_key}!\n" + parse_s3_error(e) if retries >= @max_retry
+
+    sleep(RETRY_INTERVAL)
+    retry
   end
 
   def _calculate_checksum(s3_key)
@@ -86,6 +91,10 @@ class S3Manager
       dig.update(chunk)
       size += chunk.length
     end
+    s3_obj = s3.bucket(@s3_bucket).object(s3_key)
+    raise Aws::S3::Errors::ServiceError, "File size mismatch! expected size: #{s3_obj.content_length}, got size: #{size}" unless
+      s3_obj.content_length == size
+
     [dig, size]
   end
 
@@ -95,5 +104,9 @@ class S3Manager
 
   def retrieve_file(s3_key)
     s3.bucket(@s3_bucket).object(s3_key).get.body
+  end
+
+  def download_file(s3_key:, dest_path:)
+    s3.get_object({ bucket: @s3_bucket, key: s3_key }, target: dest_path)
   end
 end

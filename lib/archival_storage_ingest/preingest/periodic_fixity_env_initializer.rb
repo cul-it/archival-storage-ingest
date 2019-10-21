@@ -13,8 +13,8 @@ module Preingest
     end
 
     # alias for initialize_ingest_env
-    def initialize_periodic_fixity_env(data:, cmf:, imf:, sfs_location:, ticket_id:)
-      initialize_ingest_env(data: data, cmf: cmf, imf: imf, sfs_location: sfs_location, ticket_id: ticket_id)
+    def initialize_periodic_fixity_env(data:, cmf:, sfs_location:, ticket_id:)
+      initialize_ingest_env(data: data, cmf: NONE_COLLECTION_MANIFEST, imf: cmf, sfs_location: sfs_location, ticket_id: ticket_id)
     end
 
     def _initialize_config(collection_root:, sfs_location:, ingest_manifest_path:, ticket_id:)

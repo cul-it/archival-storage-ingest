@@ -11,25 +11,31 @@ require 'yaml'
 module Preingest
   DEFAULT_INGEST_ROOT = '/cul/app/archival_storage_ingest/ingest'
   DEFAULT_SFS_ROOT    = '/cul/data'
+  NONE_COLLECTION_MANIFEST = 'none'
+
   class IngestEnvInitializer
-    attr_accessor :ingest_root, :sfs_root, :depositor, :collection_id
+    attr_accessor :ingest_root, :sfs_root, :depositor, :collection_id,
+                  :ingest_manifest, :collection_manifest, :ingest_config
     def initialize(ingest_root: DEFAULT_INGEST_ROOT, sfs_root: DEFAULT_SFS_ROOT)
       @ingest_root   = ingest_root
       @sfs_root      = sfs_root
       @depositor     = nil
       @collection_id = nil
+      @ingest_manifest = nil
+      @collection_manifest = nil
+      @ingest_config = nil
     end
 
     def initialize_ingest_env(data:, cmf:, imf:, sfs_location:, ticket_id:)
       manifest = Manifests.read_manifest(filename: imf)
       @depositor = manifest.depositor
       @collection_id = manifest.collection_id
-      collection_root = File.join(ingest_root, depositor, collection_id)
+      collection_root = File.join(@ingest_root, @depositor, @collection_id)
       data_root = _initialize_data(collection_root: collection_root, data: data)
-      im_path, _cm_path = _initialize_manifests(collection_root: collection_root, cmf: cmf, imf: imf,
-                                                data_root: data_root)
-      _initialize_config(collection_root: collection_root, sfs_location: sfs_location,
-                         ingest_manifest_path: im_path, ticket_id: ticket_id)
+      @ingest_manifest, @collection_manifest = _initialize_manifests(collection_root: collection_root,
+                                                                     cmf: cmf, imf: imf, data_root: data_root)
+      @ingest_config = _initialize_config(collection_root: collection_root, sfs_location: sfs_location,
+                                          ingest_manifest_path: ingest_manifest, ticket_id: ticket_id)
     end
 
     def _initialize_data(collection_root:, data:)
@@ -56,7 +62,7 @@ module Preingest
     end
 
     def setup_collection_manifest(manifest_dir:, im_path:, cmf:)
-      return if cmf.eql?('none')
+      return if cmf.eql?(NONE_COLLECTION_MANIFEST)
 
       collection_manifest_dir = File.join(manifest_dir, 'collection_manifest')
       cm_path = _initialize_manifest(manifest_dir: collection_manifest_dir, manifest_file: cmf)
@@ -96,12 +102,12 @@ module Preingest
       FileUtils.mkdir_p(config_dir)
       dest_path = File.join(sfs_root, sfs_location, depositor, collection_id)
       ingest_config = {
-        depositor: depositor, collection: collection_id,
-        dest_path: dest_path, ingest_manifest: ingest_manifest_path,
-        ticket_id: ticket_id
+        depositor: depositor, collection: collection_id, dest_path: dest_path,
+        ingest_manifest: ingest_manifest_path, ticket_id: ticket_id
       }
       ingest_config_file = File.join(config_dir, 'ingest_config.yaml')
       File.open(ingest_config_file, 'w') { |file| file.write(ingest_config.to_yaml) }
+      ingest_config_file
     end
   end
 end

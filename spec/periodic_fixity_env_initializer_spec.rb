@@ -23,14 +23,11 @@ RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable BlockLength
   let(:collection_manifest) do
     File.join(source_data, '_EM_collection_manifest.json')
   end
-  let(:ingest_manifest) do
-    File.join(source_data, '_EM_ingest_manifest.json')
-  end
   let(:merged_manifest) do
     File.join(source_data, '_EM_merged_collection_manifest.json')
   end
   let(:expected_periodic_fixity_config) do
-    File.join(source_data, 'expected_ingest_config.yaml')
+    File.join(source_data, 'expected_periodic_fixity_config.yaml')
   end
   let(:data) do
     File.join(source_data, depositor, collection)
@@ -48,34 +45,24 @@ RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable BlockLength
   context 'when initializing periodic fixity env' do # rubocop:disable BlockLength
     it 'creates periodic fixity env' do # rubocop:disable BlockLength
       env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
-      env_initializer.initialize_periodic_fixity_env(data: data, cmf: collection_manifest, imf: ingest_manifest,
+      env_initializer.initialize_periodic_fixity_env(data: data, cmf: collection_manifest,
                                                      sfs_location: sfs_location, ticket_id: ticket_id)
       got_path = File.join(periodic_fixity_root, depositor, collection)
       got_manifest_path = File.join(got_path, 'manifest')
 
       # compare ingest manifest
-      source_imf = Manifests.read_manifest(filename: ingest_manifest)
+      source_imf = Manifests.read_manifest(filename: collection_manifest)
       expected_source_path = File.join(periodic_fixity_root, depositor, collection, 'data', depositor, collection)
       source_imf.walk_packages do |package|
         package.source_path = expected_source_path
       end
-      got_imf_path = File.join(got_manifest_path, 'ingest_manifest', File.basename(ingest_manifest))
+      got_imf_path = File.join(got_manifest_path, 'ingest_manifest', File.basename(collection_manifest))
       got_imf = Manifests.read_manifest(filename: got_imf_path)
       got_imf.walk_packages do |package|
         source_package = source_imf.get_package(package_id: package.package_id)
         expect(package).to eq(source_package)
       end
       expect(got_imf.number_packages).to eq(source_imf.number_packages)
-
-      # compare merged collection manifest
-      expected_mm = Manifests.read_manifest(filename: merged_manifest)
-      got_mm_path = File.join(got_manifest_path, 'collection_manifest', File.basename(collection_manifest))
-      got_mm = Manifests.read_manifest(filename: got_mm_path)
-      got_mm.walk_packages do |package|
-        expected_package = expected_mm.get_package(package_id: package.package_id)
-        expect(package).to eq(expected_package)
-      end
-      expect(got_mm.number_packages).to eq(expected_mm.number_packages)
 
       expected_yaml = YAML.load_file(expected_periodic_fixity_config)
       expected_yaml[:dest_path] = File.join(sfs_root, expected_yaml[:dest_path])
@@ -94,7 +81,7 @@ RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable BlockLength
     it 'creates periodic fixity env with dest path joined by comma' do
       multiple_sfs_locations = "archival01#{FixityWorker::PeriodicFixitySFSGenerator::DEST_PATH_DELIMITER}archival02"
       env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
-      env_initializer.initialize_periodic_fixity_env(data: data, cmf: 'none', imf: ingest_manifest,
+      env_initializer.initialize_periodic_fixity_env(data: data, cmf: collection_manifest,
                                                      sfs_location: multiple_sfs_locations, ticket_id: ticket_id)
       got_path = File.join(periodic_fixity_root, depositor, collection)
       got_yaml_path = File.join(got_path, 'config', 'periodic_fixity_config.yaml')

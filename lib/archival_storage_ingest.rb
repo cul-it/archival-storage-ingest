@@ -233,12 +233,9 @@ module ArchivalStorageIngest
         break if msg
       end
 
-      # report error if this is nil?
-      if msg
-        wip_q.delete_message(msg) if msg
-      else
-        raise IngestException, 'Failed to retrieve Work In Progress message.' unless msg
-      end
+      raise IngestException, 'Failed to retrieve Work In Progress message.' unless msg
+
+      wip_q.delete_message(msg)
     end
 
     def retrieve_wip_msg

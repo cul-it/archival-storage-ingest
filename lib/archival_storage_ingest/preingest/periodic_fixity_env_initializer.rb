@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/preingest/ingest_env_initializer'
+require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/workers/fixity_worker'
 
 module Preingest
@@ -14,20 +15,14 @@ module Preingest
 
     # alias for initialize_ingest_env
     def initialize_periodic_fixity_env(data:, cmf:, sfs_location:, ticket_id:)
-      initialize_ingest_env(data: data, cmf: NONE_COLLECTION_MANIFEST, imf: cmf, sfs_location: sfs_location, ticket_id: ticket_id)
+      initialize_ingest_env(data: data, cmf: NO_COLLECTION_MANIFEST, imf: cmf, sfs_location: sfs_location, ticket_id: ticket_id)
     end
 
-    def _initialize_config(collection_root:, sfs_location:, ingest_manifest_path:, ticket_id:)
-      config_dir = File.join(collection_root, 'config')
-      FileUtils.mkdir_p(config_dir)
-      dest_path = dest_path(sfs_location: sfs_location)
-      periodic_fixity_config = {
-        depositor: depositor, collection: collection_id,
-        dest_path: dest_path, ingest_manifest: ingest_manifest_path,
-        ticket_id: ticket_id
-      }
-      periodic_fixity_config_file = File.join(config_dir, 'periodic_fixity_config.yaml')
-      File.open(periodic_fixity_config_file, 'w') { |file| file.write(periodic_fixity_config.to_yaml) }
+    def generate_config(sfs_location:, ingest_manifest_path:, ticket_id:)
+      config = super(sfs_location: sfs_location, ingest_manifest_path:
+                     ingest_manifest_path, ticket_id: ticket_id)
+      config[:dest_path] = dest_path(sfs_location: sfs_location)
+      config
     end
 
     # Skip this step for periodic fixity check
@@ -41,6 +36,14 @@ module Preingest
         dest_paths << File.join(sfs_root, sfs, depositor, collection_id).to_s
       end
       dest_paths.join(FixityWorker::PeriodicFixitySFSGenerator::DEST_PATH_DELIMITER)
+    end
+
+    def work_type
+      IngestMessage::TYPE_PERIODIC_FIXITY
+    end
+
+    def config_path
+      File.join(collection_root, 'config', 'periodic_fixity_config.yaml')
     end
   end
 end

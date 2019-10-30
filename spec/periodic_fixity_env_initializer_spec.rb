@@ -69,6 +69,7 @@ RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable BlockLength
       expected_yaml[:ingest_manifest] = File.join(got_manifest_path, 'ingest_manifest', expected_yaml[:ingest_manifest])
       got_yaml_path = File.join(got_path, 'config', 'periodic_fixity_config.yaml')
       got_yaml = YAML.load_file(got_yaml_path)
+      expect(got_yaml[:type]).to eq(expected_yaml[:type])
       expect(got_yaml[:depositor]).to eq(expected_yaml[:depositor])
       expect(got_yaml[:collection]).to eq(expected_yaml[:collection])
       expect(got_yaml[:dest_path]).to eq(expected_yaml[:dest_path])

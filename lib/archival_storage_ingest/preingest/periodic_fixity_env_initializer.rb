@@ -5,10 +5,10 @@ require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/workers/fixity_worker'
 
 module Preingest
+  DEFAULT_FIXITY_ROOT = '/cul/app/archival_storage_ingest/periodic_fixity'
+
   # It expects COLLECTION MANIFEST for the passed ingest_manifest_path argument!
   class PeriodicFixityEnvInitializer < IngestEnvInitializer
-    DEFAULT_FIXITY_ROOT = '/cul/app/archival_storage_ingest/periodic_fixity'
-
     def initialize(periodic_fixity_root: DEFAULT_FIXITY_ROOT, sfs_root: DEFAULT_SFS_ROOT)
       super(ingest_root: periodic_fixity_root, sfs_root: sfs_root)
     end

@@ -1,4 +1,5 @@
 ---
+:type: Ingest
 :depositor: test_depositor
 :collection: test_collection
 :dest_path: archival0x/test_depositor/test_collection

@@ -33,9 +33,8 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
         ingest_queuer = WorkQueuer::IngestQueuer.new
         allow(ingest_queuer).to receive(:confirm_work) { true }
         allow(ingest_queuer).to receive(:input_checker_impl) { WorkQueuer::YesManInputChecker.new }
-        ingest_queuer.queue_work(ingest_id: 'test_id',
-                                 dest_path: dir,
-                                 ingest_manifest: file)
+        ingest_queuer.queue_work(type: IngestMessage::TYPE_INGEST, ingest_id: 'test_id',
+                                 dest_path: dir, ingest_manifest: file)
         expect(queuer).to have_received(:put_message).exactly(1).times
       end
     end

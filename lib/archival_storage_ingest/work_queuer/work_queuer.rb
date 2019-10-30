@@ -21,6 +21,8 @@ module WorkQueuer
         return
       end
 
+      return if work_type_mismatch(ingest_config)
+
       return unless confirm_work(ingest_config, input_checker)
 
       work_msg = put_work_message(ingest_config)
@@ -34,6 +36,7 @@ module WorkQueuer
 
     def put_work_message(ingest_config)
       msg = IngestMessage::SQSMessage.new(
+        type: work_type,
         ingest_id: SecureRandom.uuid, ticket_id: ingest_config[:ticket_id],
         depositor: ingest_config[:depositor], collection: ingest_config[:collection],
         dest_path: ingest_config[:dest_path],
@@ -41,6 +44,15 @@ module WorkQueuer
       )
       @queuer.put_message(@queue_name, msg)
       msg
+    end
+
+    def work_type; end
+
+    def work_type_mismatch(ingest_config)
+      return nil if ingest_config[:type].eql?(work_type)
+
+      puts "Work type mismatch! Executable work type #{work_type}, ingest config: #{ingest_config[:type]}"
+      1
     end
 
     def confirm_work(ingest_config, input_checker); end
@@ -56,6 +68,10 @@ module WorkQueuer
     # alias for better readability
     def queue_ingest(ingest_config)
       queue_work(ingest_config)
+    end
+
+    def work_type
+      IngestMessage::TYPE_INGEST
     end
 
     def input_checker_impl
@@ -83,6 +99,10 @@ module WorkQueuer
     # alias for better readability
     def queue_periodic_fixity_check(ingest_config)
       queue_work(ingest_config)
+    end
+
+    def work_type
+      IngestMessage::TYPE_PERIODIC_FIXITY
     end
 
     def input_checker_impl

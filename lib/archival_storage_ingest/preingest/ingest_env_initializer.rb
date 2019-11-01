@@ -15,13 +15,16 @@ module Preingest
   NO_COLLECTION_MANIFEST = 'none'
 
   class IngestEnvInitializer
-    attr_accessor :ingest_root, :sfs_root, :depositor, :collection_id, :collection_root
+    attr_accessor :ingest_root, :sfs_root, :depositor, :collection_id, :collection_root,
+                  :data_root, :source_path
 
-    def initialize(ingest_root: DEFAULT_INGEST_ROOT, sfs_root: DEFAULT_SFS_ROOT)
+    def initialize(ingest_root:, sfs_root:)
       @ingest_root   = ingest_root
       @sfs_root      = sfs_root
       @depositor     = nil
       @collection_id = nil
+      @data_root     = nil
+      @source_path   = nil
     end
 
     def initialize_ingest_env(data:, cmf:, imf:, sfs_location:, ticket_id:)
@@ -29,39 +32,38 @@ module Preingest
       @depositor = manifest.depositor
       @collection_id = manifest.collection_id
       @collection_root = File.join(ingest_root, depositor, collection_id)
-      data_root = _initialize_data(data: data)
-      im_path, _cm_path = _initialize_manifests(cmf: cmf, imf: imf,
-                                                data_root: data_root)
+      @data_root = File.join(collection_root, 'data')
+      @source_path = _initialize_data(data: data)
+      im_path = _initialize_ingest_manifest(imf: imf)
+      _initialize_collection_manifest(im_path: im_path, cmf: cmf)
       _initialize_config(sfs_location: sfs_location,
                          ingest_manifest_path: im_path, ticket_id: ticket_id)
     end
 
     def _initialize_data(data:)
-      data_root = File.join(collection_root, 'data')
       depositor_dir = File.join(data_root, depositor)
       FileUtils.mkdir_p(depositor_dir)
       FileUtils.ln_s(data, depositor_dir)
       File.join(depositor_dir, collection_id)
     end
 
-    def _initialize_manifests(cmf:, imf:, data_root:)
+    def _initialize_ingest_manifest(imf:)
       manifest_dir = File.join(collection_root, 'manifest')
 
       # ingest manifest
       ingest_manifest_dir = File.join(manifest_dir, 'ingest_manifest')
       im_path = _initialize_manifest(manifest_dir: ingest_manifest_dir, manifest_file: imf)
-      manifest = _populate_missing_attribute(ingest_manifest: im_path, source_path: data_root)
-      raise IngestException unless _compare_asset_existence(ingest_manifest: manifest)
+      manifest = _populate_missing_attribute(ingest_manifest: im_path, source_path: source_path)
+      raise IngestException, 'Asset mismatch' unless
+        _compare_asset_existence(ingest_manifest: manifest)
 
-      # collection manifest
-      cm_path = setup_collection_manifest(manifest_dir: manifest_dir, im_path: im_path, cmf: cmf)
-
-      [im_path, cm_path]
+      im_path
     end
 
-    def setup_collection_manifest(manifest_dir:, im_path:, cmf:)
+    def _initialize_collection_manifest(im_path:, cmf:)
       return if cmf.eql?(NO_COLLECTION_MANIFEST)
 
+      manifest_dir = File.join(collection_root, 'manifest')
       collection_manifest_dir = File.join(manifest_dir, 'collection_manifest')
       cm_path = _initialize_manifest(manifest_dir: collection_manifest_dir, manifest_file: cmf)
       _merge_manifests(collection_manifest: cm_path, ingest_manifest: im_path)
@@ -103,13 +105,17 @@ module Preingest
     end
 
     def generate_config(sfs_location:, ingest_manifest_path:, ticket_id:)
-      dest_path = File.join(sfs_root, sfs_location, depositor, collection_id)
       {
         type: work_type,
         depositor: depositor, collection: collection_id,
-        dest_path: dest_path, ingest_manifest: ingest_manifest_path,
+        dest_path: dest_path(sfs_location: sfs_location),
+        ingest_manifest: ingest_manifest_path,
         ticket_id: ticket_id
       }
+    end
+
+    def dest_path(sfs_location:)
+      File.join(sfs_root, sfs_location, depositor, collection_id)
     end
 
     def work_type

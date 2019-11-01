@@ -6,13 +6,12 @@ require 'archival_storage_ingest/preingest/ingest_env_initializer'
 require 'archival_storage_ingest/preingest/periodic_fixity_env_initializer'
 
 # it expect data to be in the form /.../depositor/collection
-data = ARGV[0]
-cmf = ARGV[1]
-sfs = ARGV[2]
-ticket_id = ARGV[3]
-periodic_fixity_root = ARGV[4]
+cmf = ARGV[0]
+sfs = ARGV[1]
+ticket_id = ARGV[2]
+periodic_fixity_root = ARGV[3]
 periodic_fixity_root = Preingest::DEFAULT_FIXITY_ROOT if IngestUtils.blank?(periodic_fixity_root)
-sfs_root = ARGV[5]
+sfs_root = ARGV[4]
 sfs_root = Preingest::DEFAULT_SFS_ROOT if IngestUtils.blank?(sfs_root)
 
 env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)

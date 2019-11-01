@@ -20,14 +20,13 @@ ArchivalStorageIngest.configure do |config|
   config.global_inhibit_file = ENV['asi_global_inhibit_file'] ||
                                '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
 
-  # Currently, we don't have dev queues for this service.
   if ENV['asi_develop'] || ENV['asi_periodic_fixity_sfs_develop']
     config.s3_bucket = 's3-cular-dev'
     config.debug = true
     config.develop = true
   else
     config.s3_bucket = 's3-cular'
-    config.debug = ENV['asi_ingest_debug'] || false
+    config.debug = ENV['asi_periodic_fixity_sfs_debug'] || false
     config.develop = false
   end
 

@@ -12,7 +12,7 @@ RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable BlockLength
   let(:depositor) { 'test_depositor' }
   let(:collection) { 'test_collection' }
   let(:periodic_fixity_root) do
-    File.join(File.dirname(__FILE__), 'resources', 'preingest', 'periodic_fixity_root')
+    File.join(File.dirname(__FILE__), 'resources', 'preingest', 'periodic_fixity')
   end
   let(:sfs_root) do
     File.join(File.dirname(__FILE__), 'resources', 'preingest', 'sfs_root')
@@ -43,19 +43,15 @@ RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable BlockLength
   end
 
   context 'when initializing periodic fixity env' do # rubocop:disable BlockLength
-    it 'creates periodic fixity env' do # rubocop:disable BlockLength
+    it 'creates periodic fixity env' do
       env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
-      env_initializer.initialize_periodic_fixity_env(data: data, cmf: collection_manifest,
+      env_initializer.initialize_periodic_fixity_env(cmf: collection_manifest,
                                                      sfs_location: sfs_location, ticket_id: ticket_id)
       got_path = File.join(periodic_fixity_root, depositor, collection)
       got_manifest_path = File.join(got_path, 'manifest')
 
       # compare ingest manifest
       source_imf = Manifests.read_manifest(filename: collection_manifest)
-      expected_source_path = File.join(periodic_fixity_root, depositor, collection, 'data', depositor, collection)
-      source_imf.walk_packages do |package|
-        package.source_path = expected_source_path
-      end
       got_imf_path = File.join(got_manifest_path, 'ingest_manifest', File.basename(collection_manifest))
       got_imf = Manifests.read_manifest(filename: got_imf_path)
       got_imf.walk_packages do |package|
@@ -82,7 +78,7 @@ RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable BlockLength
     it 'creates periodic fixity env with dest path joined by comma' do
       multiple_sfs_locations = "archival01#{FixityWorker::PeriodicFixitySFSGenerator::DEST_PATH_DELIMITER}archival02"
       env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
-      env_initializer.initialize_periodic_fixity_env(data: data, cmf: collection_manifest,
+      env_initializer.initialize_periodic_fixity_env(cmf: collection_manifest,
                                                      sfs_location: multiple_sfs_locations, ticket_id: ticket_id)
       got_path = File.join(periodic_fixity_root, depositor, collection)
       got_yaml_path = File.join(got_path, 'config', 'periodic_fixity_config.yaml')

@@ -4,10 +4,7 @@ require 'spec_helper'
 require 'rspec/mocks'
 require 'aws-sdk-s3'
 require 'archival_storage_ingest/workers/fixity_compare_worker'
-
-def resource(filename)
-  File.join(File.dirname(__FILE__), ['resources', 'manifests', filename])
-end
+require 'archival_storage_ingest/manifests/manifest_of_manifests'
 
 RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
   subject(:worker) { FixityCompareWorker::ManifestComparator.new(s3_manager) }
@@ -34,6 +31,10 @@ RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
     IngestMessage::SQSMessage.new(
       ingest_id: 'test_1234'
     )
+  end
+
+  def resource(filename)
+    File.join(File.dirname(__FILE__), ['resources', 'manifests', filename])
   end
 
   def setup_manifest(man, key)
@@ -114,6 +115,112 @@ RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
 
       expect(exception).to be_instance_of(IngestException)
       expect(exception.message).to start_with('Ingest and SFS manifests do not match')
+    end
+  end
+end
+
+# Temporarily put this test here...
+RSpec.describe 'ManifestOfManifests' do
+  def resource(filename)
+    File.join(File.dirname(__FILE__), ['resources', 'preingest', 'periodic_fixity', filename])
+  end
+  let(:man_of_mans) { resource('manifest_of_manifests.json') }
+  context 'when finding manifest' do
+    it 'returns manifest definition if corresponding depositor collection entry is found' do
+      mom = Manifests::ManifestOfManifests.new(man_of_mans)
+      man_def = mom.manifest_definition(depositor: 'test_depositor', collection: 'test_collection')
+      expect(man_def.depositor).to eq('test_depositor')
+    end
+  end
+end
+
+RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLength
+  let(:queuer) { spy('queuer') }
+  let(:s3_bucket) { 'bogus_bucket' }
+  let(:s3_manager) do
+    s3 = S3Manager.new(s3_bucket)
+    allow(s3).to receive(:manifest_key).and_call_original
+    s3
+  end
+  let(:worker) do
+    ArchivalStorageIngest.configure do |config|
+      config.queuer = queuer
+      config.s3_manager = s3_manager
+      config.message_queue_name = Queues::QUEUE_PERIODIC_FIXITY_COMPARISON
+      config.in_progress_queue_name = Queues::QUEUE_PERIODIC_FIXITY_COMPARISON_IN_PROGRESS
+      config.dest_queue_names = [Queues::QUEUE_COMPLETE]
+      config.s3_bucket = s3_bucket
+      config.debug = true
+      config.develop = true
+    end
+    manifest_dir = resource('manifests')
+    man_of_mans = resource('manifest_of_manifests.json')
+    periodic_fixity_root = resource('root')
+    sfs_root = File.join(File.dirname(__FILE__), %w[resources preingest])
+    FixityCompareWorker::PeriodicFixityComparator.new(
+      s3_manager: s3_manager,
+      manifest_dir: manifest_dir,
+      man_of_mans: man_of_mans,
+      periodic_fixity_root: periodic_fixity_root,
+      sfs_root: sfs_root
+    )
+  end
+  let(:s3_col_man_key) { '.manifest/test_1234_s3.json' }
+  let(:sfs_col_man_key) { '.manifest/test_1234_sfs.json' }
+  let(:ingest_man_key) { '.manifest/test_1234_ingest_manifest.json' }
+  let(:s3_man) { File.open(source_data('_EM_unmerged_new_collection_manifest.json')) }
+  let(:sfs_man) { File.open(source_data('_EM_unmerged_new_collection_manifest.json')) }
+  let(:ingest_man) { File.open(source_data('_EM_unmerged_new_collection_manifest.json')) }
+  let(:next_man) { File.open(source_data('_EM_unmerged_new_collection_manifest.json')) }
+  let(:next_key) { 'test_depositor_next/test_collection_next/_EM_test_depositor_next_test_collection_next.json' }
+  let(:next_dest_path) { File.join(worker.manifest_dir, '_EM_test_depositor_next_test_collection_next.json') }
+
+  let(:msg) do
+    IngestMessage::SQSMessage.new(
+      ingest_id: 'test_1234',
+      depositor: 'test_depositor',
+      collection: 'test_collection'
+    )
+  end
+
+  def resource(filename)
+    File.join(File.dirname(__FILE__), ['resources', 'preingest', 'periodic_fixity', filename])
+  end
+
+  def source_data(filename)
+    File.join(File.dirname(__FILE__), ['resources', 'preingest', 'source_data', filename])
+  end
+
+  def setup_manifest(man, key)
+    allow(s3_manager).to receive(:retrieve_file).with(key).and_return(man)
+  end
+
+  def setup_next_manifest(man, key, dest_path)
+    allow(s3_manager).to receive(:download_file).with(s3_key: key, dest_path: dest_path).and_return(man)
+  end
+
+  def setup_manifests
+    setup_manifest s3_man, s3_col_man_key
+    setup_manifest sfs_man, sfs_col_man_key
+    setup_manifest ingest_man, ingest_man_key
+    setup_next_manifest next_man, next_key, next_dest_path
+  end
+
+  let(:dir_to_clean) do
+    periodic_fixity_root = resource('root')
+    File.join(periodic_fixity_root, 'test_depositor_next')
+  end
+
+  after(:each) do
+    FileUtils.remove_dir(dir_to_clean)
+  end
+
+  context 'when completing successfully' do
+    it 'queues next collection in man of mans for periodic fixity check' do
+      setup_manifests
+      worker.work(msg)
+
+      expect(queuer).to have_received(:put_message).exactly(1).times
     end
   end
 end

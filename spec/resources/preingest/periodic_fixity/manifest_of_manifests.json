@@ -1,0 +1,20 @@
+[
+  {
+    "depositor": "test_depositor",
+    "collection": "test_collection",
+    "sha1": "deadbeef",
+    "sfs": ["source_data"],
+    "depcol": "test_depositor/test_collection",
+    "path": "_EM_test_depositor_test_collection.json",
+    "s3key": "test_depositor/test_collection/_EM_test_depositor_test_collection.json"
+  },
+  {
+    "depositor": "test_depositor_next",
+    "collection": "test_collection_next",
+    "sha1": "deadbeef",
+    "sfs": ["source_data"],
+    "depcol": "test_depositor_next/test_collection_next",
+    "path": "_EM_test_depositor_test_collection.json",
+    "s3key": "test_depositor_next/test_collection_next/_EM_test_depositor_next_test_collection_next.json"
+  }
+]

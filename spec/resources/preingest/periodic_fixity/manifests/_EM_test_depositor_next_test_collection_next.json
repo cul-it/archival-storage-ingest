@@ -1,0 +1,45 @@
+{
+  "steward": "t123",
+  "depositor": "test_depositor_next",
+  "collection_id": "test_collection_next",
+  "locations": [
+    "s3://some_bucket/test_depositor_next/test_collection_next",
+    "smb://files.library.cornell.edu/lib/archival0x/test_depositor_next/test_collection_next"
+  ],
+  "documentation": "cular:xxxx",
+  "number_packages": 2,
+  "packages": [
+    {
+      "package_id": "urn:uuid:3817a588-7b89-4dc8-a25c-b6e42247f9e1",
+      "number_files": 2,
+      "files": [
+        {
+          "filepath": "3/three.txt",
+          "sha1": "5cf9b030a86ada15de49dbeec3d04c881e9ab76f",
+          "size": 10
+        },
+        {
+          "filepath": "3/three_alpha.txt",
+          "sha1": "94799bedb79a3dbaef33539d1e24c80e138847b1",
+          "size": 20
+        }
+      ]
+    },
+    {
+      "package_id": "urn:uuid:eb4d6223-df9f-4bb9-9e76-815ad1d92b05",
+      "number_files": 2,
+      "files": [
+        {
+          "filepath": "4/four.txt",
+          "sha1": "815393d4e1198296c9b3cb3ebaf7a1fe0a8101ee",
+          "size": 10
+        },
+        {
+          "filepath": "4/extra_layer/four.txt",
+          "sha1": "4119235d33fe585cc71b80016c0b7082378c13ee",
+          "size": 16
+        }
+      ]
+    }
+  ]
+}

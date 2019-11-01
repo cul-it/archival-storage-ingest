@@ -20,6 +20,11 @@ module Manifests
     def manifest_definition(depositor:, collection:)
       manifest_of_manifests.find { |i| i.depositor.eql?(depositor) && i.collection.eql?(collection) }
     end
+
+    def next_manifest_definition(depositor:, collection:)
+      index = manifest_of_manifests.find_index { |i| i.depositor.eql?(depositor) && i.collection.eql?(collection) }
+      manifest_of_manifests[index + 1]
+    end
   end
 
   class ManifestDefinition
@@ -31,7 +36,7 @@ module Manifests
       @sfs = manifest_def_hash[:sfs]
       @depcol = manifest_def_hash[:depcol]
       @path = manifest_def_hash[:path]
-      @s3_key = manifest_def_hash[:s3Key]
+      @s3_key = manifest_def_hash[:s3key]
     end
   end
 end

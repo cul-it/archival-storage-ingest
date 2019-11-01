@@ -4,13 +4,14 @@ require 'archival_storage_ingest/work_queuer/input_checker'
 
 module WorkQueuer
   class WorkQueuer
-    def initialize
+    def initialize(confirm: true)
       @configuration = ArchivalStorageIngest.configuration
 
       @queuer = @configuration.queuer
       @queue_name = @configuration.message_queue_name
       @ticket_handler = @configuration.ticket_handler
       @develop = @configuration.develop
+      @confirm = confirm
     end
 
     def queue_work(ingest_config)
@@ -23,7 +24,7 @@ module WorkQueuer
 
       return if work_type_mismatch(ingest_config)
 
-      return unless confirm_work(ingest_config, input_checker)
+      return unless confirm(ingest_config, input_checker)
 
       work_msg = put_work_message(ingest_config)
 
@@ -53,6 +54,14 @@ module WorkQueuer
 
       puts "Work type mismatch! Executable work type #{work_type}, ingest config: #{ingest_config[:type]}"
       1
+    end
+
+    # We want to skip confirm when periodic fixity comparison worker
+    # queues next collection upon successful comparison.
+    def confirm(ingest_config, input_checker)
+      return true unless @confirm
+
+      confirm_work(ingest_config, input_checker)
     end
 
     def confirm_work(ingest_config, input_checker); end

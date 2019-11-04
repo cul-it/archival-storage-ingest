@@ -107,6 +107,6 @@ class S3Manager
   end
 
   def download_file(s3_key:, dest_path:)
-    s3.get_object({ bucket: @s3_bucket, key: s3_key }, target: dest_path)
+    s3.client.get_object({ bucket: @s3_bucket, key: s3_key }, target: dest_path)
   end
 end

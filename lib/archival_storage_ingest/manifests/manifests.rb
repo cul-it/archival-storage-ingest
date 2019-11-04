@@ -18,6 +18,15 @@ module Manifests
     Manifests::Manifest.new(json_text: json_text)
   end
 
+  def self.diff_hash(flattened_a, flattened_b)
+    left = flattened_a.to_a
+    right = flattened_b.to_a
+    {
+      ingest: (left - right).to_h,
+      other: (right - left).to_h
+    }.compact
+  end
+
   class Manifest
     attr_accessor :collection_id, :depositor, :steward, :rights, :locations, :number_packages, :packages
 
@@ -81,17 +90,12 @@ module Manifests
     end
 
     def diff(other_manifest)
-      lflat_h = {}
-      flattened.each { |k, v| lflat_h[k] = v.to_json_hash }
-      rflat_h = {}
-      other_manifest.flattened.each { |k, v| rflat_h[k] = v.to_json_hash }
+      me_flattened = {}
+      flattened.each { |k, v| me_flattened[k] = v.to_json_hash }
+      other_flattened = {}
+      other_manifest.flattened.each { |k, v| other_flattened[k] = v.to_json_hash }
 
-      left = lflat_h.to_a
-      right = rflat_h.to_a
-      {
-        ingest: (left - right).to_h,
-        other: (right - left).to_h
-      }.compact
+      Manifests.diff_hash(me_flattened, other_flattened)
     end
 
     # json_type is either ingest or storage

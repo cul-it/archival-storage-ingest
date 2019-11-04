@@ -168,10 +168,6 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
   let(:s3_col_man_key) { '.manifest/test_1234_s3.json' }
   let(:sfs_col_man_key) { '.manifest/test_1234_sfs.json' }
   let(:ingest_man_key) { '.manifest/test_1234_ingest_manifest.json' }
-  let(:s3_man) { File.open(source_data('_EM_unmerged_new_collection_manifest.json')) }
-  let(:sfs_man) { File.open(source_data('_EM_unmerged_new_collection_manifest.json')) }
-  let(:ingest_man) { File.open(source_data('_EM_unmerged_new_collection_manifest.json')) }
-  let(:next_man) { File.open(source_data('_EM_unmerged_new_collection_manifest.json')) }
   let(:next_key) { 'test_depositor_next/test_collection_next/_EM_test_depositor_next_test_collection_next.json' }
   let(:next_dest_path) { File.join(worker.manifest_dir, '_EM_test_depositor_next_test_collection_next.json') }
 
@@ -199,12 +195,17 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
     allow(s3_manager).to receive(:download_file).with(s3_key: key, dest_path: dest_path).and_return(man)
   end
 
+  # rubocop: disable Metrics/AbcSize
   def setup_manifests
-    setup_manifest s3_man, s3_col_man_key
-    setup_manifest sfs_man, sfs_col_man_key
-    setup_manifest ingest_man, ingest_man_key
-    setup_next_manifest next_man, next_key, next_dest_path
+    manifest_to_use = '_EM_unmerged_new_collection_manifest.json'
+    setup_manifest File.open(source_data(manifest_to_use)), s3_col_man_key
+    setup_manifest File.open(source_data(manifest_to_use)), sfs_col_man_key
+    setup_manifest File.open(source_data(manifest_to_use)), ingest_man_key
+    setup_next_manifest File.open(source_data(manifest_to_use)), next_key, next_dest_path
+    allow(s3_manager).to receive(:calculate_checksum).with(ingest_man_key)
+                                                     .and_return(['eea594dee92e310255fd618e778889376b0cbf2a', 1175])
   end
+  # rubocop: enable Metrics/AbcSize
 
   let(:dir_to_clean) do
     periodic_fixity_root = resource('root')

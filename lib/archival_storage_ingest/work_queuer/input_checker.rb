@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/workers/fixity_worker'
+
 module WorkQueuer
   class InputChecker
     attr_accessor :ingest_manifest, :errors
@@ -58,6 +60,20 @@ module WorkQueuer
           File.exist?(package.source_path.to_s)
       end
       @errors.size.zero?
+    end
+  end
+
+  class FixityInputChecker < InputChecker
+    def dest_path_ok?(dest_path)
+      dest_paths = dest_path.split(FixityWorker::PeriodicFixitySFSGenerator::DEST_PATH_DELIMITER)
+      status = true
+      dest_paths.each do |path|
+        unless super(path)
+          status = false
+          last
+        end
+      end
+      status
     end
   end
 

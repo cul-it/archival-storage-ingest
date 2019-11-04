@@ -115,7 +115,7 @@ module WorkQueuer
     end
 
     def input_checker_impl
-      InputChecker.new
+      FixityInputChecker.new
     end
 
     def send_notification(work_msg)

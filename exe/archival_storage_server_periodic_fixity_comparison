@@ -13,9 +13,6 @@ ArchivalStorageIngest.configure do |config| # rubocop: disable Metrics/BlockLeng
   config.dry_run = ENV['asi_periodic_fixity_comparison_dry_run'] || false
   config.polling_interval = ENV['asi_periodic_fixity_comparison_polling_interval'] if
                             ENV['asi_periodic_fixity_comparison_polling_interval']
-  config.message_queue_name = Queues::QUEUE_PERIODIC_FIXITY_COMPARISON
-  config.in_progress_queue_name = Queues::QUEUE_PERIODIC_FIXITY_COMPARISON_IN_PROGRESS
-  config.dest_queue_names = [Queues::QUEUE_COMPLETE]
   config.inhibit_file = ENV['asi_periodic_fixity_comparison_inhibit_file'] ||
                         '/cul/app/archival_storage_ingest/control/periodic_fixity_comparison.inhibit'
   config.global_inhibit_file = ENV['asi_global_inhibit_file'] ||
@@ -34,10 +31,16 @@ ArchivalStorageIngest.configure do |config| # rubocop: disable Metrics/BlockLeng
     config.s3_bucket = 's3-cular-dev'
     config.debug = true
     config.develop = true
+    config.message_queue_name = Queues::DEV_QUEUE_PERIODIC_FIXITY_COMPARISON
+    config.in_progress_queue_name = Queues::DEV_QUEUE_PERIODIC_FIXITY_COMPARISON_IN_PROGRESS
+    config.dest_queue_names = [Queues::DEV_QUEUE_COMPLETE]
   else
     config.s3_bucket = 's3-cular'
     config.debug = ENV['asi_periodic_fixity_comparison_debug'] || false
     config.develop = false
+    config.message_queue_name = Queues::QUEUE_PERIODIC_FIXITY_COMPARISON
+    config.in_progress_queue_name = Queues::QUEUE_PERIODIC_FIXITY_COMPARISON_IN_PROGRESS
+    config.dest_queue_names = [Queues::QUEUE_COMPLETE]
   end
 
   config.worker = FixityCompareWorker::PeriodicFixityComparator.new(

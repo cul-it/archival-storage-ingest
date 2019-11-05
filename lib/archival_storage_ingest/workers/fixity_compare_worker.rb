@@ -102,6 +102,8 @@ module FixityCompareWorker
     # to see what periodic fixity configuration was used.
     def queue_next_collection(msg)
       manifest_def = next_manifest_definition(msg)
+      return if manifest_def.nil?
+
       cm = collection_manifest(manifest_def: manifest_def)
       env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
       env_initializer.initialize_periodic_fixity_env(cmf: cm, sfs_location: manifest_def.sfs, ticket_id: msg.ticket_id,

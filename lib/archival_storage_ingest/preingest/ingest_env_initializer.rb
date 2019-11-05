@@ -27,9 +27,13 @@ module Preingest
       @source_path   = nil
     end
 
+    # :imf, :cmf, :data, :sfs_location, :ticket_id are used
+    #
+    # This way of coding does make RUBOCOP happy but it is hard to track down
+    # which parameters are used where...
+    # Is there a better way to deal with this situation?
     def initialize_ingest_env(named_params)
-      manifest_path = named_params.fetch(:imf)
-      _init_attrs(manifest_path)
+      _init_attrs(named_params.fetch(:imf))
       @source_path = _initialize_data(named_params)
       im_path = _initialize_ingest_manifest(named_params)
       _initialize_collection_manifest(im_path: im_path, named_params: named_params)

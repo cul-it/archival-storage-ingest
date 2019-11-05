@@ -76,6 +76,7 @@ module Queues
   DEV_QUEUE_COMPLETE = 'cular_development_done'
 
   def self.valid_queue_name?(queue_name)
-    Queues.constants.include?(queue_name)
+    const = Queues.constants.find { |q_symbol| Queues.const_get(q_symbol).eql?(queue_name) }
+    !const.nil?
   end
 end

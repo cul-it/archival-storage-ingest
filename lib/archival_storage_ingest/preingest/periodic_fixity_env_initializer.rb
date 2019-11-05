@@ -16,10 +16,12 @@ module Preingest
     # alias for initialize_ingest_env
     # sfs_location can be either a delimiter separated string or an array like data structure
     #   responding to 'each' method
-    # cmf:, sfs_location:, ticket_id:
+    # cmf:, sfs_location:, ticket_id: are used
     def initialize_periodic_fixity_env(named_params)
-      initialize_ingest_env(data: nil, cmf: NO_COLLECTION_MANIFEST, imf: named_params.fetch(:cmf),
-                            sfs_location: named_params.fetch(:sfs_location), ticket_id: named_params.fetch(:ticket_id))
+      named_params[:imf] = named_params.fetch(:cmf)
+      named_params[:cmf] = NO_COLLECTION_MANIFEST
+      named_params[:data] = nil
+      initialize_ingest_env(named_params)
     end
 
     # Skip this step for periodic fixity check

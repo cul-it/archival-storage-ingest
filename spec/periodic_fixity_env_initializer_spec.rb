@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/manifests/manifests'
+require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/preingest/periodic_fixity_env_initializer'
 require 'archival_storage_ingest/workers/fixity_worker'
 
@@ -89,6 +90,18 @@ RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable BlockLength
       end
       expected_dest_path = expected_dest_paths.join(FixityWorker::PeriodicFixitySFSGenerator::DEST_PATH_DELIMITER)
       expect(got_yaml[:dest_path]).to eq expected_dest_path
+    end
+  end
+
+  context 'when given relay_queue_name' do
+    it 'adds queue_name to the output config' do
+      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
+      env_initializer.initialize_periodic_fixity_env(cmf: collection_manifest, relay_queue_name: Queues::DEV_QUEUE_PERIODIC_FIXITY,
+                                                     sfs_location: sfs_location, ticket_id: ticket_id)
+      got_path = File.join(periodic_fixity_root, depositor, collection)
+      got_yaml_path = File.join(got_path, 'config', 'periodic_fixity_config.yaml')
+      got_yaml = YAML.load_file(got_yaml_path)
+      expect(got_yaml[:queue_name]).to eq(Queues::DEV_QUEUE_PERIODIC_FIXITY)
     end
   end
 end

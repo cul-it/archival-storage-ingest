@@ -55,7 +55,9 @@ module FixityCompareWorker
     # man_of_mans is the absolute path and must be specified.
     # The periodic fixity executable uses
     # /cul/app/archival_storage_ingest/manifest_of_manifests/manifest_of_manifests.json
-    # def initialize(s3_manager: nil, manifest_dir:, man_of_mans:, periodic_fixity_root:, sfs_root:)
+    #
+    # relay_queue_name is the destination queue for next collection check.
+    # It should be (DEV) QUEUE_PERIODIC_FIXITY.
     def initialize(named_params)
       super(named_params.fetch(:s3_manager, nil))
       @manifest_dir = named_params.fetch(:manifest_dir)
@@ -107,7 +109,7 @@ module FixityCompareWorker
       cm = collection_manifest(manifest_def: manifest_def)
       env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
       env_initializer.initialize_periodic_fixity_env(cmf: cm, sfs_location: manifest_def.sfs, ticket_id: msg.ticket_id,
-                                                     relay_queue_name: Queues::QUEUE_PERIODIC_FIXITY)
+                                                     relay_queue_name: @relay_queue_name)
       queuer = WorkQueuer::PeriodicFixityQueuer.new(confirm: false)
       fixity_config = YAML.load_file(env_initializer.config_path)
       queuer.queue_periodic_fixity_check(fixity_config)

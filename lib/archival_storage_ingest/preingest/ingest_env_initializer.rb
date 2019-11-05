@@ -27,45 +27,48 @@ module Preingest
       @source_path   = nil
     end
 
-    def initialize_ingest_env(data:, cmf:, imf:, sfs_location:, ticket_id:)
-      manifest = Manifests.read_manifest(filename: imf)
+    def initialize_ingest_env(named_params)
+      manifest_path = named_params.fetch(:imf)
+      _init_attrs(manifest_path)
+      @source_path = _initialize_data(named_params)
+      im_path = _initialize_ingest_manifest(named_params)
+      _initialize_collection_manifest(im_path: im_path, named_params: named_params)
+      _initialize_config(ingest_manifest_path: im_path, named_params: named_params)
+    end
+
+    def _init_attrs(manifest_path)
+      manifest = Manifests.read_manifest(filename: manifest_path)
       @depositor = manifest.depositor
       @collection_id = manifest.collection_id
       @collection_root = File.join(ingest_root, depositor, collection_id)
       @data_root = File.join(collection_root, 'data')
-      @source_path = _initialize_data(data: data)
-      im_path = _initialize_ingest_manifest(imf: imf)
-      _initialize_collection_manifest(im_path: im_path, cmf: cmf)
-      _initialize_config(sfs_location: sfs_location,
-                         ingest_manifest_path: im_path, ticket_id: ticket_id)
     end
 
-    def _initialize_data(data:)
+    def _initialize_data(named_params)
       depositor_dir = File.join(data_root, depositor)
       FileUtils.mkdir_p(depositor_dir)
-      FileUtils.ln_s(data, depositor_dir)
+      FileUtils.ln_s(named_params.fetch(:data), depositor_dir)
       File.join(depositor_dir, collection_id)
     end
 
-    def _initialize_ingest_manifest(imf:)
+    def _initialize_ingest_manifest(named_params)
       manifest_dir = File.join(collection_root, 'manifest')
 
       # ingest manifest
       ingest_manifest_dir = File.join(manifest_dir, 'ingest_manifest')
-      im_path = _initialize_manifest(manifest_dir: ingest_manifest_dir, manifest_file: imf)
+      im_path = _initialize_manifest(manifest_dir: ingest_manifest_dir, manifest_file: named_params.fetch(:imf))
       manifest = _populate_missing_attribute(ingest_manifest: im_path, source_path: source_path)
-      raise IngestException, 'Asset mismatch' unless
-        _compare_asset_existence(ingest_manifest: manifest)
+      raise IngestException, 'Asset mismatch' unless _compare_asset_existence(ingest_manifest: manifest)
 
       im_path
     end
 
-    def _initialize_collection_manifest(im_path:, cmf:)
-      return if cmf.eql?(NO_COLLECTION_MANIFEST)
+    def _initialize_collection_manifest(im_path:, named_params:)
+      return if named_params.fetch(:cmf).eql?(NO_COLLECTION_MANIFEST)
 
       manifest_dir = File.join(collection_root, 'manifest')
       collection_manifest_dir = File.join(manifest_dir, 'collection_manifest')
-      cm_path = _initialize_manifest(manifest_dir: collection_manifest_dir, manifest_file: cmf)
+      cm_path = _initialize_manifest(manifest_dir: collection_manifest_dir, manifest_file: named_params.fetch(:cmf))
       _merge_manifests(collection_manifest: cm_path, ingest_manifest: im_path)
       cm_path
     end
@@ -97,20 +100,17 @@ module Preingest
       File.open(collection_manifest, 'w') { |file| file.write(json_to_write) }
     end
 
-    def _initialize_config(sfs_location:, ingest_manifest_path:, ticket_id:)
-      ingest_config = generate_config(sfs_location: sfs_location, ingest_manifest_path:
-                                      ingest_manifest_path, ticket_id: ticket_id)
+    def _initialize_config(ingest_manifest_path:, named_params:)
+      ingest_config = generate_config(ingest_manifest_path: ingest_manifest_path, named_params: named_params)
       ingest_config_file = prepare_config_path
       File.open(ingest_config_file, 'w') { |file| file.write(ingest_config.to_yaml) }
     end
 
-    def generate_config(sfs_location:, ingest_manifest_path:, ticket_id:)
+    def generate_config(ingest_manifest_path:, named_params:)
       {
-        type: work_type,
-        depositor: depositor, collection: collection_id,
-        dest_path: dest_path(sfs_location: sfs_location),
-        ingest_manifest: ingest_manifest_path,
-        ticket_id: ticket_id
+        type: work_type, depositor: depositor, collection: collection_id,
+        dest_path: dest_path(sfs_location: named_params.fetch(:sfs_location)),
+        ingest_manifest: ingest_manifest_path, ticket_id: named_params.fetch(:ticket_id)
       }
     end
 

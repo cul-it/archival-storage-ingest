@@ -3,8 +3,9 @@
 require 'spec_helper'
 require 'rspec/mocks'
 require 'aws-sdk-s3'
-require 'archival_storage_ingest/workers/fixity_compare_worker'
 require 'archival_storage_ingest/manifests/manifest_of_manifests'
+require 'archival_storage_ingest/messages/queues'
+require 'archival_storage_ingest/workers/fixity_compare_worker'
 
 RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
   subject(:worker) { FixityCompareWorker::ManifestComparator.new(s3_manager) }
@@ -162,7 +163,8 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
       manifest_dir: manifest_dir,
       man_of_mans: man_of_mans,
       periodic_fixity_root: periodic_fixity_root,
-      sfs_root: sfs_root
+      sfs_root: sfs_root,
+      relay_queue_name: Queues::QUEUE_PERIODIC_FIXITY
     )
   end
   let(:s3_col_man_key) { '.manifest/test_1234_s3.json' }

@@ -26,6 +26,7 @@ ArchivalStorageIngest.configure do |config| # rubocop: disable Metrics/BlockLeng
   periodic_fixity_root = ENV['asi_periodic_fixity_comparison_periodic_fixity_root'] ||
                          '/cul/app/archival_storage_ingest/periodic_fixity'
   sfs_root = ENV['asi_periodic_fixity_comparison_sfs_root'] || Preingest::DEFAULT_SFS_ROOT
+  relay_queue_name = Queues::QUEUE_PERIODIC_FIXITY
 
   if ENV['asi_develop'] || ENV['asi_periodic_fixity_comparison_develop']
     config.s3_bucket = 's3-cular-dev'
@@ -34,6 +35,7 @@ ArchivalStorageIngest.configure do |config| # rubocop: disable Metrics/BlockLeng
     config.message_queue_name = Queues::DEV_QUEUE_PERIODIC_FIXITY_COMPARISON
     config.in_progress_queue_name = Queues::DEV_QUEUE_PERIODIC_FIXITY_COMPARISON_IN_PROGRESS
     config.dest_queue_names = [Queues::DEV_QUEUE_COMPLETE]
+    relay_queue_name = Queues::DEV_QUEUE_PERIODIC_FIXITY
   else
     config.s3_bucket = 's3-cular'
     config.debug = ENV['asi_periodic_fixity_comparison_debug'] || false
@@ -47,7 +49,8 @@ ArchivalStorageIngest.configure do |config| # rubocop: disable Metrics/BlockLeng
     manifest_dir: manifest_dir,
     man_of_mans: man_of_mans,
     periodic_fixity_root: periodic_fixity_root,
-    sfs_root: sfs_root
+    sfs_root: sfs_root,
+    relay_queue_name: relay_queue_name
   )
 end
 

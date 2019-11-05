@@ -16,14 +16,16 @@ module Preingest
     # alias for initialize_ingest_env
     # sfs_location can be either a delimiter separated string or an array like data structure
     #   responding to 'each' method
-    def initialize_periodic_fixity_env(cmf:, sfs_location:, ticket_id:)
-      initialize_ingest_env(data: nil, cmf: NO_COLLECTION_MANIFEST, imf: cmf, sfs_location: sfs_location, ticket_id: ticket_id)
+    # cmf:, sfs_location:, ticket_id:
+    def initialize_periodic_fixity_env(named_params)
+      initialize_ingest_env(data: nil, cmf: NO_COLLECTION_MANIFEST, imf: named_params.fetch(:cmf),
+                            sfs_location: named_params.fetch(:sfs_location), ticket_id: named_params.fetch(:ticket_id))
     end
 
     # Skip this step for periodic fixity check
     def _initialize_data(*); end
 
-    def _initialize_ingest_manifest(imf:)
+    def _initialize_ingest_manifest(named_params)
       manifest_dir = File.join(collection_root, 'manifest')
 
       # ingest manifest is collection manifest and does not need to
@@ -31,12 +33,19 @@ module Preingest
       # The difference between manifest and data store will be
       # detected during the fixity check.
       im_dir = File.join(manifest_dir, 'ingest_manifest')
-      _initialize_manifest(manifest_dir: im_dir, manifest_file: imf)
+      _initialize_manifest(manifest_dir: im_dir, manifest_file: named_params.fetch(:imf))
     end
 
     # Skip this step for periodic fixity check
     def _compare_asset_existence(*)
       true
+    end
+
+    def generate_config(ingest_manifest_path:, named_params:)
+      config = super(ingest_manifest_path: ingest_manifest_path, named_params: named_params)
+      relay_queue_name = named_params.fetch(:relay_queue_name, nil)
+      config[:queue_name] = relay_queue_name unless relay_queue_name.nil?
+      config
     end
 
     def dest_path(sfs_location:)

@@ -43,7 +43,8 @@ module WorkQueuer
         dest_path: ingest_config[:dest_path],
         ingest_manifest: ingest_config[:ingest_manifest]
       )
-      @queuer.put_message(@queue_name, msg)
+      q_name = ingest_config[:queue_name].nil? ? @queue_name : ingest_config[:queue_name]
+      @queuer.put_message(q_name, msg)
       msg
     end
 

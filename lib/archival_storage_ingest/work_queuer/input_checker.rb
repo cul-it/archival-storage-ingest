@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/workers/fixity_worker'
 
 module WorkQueuer
@@ -17,6 +18,9 @@ module WorkQueuer
       @errors << "dest_path '#{dest_path}' does not exist!" unless
         dest_path_ok?(dest_path)
 
+      @errors << "Queue name #{ingest_config[:queue_name]} is not valid!" unless
+        valid_queue_name?(ingest_config[:queue_name])
+
       @errors.size.zero?
     end
 
@@ -33,6 +37,12 @@ module WorkQueuer
       return false if without_depositor == '.'
 
       File.exist?(without_depositor)
+    end
+
+    def valid_queue_name?(queue_name)
+      return true if queue_name.nil?
+
+      Queues.valid_queue_name?(queue_name)
     end
   end
 

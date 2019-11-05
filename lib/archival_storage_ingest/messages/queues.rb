@@ -74,4 +74,8 @@ module Queues
 
   DEV_QUEUE_ERROR = 'cular_development_error'
   DEV_QUEUE_COMPLETE = 'cular_development_done'
+
+  def self.valid_queue_name?(queue_name)
+    Queues.constants.include?(queue_name)
+  end
 end

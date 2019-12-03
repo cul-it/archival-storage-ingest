@@ -30,7 +30,7 @@ module FixityWorker
     # Pass s3_manager only for tests.
     def initialize(s3_manager = nil)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
-      @debug = ArchivalStorageIngest.configuration.s3_manager
+      @debug = ArchivalStorageIngest.configuration.debug
       @logger = ArchivalStorageIngest.configuration.logger
     end
 

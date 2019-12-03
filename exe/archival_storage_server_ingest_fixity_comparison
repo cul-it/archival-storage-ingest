@@ -26,7 +26,7 @@ ArchivalStorageIngest.configure do |config|
     config.dest_queue_names = [Queues::DEV_QUEUE_COMPLETE]
   else
     config.s3_bucket = 's3-cular'
-    config.debug = ENV['asi_ingest_debug'] || false
+    config.debug = ENV['asi_ingest_fixity_comparison_debug'] ? true : false
     config.develop = false
     config.message_queue_name = Queues::QUEUE_INGEST_FIXITY_COMPARISON
     config.in_progress_queue_name = Queues::QUEUE_INGEST_FIXITY_COMPARISON_IN_PROGRESS

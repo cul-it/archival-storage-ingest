@@ -9,7 +9,6 @@ require 'archival_storage_ingest/workers/fixity_worker'
 require 'archival_storage_ingest/workers/worker'
 
 # TODO: Refactor tests so that variables are defined locally to their use as much as possible.
-
 RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
   let(:manifest_dir) { File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'manifest') }
   let(:ingest_id) { 'test_1234' }
@@ -151,8 +150,14 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
     s3m
   end
 
-  describe 'IngestS3FixityGenerator' do
-    let(:worker) { FixityWorker::IngestFixityS3Generator.new(s3_manager) }
+  describe 'IngestS3FixityGenerator' do # rubocop:disable BlockLength
+    let(:worker) do
+      ArchivalStorageIngest.configure do |config|
+        config.logger = Logger.new(STDOUT)
+        config.worker = FixityWorker::IngestFixityS3Generator.new(s3_manager)
+      end
+      ArchivalStorageIngest.configuration.worker
+    end
 
     context 'when doing work' do
       it 'should upload manifest' do
@@ -181,7 +186,13 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
   end
 
   describe 'IngestSFSFixityGenerator' do # rubocop:disable BlockLength
-    let(:worker) { FixityWorker::IngestFixitySFSGenerator.new(s3_manager) }
+    let(:worker) do
+      ArchivalStorageIngest.configure do |config|
+        config.logger = Logger.new(STDOUT)
+        config.worker = FixityWorker::IngestFixityS3Generator.new(s3_manager)
+      end
+      ArchivalStorageIngest.configuration.worker
+    end
 
     context 'when doing work' do
       it 'should upload manifest' do

@@ -73,27 +73,25 @@ class S3Manager
   #
   # We will need to put a retry mechanism for this function.
   def calculate_checksum(s3_key)
-    retries ||= 0
-    _calculate_checksum(s3_key)
-  rescue Aws::S3::Errors::ServiceError => e
-    retries += 1
-    raise IngestException, "S3 calculate_checksum failed for #{s3_key}!\n" + parse_s3_error(e) if retries >= @max_retry
+    s3_obj = s3.bucket(@s3_bucket).object(s3_key)
+    errors = []
+    @max_retry.times do
+      dig, size = _calculate_checksum(s3_key)
+      return [dig, size, errors] if s3_obj.content_length == size
 
-    sleep(RETRY_INTERVAL)
-    retry
+      sleep(RETRY_INTERVAL)
+      errors << "Size mismatch: #{s3_obj.content_length}, #{size}!"
+    end
+    raise IngestException, "S3 calculate_checksum failed for #{s3_key}:\n" . errors.join("\n")
   end
 
   def _calculate_checksum(s3_key)
     size = 0
-
     dig = Digest::SHA1.new
     s3.client.get_object(bucket: @s3_bucket, key: s3_key) do |chunk|
       dig.update(chunk)
       size += chunk.length
     end
-    s3_obj = s3.bucket(@s3_bucket).object(s3_key)
-    raise Aws::S3::Errors::ServiceError, "File size mismatch! expected size: #{s3_obj.content_length}, got size: #{size}" unless
-      s3_obj.content_length == size
 
     [dig, size]
   end

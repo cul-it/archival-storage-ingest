@@ -28,26 +28,28 @@ module Manifests
   end
 
   class Manifest
-    attr_accessor :collection_id, :depositor, :steward, :rights, :locations, :number_packages, :packages
+    attr_accessor :collection_id, :depositor, :steward, :locations, :packages, :documentation
 
     # initialize from the json string
     def initialize(json_text: BLANK_JSON_TEXT)
       json_hash = JSON.parse(json_text, symbolize_names: true)
       @collection_id = json_hash[:collection_id]
       @depositor = json_hash[:depositor]
+      @documentation = json_hash[:documentation]
       @steward = json_hash[:steward]
-      @rights = json_hash[:rights]
       @locations = json_hash[:locations]
       @packages = json_hash[:packages] ? json_hash[:packages].map { |package| Manifests::Package.new(package: package) } : []
-      @number_packages = json_hash[:number_packages] || @packages.length
     end
 
     def add_package(package:)
       package_id = package.package_id
       raise IngestException, "Package id #{package_id} already exists and can't be added." if get_package(package_id: package_id)
 
-      @number_packages += 1
       packages << package
+    end
+
+    def number_packages
+      @packages.length
     end
 
     def add_filepath(package_id:, filepath:, sha1:, size:)
@@ -112,7 +114,7 @@ module Manifests
     def to_json_ingest_hash
       {
         depositor: depositor, collection_id: collection_id,
-        steward: steward, rights: rights,
+        steward: steward,
         locations: locations,
         number_packages: number_packages,
         packages: packages.map(&:to_json_ingest)
@@ -126,7 +128,7 @@ module Manifests
     def to_json_storage_hash
       {
         depositor: depositor, collection_id: collection_id,
-        steward: steward, rights: rights,
+        steward: steward, documentation: documentation,
         locations: locations,
         number_packages: number_packages,
         packages: packages.map(&:to_json_hash_storage)

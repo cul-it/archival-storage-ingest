@@ -25,9 +25,13 @@ module FixityWorker
   FIXITY_MANIFEST_TEMPLATE_STR = JSON.generate(FIXITY_MANIFEST_TEMPLATE)
 
   class FixityGenerator < Workers::Worker
+    attr_reader :debug, :logger
+
     # Pass s3_manager only for tests.
     def initialize(s3_manager = nil)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
+      @debug = ArchivalStorageIngest.configuration.s3_manager
+      @logger = ArchivalStorageIngest.configuration.logger
     end
 
     def worker_type
@@ -51,11 +55,22 @@ module FixityWorker
       manifest = Manifests::Manifest.new(json_text: FIXITY_MANIFEST_TEMPLATE_STR)
       fixity_package = manifest.get_package(package_id: FIXITY_TEMPORARY_PACKAGE_ID)
       object_paths.each do |object_path|
-        (sha, size) = calculate_checksum(object_path, msg)
+        logger.debug("Calculate checksum for #{object_path} started") if debug
+        (sha, size, errors) = calculate_checksum(object_path, msg)
+        log_checksum_output(sha, size, errors) if debug
         fixity_package.add_file_entry(filepath: object_path, sha1: sha, size: size)
       end
 
       manifest
+    end
+
+    def log_checksum_output(sha, size, errors)
+      logger.debug("Checksum: #{sha}, #{size}")
+      return if errors.nil?
+
+      errors.each do |error|
+        logger.debug("Error: #{error}")
+      end
     end
 
     # This method must return a list of file paths same as what's in the manifest.
@@ -160,6 +175,7 @@ module FixityWorker
         next unless File.exist?(full_path)
 
         checksum = IngestUtils.calculate_checksum(full_path)
+        break
       end
       checksum
     end

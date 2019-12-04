@@ -26,9 +26,11 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
           .with(Queues::QUEUE_INGEST, anything).and_return(1) # doesn't matter what we return as we don't use it
         input_checker = WorkQueuer::IngestInputChecker.new
         input_checker.ingest_manifest = Manifests.read_manifest(filename: file)
+        ticket_handler = spy('ticket_handler')
         ArchivalStorageIngest.configure do |config|
           config.queuer = queuer
           config.message_queue_name = Queues::QUEUE_INGEST
+          config.ticket_handler = ticket_handler
         end
         ingest_queuer = WorkQueuer::IngestQueuer.new
         allow(ingest_queuer).to receive(:confirm_work) { true }
@@ -36,6 +38,7 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
         ingest_queuer.queue_work(type: IngestMessage::TYPE_INGEST, ingest_id: 'test_id',
                                  dest_path: dir, ingest_manifest: file)
         expect(queuer).to have_received(:put_message).exactly(1).times
+        expect(ticket_handler).to have_received(:update_issue_tracker).exactly(1).times
       end
     end
 

@@ -103,7 +103,7 @@ module ArchivalStorageIngest
     end
 
     def_delegators :@configuration, :logger, :msg_q, :wip_q, :dest_qs, :wip_removal_wait_time,
-                   :worker, :polling_interval, :inhibit_file, :global_inhibit_file, :develop
+                   :worker, :polling_interval, :inhibit_file, :global_inhibit_file, :develop, :debug
 
     def_delegators :@issue_tracker_helper, :notify_worker_started, :notify_worker_completed,
                    :notify_worker_skipped, :notify_worker_error, :notify_error

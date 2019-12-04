@@ -117,6 +117,7 @@ module ArchivalStorageIngest
     end
 
     def run_server
+      logger.debug("#{worker.name} server started") if debug
       loop do
         sleep(polling_interval)
 

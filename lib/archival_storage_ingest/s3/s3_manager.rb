@@ -16,6 +16,7 @@ class S3Manager
   RETRY_INTERVAL = 60
 
   attr_writer :s3
+  attr_accessor :logger
 
   def s3
     @s3 ||= Aws::S3::Resource.new
@@ -24,6 +25,12 @@ class S3Manager
   def initialize(s3_bucket, max_retry = MAX_RETRY)
     @s3_bucket = s3_bucket
     @max_retry = max_retry
+  end
+
+  def log(msg)
+    return if logger.nil?
+
+    logger.info(msg)
   end
 
   def parse_s3_error(error)
@@ -48,9 +55,12 @@ class S3Manager
   def list_object_keys(prefix)
     resp = _list_object(prefix, nil)
     object_keys = _list_keys(resp)
+    log("object keys: #{object_keys}")
     while resp.is_truncated
       resp = _list_object(prefix, resp.next_continuation_token)
-      object_keys.concat(_list_keys(resp))
+      next_keys = _list_keys(resp)
+      log("next keys: #{next_keys}")
+      object_keys.concat(next_keys)
     end
 
     object_keys

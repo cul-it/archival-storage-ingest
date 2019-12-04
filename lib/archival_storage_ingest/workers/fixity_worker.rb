@@ -32,6 +32,7 @@ module FixityWorker
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
       @debug = ArchivalStorageIngest.configuration.debug
       @logger = ArchivalStorageIngest.configuration.logger
+      @s3_manager.logger(@logger)
     end
 
     def worker_type
@@ -59,6 +60,7 @@ module FixityWorker
         (sha, size, errors) = calculate_checksum(object_path, msg)
         log_checksum_output(sha, size, errors) if debug
         fixity_package.add_file_entry(filepath: object_path, sha1: sha, size: size)
+        break
       end
 
       manifest

@@ -121,9 +121,16 @@ module FixityCompareWorker
     end
 
     def collection_manifest(manifest_def:)
-      dest_path = File.join(manifest_dir, "_EM_#{manifest_def.depositor}_#{manifest_def.collection}.json")
+      cm_filename = collection_manifest_filename(depositor: manifest_def.depositor, collection: manifest_def.collection)
+      dest_path = File.join(manifest_dir, cm_filename)
       @s3_manager.download_file(s3_key: manifest_def.s3_key, dest_path: dest_path)
       dest_path
+    end
+
+    def collection_manifest_filename(depositor:, collection:)
+      dep = depositor.sub('/', '_')
+      col = collection.sub('/', '_')
+      "_EM_#{dep}_#{col}.json"
     end
   end
 end

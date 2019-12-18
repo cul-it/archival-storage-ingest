@@ -86,6 +86,7 @@ module Manifests
     def flattened
       all_files = {}
       walk_all_filepath do |filepath|
+        filepath.md5 = nil
         all_files[filepath.filepath] = filepath
       end
       all_files
@@ -123,8 +124,7 @@ module Manifests
     def to_json_ingest_hash
       {
         depositor: depositor, collection_id: collection_id,
-        steward: steward,
-        locations: locations,
+        steward: steward, locations: locations,
         number_packages: number_packages,
         packages: packages.map(&:to_json_ingest)
       }.compact
@@ -138,8 +138,7 @@ module Manifests
       {
         depositor: depositor, collection_id: collection_id,
         steward: steward, documentation: documentation,
-        locations: locations,
-        number_packages: number_packages,
+        locations: locations, number_packages: number_packages,
         packages: packages.map(&:to_json_hash_storage)
       }.compact
     end

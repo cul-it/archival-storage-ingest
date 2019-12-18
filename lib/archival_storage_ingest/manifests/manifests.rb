@@ -100,6 +100,15 @@ module Manifests
       Manifests.diff_hash(me_flattened, other_flattened)
     end
 
+    def fixity_diff(other_manifest)
+      me_flattened = {}
+      flattened.each { |k, v| me_flattened[k] = v.to_fixity_json_hash }
+      other_flattened = {}
+      other_manifest.flattened.each { |k, v| other_flattened[k] = v.to_fixity_json_hash }
+
+      Manifests.diff_hash(me_flattened, other_flattened)
+    end
+
     # json_type is either ingest or storage
     # Details of the differences can be found at:
     # https://github.com/cul-it/cular-metadata/
@@ -265,14 +274,16 @@ module Manifests
       @size = other.size
     end
 
-    def ==(other) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+    # All assets in archival storage must have SHA1 checksum.
+    # We will ignore the MD5 value at all times during fixity checks.
+    def ==(other) # rubocop:disable Metrics/CyclomaticComplexity
       return false unless other.instance_of?(FileEntry)
 
       return false unless filepath == other.filepath
 
       return false unless sha1 == other.sha1
 
-      return false unless md5 == other.md5
+      # return false unless md5 == other.md5
 
       return false unless
         size == other.size ||
@@ -286,6 +297,14 @@ module Manifests
         filepath: filepath,
         sha1: sha1,
         md5: md5,
+        size: size
+      }.compact
+    end
+
+    def to_fixity_json_hash
+      {
+        filepath: filepath,
+        sha1: sha1,
         size: size
       }.compact
     end

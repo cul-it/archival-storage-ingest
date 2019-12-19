@@ -18,11 +18,11 @@ module FixityCompareWorker
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
     end
 
-    def work(msg)
+    def work(msg) # rubocop:disable Metrics/AbcSize
       ingest_manifest, sfs_manifest, s3_manifest = retrieve_manifests(msg)
 
       # ignore collection manifest as itself is not part of the manifest
-      cm_filename = "_EM_#{msg.depositor}_#{msg.collection}.json"
+      cm_filename = collection_manifest_filename(depositor: msg.depositor, collection: msg.collection)
       comparator = Manifests::ManifestComparator.new(cm_filename: cm_filename)
       sfs_status, sfs_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: sfs_manifest)
       s3_status, s3_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: s3_manifest)
@@ -51,6 +51,12 @@ module FixityCompareWorker
       manifest_name = s3_manager.manifest_key(msg.ingest_id, suffix)
       manifest_file = s3_manager.retrieve_file(manifest_name)
       Manifests.read_manifest_io(json_io: manifest_file)
+    end
+
+    def collection_manifest_filename(depositor:, collection:)
+      dep = depositor.sub('/', '_')
+      col = collection.sub('/', '_')
+      "_EM_#{dep}_#{col}.json"
     end
   end
 
@@ -130,12 +136,6 @@ module FixityCompareWorker
       dest_path = File.join(manifest_dir, cm_filename)
       @s3_manager.download_file(s3_key: manifest_def.s3_key, dest_path: dest_path)
       dest_path
-    end
-
-    def collection_manifest_filename(depositor:, collection:)
-      dep = depositor.sub('/', '_')
-      col = collection.sub('/', '_')
-      "_EM_#{dep}_#{col}.json"
     end
   end
 end

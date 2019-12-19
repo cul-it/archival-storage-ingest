@@ -61,8 +61,8 @@ end
 
 RSpec.describe 'Manifests' do # rubocop:disable Metrics/BlockLength
   context 'loading manifest' do # rubocop:disable Metrics/BlockLength
-    let(:manifest10) { Manifests.read_manifest(filename: resource('10ItemsFull.json.new')) }
-    let(:manifest_arxiv) { Manifests.read_manifest(filename: resource('arXiv.json.new')) }
+    let(:manifest10) { Manifests.read_manifest(filename: resource('10ItemsFull.json')) }
+    let(:manifest_arxiv) { Manifests.read_manifest(filename: resource('arXiv.json')) }
 
     it 'can be loaded from files' do
       expect(manifest10.hash).to_not be_nil
@@ -83,7 +83,7 @@ RSpec.describe 'Manifests' do # rubocop:disable Metrics/BlockLength
     end
 
     it 'knows how many packages' do
-      manifest = Manifests.read_manifest(filename: resource('10ItemsFull.json.new'))
+      manifest = Manifests.read_manifest(filename: resource('10ItemsFull.json'))
 
       expect(manifest.number_packages).to eq(2)
     end
@@ -98,8 +98,8 @@ RSpec.describe 'Manifests' do # rubocop:disable Metrics/BlockLength
   end
 
   context 'comparing manifests' do
-    let(:manifest10) { Manifests.read_manifest(filename: resource('10ItemsFull.json.new')) }
-    let(:manifest9) { Manifests.read_manifest(filename: resource('9ItemsShaOnlyReordered.json.new')) }
+    let(:manifest10) { Manifests.read_manifest(filename: resource('10ItemsFull.json')) }
+    let(:manifest9) { Manifests.read_manifest(filename: resource('9ItemsReordered.json')) }
 
     it 'a manifest is equal to itself' do
       diff = manifest10.diff(manifest10)
@@ -120,6 +120,47 @@ RSpec.describe 'Manifests' do # rubocop:disable Metrics/BlockLength
 
       expect(diff).to have_key(:other)
       expect(diff[:other].size).to eq(1)
+    end
+  end
+end
+
+RSpec.describe 'Manifest Comparator' do # rubocop:disable Metrics/BlockLength
+  let(:collection_manifest) do
+    f = resource('comparator/collection_manifest.json')
+    Manifests.read_manifest(filename: f)
+  end
+  let(:sfs_manifest) do
+    f = resource('comparator/sfs.json')
+    Manifests.read_manifest(filename: f)
+  end
+  let(:mismatch_manifest) do
+    f = resource('comparator/sfs_mismatch.json')
+    Manifests.read_manifest(filename: f)
+  end
+
+  context 'when comparing matching manifests' do
+    it 'passes' do
+      comparator = Manifests::ManifestComparator.new(cm_filename: '_EM_RMC_RMA_RMA02205_Cornell_football_films.json')
+      status, _diff = comparator.fixity_diff(ingest: sfs_manifest, fixity: sfs_manifest)
+      expect(status).to eq(true)
+    end
+  end
+
+  context 'when comparing collection manifest to fixity manifest' do
+    it 'ignores collection manifest entry from fixity manifest and passes' do
+      comparator = Manifests::ManifestComparator.new(cm_filename: '_EM_RMC_RMA_RMA02205_Cornell_football_films.json')
+      status, _diff = comparator.fixity_diff(ingest: collection_manifest, fixity: sfs_manifest)
+      expect(status).to eq(true)
+    end
+  end
+
+  context 'when manifests contain mismatch' do
+    it 'returns false status and list of mismatch keys' do
+      comparator = Manifests::ManifestComparator.new(cm_filename: '_EM_RMC_RMA_RMA02205_Cornell_football_films.json')
+      status, diff = comparator.fixity_diff(ingest: sfs_manifest, fixity: mismatch_manifest)
+      expect(status).to eq(false)
+      expect(diff[:ingest]).to eq(%w[RMA02205_F0018/RMA02205_F0018.mov RMA02205_F0018/RMA02205_F0018.mp4])
+      expect(diff[:other]).to eq(%w[RMA02205_F0018/NEW_RMA02205_F0018.mov RMA02205_F0018/RMA02205_F0018.mp4])
     end
   end
 end

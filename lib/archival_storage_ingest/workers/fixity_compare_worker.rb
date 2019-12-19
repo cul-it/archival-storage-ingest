@@ -19,15 +19,17 @@ module FixityCompareWorker
     end
 
     def work(msg)
-      s3_manifest = retrieve_flattend_manifest(msg, Workers::TYPE_S3)
-      sfs_manifest = retrieve_flattend_manifest(msg, Workers::TYPE_SFS)
-      ingest_manifest = retrieve_flattend_manifest(msg, Workers::TYPE_INGEST)
+      ingest_manifest, sfs_manifest, s3_manifest = retrieve_manifests(msg)
 
-      raise IngestException, "Ingest and SFS manifests do not match: #{Manifests.diff_hash(ingest_manifest, sfs_manifest)}" unless
-        ingest_manifest == sfs_manifest
+      # ignore collection manifest as itself is not part of the manifest
+      cm_filename = "_EM_#{msg.depositor}_#{msg.collection}.json"
+      comparator = Manifests::ManifestComparator.new(cm_filename: cm_filename)
+      sfs_status, sfs_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: sfs_manifest)
+      s3_status, s3_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: s3_manifest)
 
-      raise IngestException, "Ingest and S3 manifests do not match: #{Manifests.diff_hash(ingest_manifest, s3_manifest)}" unless
-        ingest_manifest == s3_manifest
+      raise IngestException, "Ingest and SFS manifests do not match: #{sfs_diff}" unless sfs_status
+
+      raise IngestException, "Ingest and S3 manifests do not match: #{s3_diff}" unless s3_status
 
       true
     rescue Aws::S3::Errors::NoSuchKey
@@ -38,10 +40,17 @@ module FixityCompareWorker
       'Manifest Comparator'
     end
 
-    def retrieve_flattend_manifest(msg, suffix)
+    def retrieve_manifests(msg)
+      s3_manifest = retrieve_manifest(msg, Workers::TYPE_S3)
+      sfs_manifest = retrieve_manifest(msg, Workers::TYPE_SFS)
+      ingest_manifest = retrieve_manifest(msg, Workers::TYPE_INGEST)
+      [ingest_manifest, sfs_manifest, s3_manifest]
+    end
+
+    def retrieve_manifest(msg, suffix)
       manifest_name = s3_manager.manifest_key(msg.ingest_id, suffix)
       manifest_file = s3_manager.retrieve_file(manifest_name)
-      Manifests.read_manifest_io(json_io: manifest_file).flattened
+      Manifests.read_manifest_io(json_io: manifest_file)
     end
   end
 
@@ -79,14 +88,10 @@ module FixityCompareWorker
       true
     end
 
-    # add collection manifest if not present (use ingest_manifest in msg)
-    def retrieve_flattend_manifest(msg, suffix)
+    def retrieve_manifest(msg, suffix)
       manifest_name = s3_manager.manifest_key(msg.ingest_id, suffix)
       manifest_file = s3_manager.retrieve_file(manifest_name)
-      manifest = Manifests.read_manifest_io(json_io: manifest_file).flattened
-      cm_path = "_EM_#{msg.depositor}_#{msg.collection}.json"
-      manifest[cm_path] = cm_file_entry(msg: msg, filepath: cm_path) if manifest[cm_path].nil?
-      manifest
+      Manifests.read_manifest_io(json_io: manifest_file)
     end
 
     def cm_file_entry(msg:, filepath:)

@@ -21,8 +21,8 @@ end
 RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockLength
   let(:td_manifest_path) { resolve_filename(%w[manifests test_depositor test_collection _EM_test_depositor_test_collection.json]) }
   let(:td_s3_key) { 'test_depositor/test_collection/_EM_test_depositor_test_collection.json' }
-  let(:arxiv_manifest_path) { resolve_filename(%w[manifests arXiv.json.new]) }
-  let(:arxiv_s3_key) { 'arXiv/arXiv/arXiv.json.new' }
+  let(:arxiv_manifest_path) { resolve_filename(%w[manifests arXiv.json]) }
+  let(:arxiv_s3_key) { 'arXiv/arXiv/arXiv.json' }
   let(:man_of_man_source) { resolve_filename(%w[manifests manifest_of_manifest.json]) }
   let(:man_of_man) { resolve_filename(%w[manifests manifest_of_manifest_copy.json]) }
   let(:old_manifest_sha1) { 'deadbeef' }
@@ -66,7 +66,7 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
             '/cul/data/archivalxx/test_depositor/test_collection/_EM_test_depositor_test_collection.json') { nil }
     allow(FileUtils).to receive(:copy)
       .with(arxiv_manifest_path,
-            '/cul/data/archivalyy/arXiv/arXiv/arXiv.json.new') { nil }
+            '/cul/data/archivalyy/arXiv/arXiv/arXiv.json') { nil }
   end
 
   after(:each) do
@@ -80,13 +80,13 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
     end
 
     it 'returns added definition when not found' do
-      arxiv_manifest = resolve_filename(%w[manifests arXiv.json.new])
+      arxiv_manifest = resolve_filename(%w[manifests arXiv.json])
       manifest_def = @deployer.prepare_manifest_definition(collection_manifest: arxiv_manifest, sfs: 'archivalyy')
       expect(manifest_def[:sfs][0]).to eq('archivalyy')
     end
 
     it 'aborts if sfs is not supplied for new collection' do
-      arxiv_manifest = resolve_filename(%w[manifests arXiv.json.new])
+      arxiv_manifest = resolve_filename(%w[manifests arXiv.json])
       expect { @deployer.prepare_manifest_definition(collection_manifest: arxiv_manifest) }.to raise_error(SystemExit)
     end
   end

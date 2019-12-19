@@ -1,16 +1,7 @@
 {
-  "steward": "swr1",
-  "depositor": "MATH",
-  "collection_id": "LecturesEvents",
-  "rights": "TBD",
-  "locations": [
-    "s3://s3-cular/MATH/LecturesEvents",
-    "smb://files.cornell.edu/lib/archival01/MATH/LecturesEvents"
-  ],
   "packages": [
     {
-      "package_id": "urn:uuid:8532eee6-81ce-4e6e-9fd5-f6457abfba62",
-      "bibid": "2726859",
+      "package_id": "fixity_temporary_package",
       "files": [
         {
           "filepath": "MATH_2726859_V0098/MATH_2726859_V0098.mov",
@@ -31,14 +22,7 @@
           "filepath": "MATH_2726859_V0098/MATH_2726859_V0098_mov.xml",
           "sha1": "9a718ce4f4baf337d2ee6a742ab66134c5f20c81",
           "size": 10726
-        }
-      ],
-      "number_files": 4
-    },
-    {
-      "package_id": "urn:uuid:9008d3e0-4325-4f6e-9359-6875a900694f",
-      "bibid": "9675834",
-      "files": [
+        },
         {
           "filepath": "MATH_9675834_02/MATH_9675834_02_mov.xml",
           "sha1": "a0d28db1b148e80d965ef64b95a3ab9a84da1dc3",
@@ -69,8 +53,7 @@
           "sha1": "c5652ac7bf11f75d2b80931b2e99c36a877393d5",
           "size": 5772
         }
-      ],
-      "number_files": 6
+      ]
     }
   ]
 }

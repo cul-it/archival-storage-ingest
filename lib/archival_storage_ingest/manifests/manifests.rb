@@ -148,13 +148,43 @@ module Manifests
     end
 
     def to_json_fixity_hash
-      {
-        packages: packages.map(&:to_json_fixity)
-      }
+      { packages: packages.map(&:to_json_fixity) }
     end
 
     def to_json_fixity
       to_json_fixity_hash.to_json
+    end
+  end
+
+  class ManifestComparator
+    attr_accessor :collection_manifest_filename
+    def initialize(cm_filename:)
+      @collection_manifest_filename = cm_filename
+    end
+
+    def fixity_diff(ingest:, fixity:)
+      ingest_f = flatten_and_remove_cm(manifest: ingest)
+      fixity_f = flatten_and_remove_cm(manifest: fixity)
+      diffs = diff(m1_flat: ingest_f, m2_flat: fixity_f)
+      status = (diffs[:ingest].count + diffs[:other].count).zero?
+      [status, diffs]
+    end
+
+    def flatten_and_remove_cm(manifest:)
+      flattened = manifest.flattened
+      flattened.delete(collection_manifest_filename) if flattened[collection_manifest_filename]
+      flattened
+    end
+
+    def diff(m1_flat:, m2_flat:)
+      diffs = { ingest: [], other: [] }
+      m1_flat.each do |key, value|
+        diffs[:ingest] << key unless value == m2_flat[key]
+      end
+      m2_flat.each do |key, value|
+        diffs[:other] << key unless value == m1_flat[key]
+      end
+      diffs
     end
   end
 
@@ -275,18 +305,17 @@ module Manifests
 
     # All assets in archival storage must have SHA1 checksum.
     # We will ignore the MD5 value at all times during fixity checks.
-    def ==(other) # rubocop:disable Metrics/CyclomaticComplexity
+    def ==(other)
       return false unless other.instance_of?(FileEntry)
 
+      # pp "#{filepath} : #{other.filepath}" unless filepath == other.filepath
       return false unless filepath == other.filepath
 
+      # pp "#{sha1} : #{other.sha1}" unless sha1 == other.sha1
       return false unless sha1 == other.sha1
 
-      # return false unless md5 == other.md5
-
-      return false unless
-        size == other.size ||
-        size.nil? || other.size.nil?
+      # pp "#{size} : #{other.size}" unless size == other.size
+      return false unless size == other.size
 
       true
     end

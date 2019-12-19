@@ -1,5 +1,5 @@
 json_filename,documentation_folder_pid
-10ItemsFull.json,cular:1
+10ItemsOldManifest.json,cular:1
 4ItemsFull.json,cular:2
-arXiv.json,cular:3
+arXivOldManifest.json,cular:3
 nesteddeep.json,cular:4

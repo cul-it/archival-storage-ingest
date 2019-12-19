@@ -17,7 +17,7 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
   context 'when converting manifest' do # rubocop:disable Metrics/BlockLength
     before do
       manifest_json = JSON.pretty_generate(
-        convert_manifest.convert_manifest_to_new_hash(filename: resource('10ItemsFull.json'), depth: 1)
+        convert_manifest.convert_manifest_to_new_hash(filename: resource('10ItemsOldManifest.json'), depth: 1)
       )
       @manifest = JSON.parse(manifest_json)
     end
@@ -115,7 +115,7 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
     it 'should convert full nesting to the filepath' do
       manifest_json = JSON.pretty_generate(
         convert_manifest.convert_manifest_to_new_hash(
-          filename: resource('arXiv.json'), depth: 1
+          filename: resource('arXivOldManifest.json'), depth: 1
         )
       )
       manifest = JSON.parse(manifest_json)

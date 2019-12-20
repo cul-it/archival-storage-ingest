@@ -107,4 +107,8 @@ class S3Manager
   def download_file(s3_key:, dest_path:)
     s3.client.get_object({ bucket: @s3_bucket, key: s3_key }, target: dest_path)
   end
+
+  def delete_object(s3_key:)
+    s3.client.delete_object(bucket: @s3_bucket, key: s3_key)
+  end
 end

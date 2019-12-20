@@ -91,6 +91,8 @@ module FixityCompareWorker
 
       queue_next_collection(msg)
 
+      remove_collection_manifest_in_temp(ingest_id: msg.ingest_id)
+
       true
     end
 
@@ -104,6 +106,18 @@ module FixityCompareWorker
       im_key = s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_INGEST)
       (sha1, size) = s3_manager.calculate_checksum(im_key)
       Manifests::FileEntry.new(file: { filepath: filepath, sha1: sha1, size: size })
+    end
+
+    # Sometimes, when the things to check are very small, both s3 and sfs return at around the same time.
+    # When this happens, it ends up queueing next collection twice as comparison worker will pick up both messages
+    # and both manifests will be available both times.
+    #
+    # Collection manifests are stored in temporary space in s3 as s3://bucket/.manifest/INGEST_ID_ingest_manifest.json
+    # Delete it when the fixity comparison is successful.
+    # Doing so will make the second run not be able to find the collection manifest and skip.
+    def remove_collection_manifest_in_temp(ingest_id:)
+      manifest_name = s3_manager.manifest_key(ingest_id, Workers::TYPE_INGEST)
+      s3_manager.delete_object(s3_key: manifest_name)
     end
 
     # We invoke the same workflow to queue next collection as manual queuing.

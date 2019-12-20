@@ -210,6 +210,7 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
     setup_next_manifest File.open(source_data(manifest_to_use)), next_key, next_dest_path
     allow(s3_manager).to receive(:calculate_checksum).with(ingest_man_key)
                                                      .and_return(['eea594dee92e310255fd618e778889376b0cbf2a', 1175])
+    allow(s3_manager).to receive(:delete_object).with(s3_key: ingest_man_key).and_return true
   end
   # rubocop: enable Metrics/AbcSize
 

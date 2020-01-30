@@ -6,82 +6,24 @@ require 'archival_storage_ingest/manifests/manifest_merger'
 require 'archival_storage_ingest/manifests/manifest_missing_attribute_populator'
 require 'archival_storage_ingest/manifests/manifest_to_filesystem_comparator'
 require 'archival_storage_ingest/messages/ingest_message'
+require 'archival_storage_ingest/preingest/base_env_initializer'
 require 'fileutils'
+require 'json'
 require 'yaml'
 
 module Preingest
-  DEFAULT_INGEST_ROOT = '/cul/app/archival_storage_ingest/ingest'
-  DEFAULT_SFS_ROOT    = '/cul/data'
-  NO_COLLECTION_MANIFEST = 'none'
-
-  class IngestEnvInitializer
-    attr_accessor :ingest_root, :sfs_root, :depositor, :collection_id, :collection_root,
-                  :data_root, :source_path
-
-    def initialize(ingest_root:, sfs_root:)
-      @ingest_root   = ingest_root
-      @sfs_root      = sfs_root
-      @depositor     = nil
-      @collection_id = nil
-      @data_root     = nil
-      @source_path   = nil
-    end
-
-    # :imf, :cmf, :data, :sfs_location, :ticket_id are used
-    #
-    # This way of coding does make RUBOCOP happy but it is hard to track down
-    # which parameters are used where...
-    # Is there a better way to deal with this situation?
+  class IngestEnvInitializer < BaseEnvInitializer
     def initialize_ingest_env(named_params)
-      _init_attrs(named_params.fetch(:imf))
-      @source_path = _initialize_data(named_params)
-      im_path = _initialize_ingest_manifest(named_params)
-      _initialize_collection_manifest(im_path: im_path, named_params: named_params)
-      _initialize_config(ingest_manifest_path: im_path, named_params: named_params)
+      initialize_env(named_params)
     end
 
-    def _init_attrs(manifest_path)
-      manifest = Manifests.read_manifest(filename: manifest_path)
-      @depositor = manifest.depositor
-      @collection_id = manifest.collection_id
-      @collection_root = File.join(ingest_root, depositor, collection_id)
-      @data_root = File.join(collection_root, 'data')
-    end
-
-    def _initialize_data(named_params)
-      depositor_dir = File.join(data_root, depositor)
-      FileUtils.mkdir_p(depositor_dir)
-      FileUtils.ln_s(named_params.fetch(:data), depositor_dir)
-      File.join(depositor_dir, collection_id)
-    end
-
+    # Add data integrity check after copying ingest manifest to correct place
     def _initialize_ingest_manifest(named_params)
-      manifest_dir = File.join(collection_root, 'manifest')
-
-      # ingest manifest
-      ingest_manifest_dir = File.join(manifest_dir, 'ingest_manifest')
-      im_path = _initialize_manifest(manifest_dir: ingest_manifest_dir, manifest_file: named_params.fetch(:imf))
+      im_path = super
       manifest = _populate_missing_attribute(ingest_manifest: im_path, source_path: source_path)
       raise IngestException, 'Asset mismatch' unless _compare_asset_existence(ingest_manifest: manifest)
 
       im_path
-    end
-
-    def _initialize_collection_manifest(im_path:, named_params:)
-      return if named_params.fetch(:cmf).eql?(NO_COLLECTION_MANIFEST)
-
-      manifest_dir = File.join(collection_root, 'manifest')
-      collection_manifest_dir = File.join(manifest_dir, 'collection_manifest')
-      cm_path = _initialize_manifest(manifest_dir: collection_manifest_dir, manifest_file: named_params.fetch(:cmf))
-      _merge_manifests(collection_manifest: cm_path, ingest_manifest: im_path)
-      cm_path
-    end
-
-    def _initialize_manifest(manifest_dir:, manifest_file:)
-      FileUtils.mkdir_p(manifest_dir)
-      manifest_path = File.join(manifest_dir, File.basename(manifest_file))
-      FileUtils.copy_file(manifest_file, manifest_path)
-      manifest_path
     end
 
     def _populate_missing_attribute(ingest_manifest:, source_path:)
@@ -97,17 +39,64 @@ module Preingest
       mfc.compare_manifest_to_filesystem(manifest: ingest_manifest)
     end
 
-    def _merge_manifests(collection_manifest:, ingest_manifest:)
+    def _initialize_collection_manifest(im_path:, named_params:)
+      manifest_dir = File.join(collection_root, 'manifest')
+      collection_manifest_dir = File.join(manifest_dir, 'collection_manifest')
+
+      if named_params.fetch(:cmf).eql?(NO_COLLECTION_MANIFEST)
+        _def_create_collection_manifest(im_path: im_path, cm_dir: collection_manifest_dir,
+                                        sfs_location: named_params.fetch(:sfs_location))
+      else
+        _merge_ingest_manifest_to_collection_manifest(im_path: im_path, sfs_loc: named_params.fetch(:sfs_location),
+                                                      cm_dir: collection_manifest_dir, cmf: named_params.fetch(:cmf))
+      end
+    end
+
+    def _def_create_collection_manifest(im_path:, cm_dir:, sfs_location:)
+      manifest = _initialize_cm_from_im(im_path: im_path, sfs_location: sfs_location)
+
+      FileUtils.mkdir_p(cm_dir)
+      cm_filename = Manifests.collection_manifest_filename(depositor: depositor, collection: collection_id)
+      manifest_path = File.join(cm_dir, cm_filename)
+      File.write(manifest_path, manifest.to_json_storage_hash.to_json)
+      manifest_path
+    end
+
+    def _initialize_cm_from_im(im_path:, sfs_location:)
+      manifest = Manifests.read_manifest(filename: im_path)
+
+      if manifest.locations.count.zero?
+        update_locations(storage_manifest: manifest, s3_location: full_s3_location,
+                         sfs_location: full_sfs_location(sfs_location: sfs_location))
+      end
+
+      manifest.walk_packages do |package|
+        package.source_path = nil
+      end
+
+      manifest
+    end
+
+    def _merge_ingest_manifest_to_collection_manifest(im_path:, sfs_loc:, cm_dir:, cmf:)
+      cm_path = _initialize_manifest(manifest_dir: cm_dir, manifest_file: cmf)
+      _merge_manifests(collection_manifest: cm_path, ingest_manifest: im_path, sfs_location: sfs_loc)
+      cm_path
+    end
+
+    def _merge_manifests(collection_manifest:, ingest_manifest:, sfs_location:)
       mm = Manifests::ManifestMerger.new
       merged_manifest = mm.merge_manifest_files(storage_manifest: collection_manifest, ingest_manifest: ingest_manifest)
+      merged_manifest = update_locations(storage_manifest: merged_manifest,
+                                         s3_location: full_s3_location,
+                                         sfs_location: full_sfs_location(sfs_location: sfs_location))
       json_to_write = JSON.pretty_generate(merged_manifest.to_json_storage_hash)
       File.open(collection_manifest, 'w') { |file| file.write(json_to_write) }
     end
 
-    def _initialize_config(ingest_manifest_path:, named_params:)
-      ingest_config = generate_config(ingest_manifest_path: ingest_manifest_path, named_params: named_params)
-      ingest_config_file = prepare_config_path
-      File.open(ingest_config_file, 'w') { |file| file.write(ingest_config.to_yaml) }
+    def update_locations(storage_manifest:, s3_location:, sfs_location:)
+      storage_manifest.locations << s3_location unless storage_manifest.locations.include? s3_location
+      storage_manifest.locations << sfs_location unless storage_manifest.locations.include? sfs_location
+      storage_manifest
     end
 
     def generate_config(ingest_manifest_path:, named_params:)
@@ -124,13 +113,6 @@ module Preingest
 
     def work_type
       IngestMessage::TYPE_INGEST
-    end
-
-    def prepare_config_path
-      config = config_path
-      parent = File.dirname(config)
-      FileUtils.mkdir_p(parent)
-      config
     end
 
     def config_path

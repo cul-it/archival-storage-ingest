@@ -54,12 +54,12 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable BlockLength
 
       # compare ingest manifest
       source_imf = Manifests.read_manifest(filename: ingest_manifest)
-      expected_source_path = File.join(ingest_root, depositor, collection, 'data', depositor, collection)
       source_imf.walk_packages do |package|
-        package.source_path = expected_source_path
+        package.source_path = data
       end
       got_imf_path = File.join(got_manifest_path, 'ingest_manifest', File.basename(ingest_manifest))
       got_imf = Manifests.read_manifest(filename: got_imf_path)
+
       got_imf.walk_packages do |package|
         source_package = source_imf.get_package(package_id: package.package_id)
         expect(package).to eq(source_package)

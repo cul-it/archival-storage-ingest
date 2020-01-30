@@ -1,14 +1,12 @@
 # frozen_string_literal: true
 
-require 'archival_storage_ingest/preingest/ingest_env_initializer'
 require 'archival_storage_ingest/messages/ingest_message'
+require 'archival_storage_ingest/preingest/base_env_initializer'
 require 'archival_storage_ingest/workers/fixity_worker'
 
 module Preingest
-  DEFAULT_FIXITY_ROOT = '/cul/app/archival_storage_ingest/periodic_fixity'
-
   # It expects COLLECTION MANIFEST for the passed ingest_manifest_path argument!
-  class PeriodicFixityEnvInitializer < IngestEnvInitializer
+  class PeriodicFixityEnvInitializer < BaseEnvInitializer
     def initialize(periodic_fixity_root:, sfs_root:)
       super(ingest_root: periodic_fixity_root, sfs_root: sfs_root)
     end
@@ -19,32 +17,23 @@ module Preingest
     # cmf:, sfs_location:, ticket_id: are used
     def initialize_periodic_fixity_env(named_params)
       named_params[:imf] = named_params.fetch(:cmf)
-      named_params[:cmf] = NO_COLLECTION_MANIFEST
       named_params[:data] = nil
-      initialize_ingest_env(named_params)
+      initialize_env(named_params)
     end
 
-    # Skip this step for periodic fixity check
-    def _initialize_data(*); end
-
-    def _initialize_ingest_manifest(named_params)
+    # Not really needed but...
+    def _initialize_collection_manifest(im_path:, named_params:) # rubocop:disable Lint/UnusedMethodArgument
       manifest_dir = File.join(collection_root, 'manifest')
-
-      # ingest manifest is collection manifest and does not need to
-      # run additional checks to make sure every item has sha1.
-      # The difference between manifest and data store will be
-      # detected during the fixity check.
-      im_dir = File.join(manifest_dir, 'ingest_manifest')
-      _initialize_manifest(manifest_dir: im_dir, manifest_file: named_params.fetch(:imf))
-    end
-
-    # Skip this step for periodic fixity check
-    def _compare_asset_existence(*)
-      true
+      cm_dir = File.join(manifest_dir, 'collection_manifest')
+      _initialize_manifest(manifest_dir: cm_dir, manifest_file: im_path)
     end
 
     def generate_config(ingest_manifest_path:, named_params:)
-      config = super(ingest_manifest_path: ingest_manifest_path, named_params: named_params)
+      config = {
+        type: work_type, depositor: depositor, collection: collection_id,
+        dest_path: dest_path(sfs_location: named_params.fetch(:sfs_location)),
+        ingest_manifest: ingest_manifest_path, ticket_id: named_params.fetch(:ticket_id)
+      }
       relay_queue_name = named_params.fetch(:relay_queue_name, nil)
       config[:queue_name] = relay_queue_name unless relay_queue_name.nil?
       config

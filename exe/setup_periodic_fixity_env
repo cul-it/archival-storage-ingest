@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/ingest_utils/ingest_utils'
-require 'archival_storage_ingest/preingest/ingest_env_initializer'
+require 'archival_storage_ingest/preingest/base_env_initializer'
 require 'archival_storage_ingest/preingest/periodic_fixity_env_initializer'
 
 # it expect data to be in the form /.../depositor/collection

@@ -17,3 +17,5 @@ sfs_root = Preingest::DEFAULT_SFS_ROOT if IngestUtils.blank?(sfs_root)
 
 env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root)
 env_initializer.initialize_ingest_env(data: data, cmf: cmf, imf: imf, sfs_location: sfs, ticket_id: ticket_id)
+
+puts "Command to run:\narchival_storage_ingest -i #{env_initializer.config_path}\n"

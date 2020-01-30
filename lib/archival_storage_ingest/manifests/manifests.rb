@@ -27,6 +27,12 @@ module Manifests
     }.compact
   end
 
+  def self.collection_manifest_filename(depositor:, collection:)
+    dep = depositor.sub('/', '_')
+    col = collection.sub('/', '_')
+    "_EM_#{dep}_#{col}.json"
+  end
+
   class Manifest
     attr_accessor :collection_id, :depositor, :steward, :locations, :packages, :documentation
 
@@ -38,6 +44,7 @@ module Manifests
       @documentation = json_hash[:documentation]
       @steward = json_hash[:steward]
       @locations = json_hash[:locations]
+      @locations = [] if @locations.nil?
       @packages = json_hash[:packages] ? json_hash[:packages].map { |package| Manifests::Package.new(package: package) } : []
     end
 

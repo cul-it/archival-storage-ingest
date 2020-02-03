@@ -68,7 +68,7 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable BlockLength
 
       # compare merged collection manifest
       expected_mm = Manifests.read_manifest(filename: merged_manifest)
-      got_mm_path = File.join(got_manifest_path, 'collection_manifest', File.basename(collection_manifest))
+      got_mm_path = File.join(got_manifest_path, 'collection_manifest', '_EM_test_depositor_test_collection.json')
       got_mm = Manifests.read_manifest(filename: got_mm_path)
       got_mm.walk_packages do |package|
         expected_package = expected_mm.get_package(package_id: package.package_id)

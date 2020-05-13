@@ -131,8 +131,8 @@ module Manifests
     def to_json_ingest_hash
       {
         depositor: depositor, collection_id: collection_id,
-        steward: steward, locations: locations,
-        number_packages: number_packages,
+        steward: steward, documentation: documentation,
+        locations: locations, number_packages: number_packages,
         packages: packages.map(&:to_json_ingest)
       }.compact
     end

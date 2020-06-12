@@ -13,7 +13,7 @@ module Manifests
       mismatch = {}
       manifest.walk_packages do |package|
         package.walk_files do |file|
-          fs_size = File.new(File.join(package.source_path, file.filepath), "r").size
+          fs_size = File.new(File.join(package.source_path, file.filepath), 'r').size
           mismatch[file.filepath] = { manifest: file.size, fs: fs_size } if file.size != fs_size
 
           total += fs_size

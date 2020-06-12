@@ -12,4 +12,10 @@ module ArchivalStorageIngestLogger
     logger.level = config.debug ? Logger::DEBUG : Logger::INFO
     logger
   end
+
+  def self.create_logger(log_path:, log_level: Logger::INFO)
+    logger = Logger.new(log_path)
+    logger.level = log_level
+    logger
+  end
 end

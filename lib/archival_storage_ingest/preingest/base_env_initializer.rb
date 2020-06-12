@@ -8,7 +8,7 @@ module Preingest
 
   class BaseEnvInitializer
     attr_accessor :ingest_root, :sfs_root, :depositor, :collection_id, :collection_root,
-                  :data_root, :source_path
+                  :data_root, :source_path, :total_size, :size_mismatch
 
     def initialize(ingest_root:, sfs_root:)
       @ingest_root   = ingest_root
@@ -17,6 +17,8 @@ module Preingest
       @collection_id = nil
       @data_root     = nil
       @source_path   = nil
+      @total_size    = 0
+      @size_mismatch = {}
     end
 
     # :imf, :cmf, :data, :sfs_location, :ticket_id are used

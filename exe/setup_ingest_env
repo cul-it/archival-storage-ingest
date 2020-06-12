@@ -19,4 +19,14 @@ sfs_root = Preingest::DEFAULT_SFS_ROOT if IngestUtils.blank?(sfs_root)
 env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root)
 env_initializer.initialize_ingest_env(data: data, cmf: cmf, imf: imf, sfs_location: sfs, ticket_id: ticket_id)
 
-puts "Command to run:\narchival_storage_ingest -i #{env_initializer.config_path}\n"
+if env_initializer.size_mismatch.empty?
+  puts "Total size of assets: #{env_initializer.total_size}\n"
+  puts "Command to queue ingest:\narchival_storage_ingest -i #{env_initializer.config_path}\n"
+else
+  puts "Size mismatch detected\n"
+  env_initializer.size_mismatch.each do |path, mismatch|
+    manifest_size = mismatch[:manifest]
+    fs_size = mismatch[:fs]
+    puts "#{path}: manifest file size: #{manifest_size}, source file size: #{fs_size}\n"
+  end
+end

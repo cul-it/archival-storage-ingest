@@ -7,7 +7,7 @@ require 'json'
 require 'mail'
 require 'mail/network/delivery_methods/test_mailer'
 
-RSpec.describe 'DeadLetterMonitor' do # rubocop:disable BlockLength
+RSpec.describe 'DeadLetterMonitor' do # rubocop:disable Metrics/BlockLength
   let(:dead_letter_queue_name) { %w[dlq1 dlq2] }
   let(:dead_letter_message_hash) do
     {

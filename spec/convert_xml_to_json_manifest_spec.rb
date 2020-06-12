@@ -3,7 +3,7 @@
 require 'rspec'
 require 'archival_storage_ingest/manifests/convert_xml_to_json_manifest'
 
-RSpec.describe 'ConvertXmlToJsonMetadata' do # rubocop:disable BlockLength
+RSpec.describe 'ConvertXmlToJsonMetadata' do # rubocop:disable Metrics/BlockLength
   # rubocop:disable Metrics/LineLength
   let(:hashdeep_manifest_file) { File.join(File.dirname(__FILE__), 'resources', 'manifests', 'hashdeep_manifest.xml') }
   let(:collection_manifest_file) { File.join(File.dirname(__FILE__), 'resources', 'manifests', 'hashdeep_collection_manifest.json') }

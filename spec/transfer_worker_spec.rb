@@ -6,7 +6,7 @@ require 'pathname'
 require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/workers/transfer_worker'
 
-RSpec.shared_examples 'transfer_worker_shared_examples' do # rubocop:disable BlockLength
+RSpec.shared_examples 'transfer_worker_shared_examples' do # rubocop:disable Metrics/BlockLength
   let(:dest_path) do
     File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'sfs', 'archival01', 'RMC', 'RMA', 'RMA0001234')
   end
@@ -53,7 +53,7 @@ def ingest_manifest_io(manifest_path:, replace_path:)
   StringIO.new(str_manifest.gsub('REPLACE_ME', replace_path))
 end
 
-RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
+RSpec.describe 'S3TransferWorker' do # rubocop:disable Metrics/BlockLength
   include_examples 'transfer_worker_shared_examples'
   before(:each) do
     @s3_bucket = spy('s3_bucket')
@@ -152,7 +152,7 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable BlockLength
   end
 end
 
-RSpec.describe 'SFSTransferWorker' do # rubocop:disable BlockLength
+RSpec.describe 'SFSTransferWorker' do # rubocop:disable Metrics/BlockLength
   include_examples 'transfer_worker_shared_examples'
   before(:each) do
     @s3_bucket = spy('s3_bucket')

@@ -6,7 +6,7 @@ require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/manifests/manifest_to_filesystem_comparator'
 require 'archival_storage_ingest/workers/fixity_worker'
 
-RSpec.describe 'ManifestToFilesystemComparator' do # rubocop:disable BlockLength
+RSpec.describe 'ManifestToFilesystemComparator' do # rubocop:disable Metrics/BlockLength
   let(:source_path) do
     File.join(File.dirname(__FILE__), 'resources', 'manifests', 'manifest_to_filesystem_comparator', 'RMC', 'RMA', 'RMA01234')
   end

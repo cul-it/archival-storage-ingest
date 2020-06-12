@@ -5,7 +5,7 @@ require 'misc/merge_manifest'
 require 'archival_storage_ingest/manifests/manifest_merger'
 require 'archival_storage_ingest/workers/fixity_worker'
 
-RSpec.describe 'MergeManifest' do # rubocop:disable BlockLength
+RSpec.describe 'MergeManifest' do # rubocop:disable Metrics/BlockLength
   let(:depositor) { 'RMC/RMA' }
   let(:collection_id) { 'RMA01234' }
   let(:ingest_manifest_hash) do
@@ -58,10 +58,10 @@ RSpec.describe 'MergeManifest' do # rubocop:disable BlockLength
   end
 end
 
-RSpec.describe 'MergeManifest' do # rubocop:disable BlockLength
+RSpec.describe 'MergeManifest' do # rubocop:disable Metrics/BlockLength
   let(:ingest_manifest) { File.join(File.dirname(__FILE__), 'resources', 'misc', 'ingest_manifest.json') }
   let(:collection_manifest) { File.join(File.dirname(__FILE__), 'resources', 'misc', 'collection_manifest.json') }
-  let(:expected_json) do # rubocop:disable BlockLength
+  let(:expected_json) do # rubocop:disable Metrics/BlockLength
     json_data = {
       'RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records' => {
         'phys_coll_id' => 'RMA02471',

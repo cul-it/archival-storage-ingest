@@ -3,7 +3,7 @@
 require 'rspec'
 require 'archival_storage_ingest/options/command_parser'
 
-RSpec.describe 'Command Parser' do # rubocop:disable BlockLength
+RSpec.describe 'Command Parser' do # rubocop:disable Metrics/BlockLength
   describe 'IngestCommandParser' do
     let(:ingest_config) { File.join(File.dirname(__FILE__), 'resources', 'manifests', 'arXiv.json') }
     let(:ic_option_parser) { CommandParser::IngestCommandParser.new }

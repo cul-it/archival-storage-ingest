@@ -30,7 +30,7 @@ data_path = File.join(File.dirname(__FILE__), 'resources',
                       'manifests', 'manifest_to_filesystem_comparator', 'RMC', 'RMA', 'RMA01234')
 ingest_manifest = File.join(File.dirname(__FILE__), 'resources', 'manifests', 'manifest_generator', 'ingest_manifest.json')
 
-RSpec.describe 'ManifestGeneratorS3' do # rubocop:disable BlockLength
+RSpec.describe 'ManifestGeneratorS3' do # rubocop:disable Metrics/BlockLength
   let(:s3_manager) do
     s3m = S3Manager.new('bogus_bucket')
 

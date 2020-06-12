@@ -5,7 +5,7 @@ require 'archival_storage_ingest/ticket/ticket_handler'
 require 'mail'
 require 'mail/network/delivery_methods/test_mailer'
 
-RSpec.describe 'TicketHandler' do # rubocop:disable BlockLength
+RSpec.describe 'TicketHandler' do # rubocop:disable Metrics/BlockLength
   let(:ticket_id) { 'CULAR-1937' }
   let(:comment) { 'This is a test.' }
   let(:ticket_handler) do

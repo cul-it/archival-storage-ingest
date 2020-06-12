@@ -5,13 +5,13 @@ require 'rspec'
 require 'archival_storage_ingest/manifests/manifest_missing_attribute_populator'
 require 'archival_storage_ingest/workers/fixity_worker'
 
-RSpec.describe 'ManifestMissingAttributePopulator' do # rubocop:disable BlockLength
+RSpec.describe 'ManifestMissingAttributePopulator' do # rubocop:disable Metrics/BlockLength
   let(:source_path) do
     File.join(File.dirname(__FILE__), 'resources', 'manifests', 'manifest_to_filesystem_comparator', 'RMC', 'RMA', 'RMA01234')
   end
   let(:depositor) { 'RMC/RMA' }
   let(:collection) { 'RMA01234' }
-  let(:ingest_manifest_hash) do # rubocop:disable BlockLength
+  let(:ingest_manifest_hash) do # rubocop:disable Metrics/BlockLength
     {
       collection_id: collection,
       depositor: depositor,
@@ -43,7 +43,7 @@ RSpec.describe 'ManifestMissingAttributePopulator' do # rubocop:disable BlockLen
       ]
     }
   end
-  let(:expected_ingest_manifest_hash) do # rubocop:disable BlockLength
+  let(:expected_ingest_manifest_hash) do # rubocop:disable Metrics/BlockLength
     {
       collection_id: collection,
       depositor: depositor,

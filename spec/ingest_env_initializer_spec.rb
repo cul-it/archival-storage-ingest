@@ -7,7 +7,7 @@ require 'fileutils'
 require 'rspec'
 require 'yaml'
 
-RSpec.describe 'IngestEnvInitializer' do # rubocop:disable BlockLength
+RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
   let(:depositor) { 'test_depositor' }
   let(:collection) { 'test_collection' }
   let(:ingest_root) do
@@ -44,8 +44,8 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable BlockLength
     FileUtils.remove_dir(dir_to_clean)
   end
 
-  context 'when initializing ingest env' do # rubocop:disable BlockLength
-    it 'creates ingest env' do # rubocop:disable BlockLength
+  context 'when initializing ingest env' do # rubocop:disable Metrics/BlockLength
+    it 'creates ingest env' do # rubocop:disable Metrics/BlockLength
       env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root)
       env_initializer.initialize_ingest_env(data: data, cmf: collection_manifest, imf: ingest_manifest,
                                             sfs_location: sfs_location, ticket_id: ticket_id)

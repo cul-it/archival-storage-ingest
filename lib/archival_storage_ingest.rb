@@ -94,7 +94,7 @@ module ArchivalStorageIngest
   end
 
   # Ingest manager to either start the server or queue new ingest.
-  class IngestManager # rubocop:disable ClassLength
+  class IngestManager # rubocop:disable Metrics/ClassLength
     extend Forwardable
 
     def initialize

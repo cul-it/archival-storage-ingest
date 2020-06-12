@@ -9,7 +9,7 @@ require 'fileutils'
 require 'rspec'
 require 'yaml'
 
-RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable BlockLength
+RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable Metrics/BlockLength
   let(:depositor) { 'test_depositor' }
   let(:collection) { 'test_collection' }
   let(:periodic_fixity_root) do
@@ -43,7 +43,7 @@ RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable BlockLength
     FileUtils.remove_dir(dir_to_clean)
   end
 
-  context 'when initializing periodic fixity env' do # rubocop:disable BlockLength
+  context 'when initializing periodic fixity env' do # rubocop:disable Metrics/BlockLength
     it 'creates periodic fixity env' do
       env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
       env_initializer.initialize_periodic_fixity_env(cmf: collection_manifest,

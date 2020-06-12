@@ -9,7 +9,7 @@ require 'archival_storage_ingest/workers/fixity_worker'
 require 'archival_storage_ingest/workers/worker'
 
 # TODO: Refactor tests so that variables are defined locally to their use as much as possible.
-RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
+RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
   let(:manifest_dir) { File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'manifest') }
   let(:ingest_id) { 'test_1234' }
   let(:depositor) { 'RMC/RMA' }
@@ -150,7 +150,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
     s3m
   end
 
-  describe 'IngestS3FixityGenerator' do # rubocop:disable BlockLength
+  describe 'IngestS3FixityGenerator' do # rubocop:disable Metrics/BlockLength
     let(:worker) do
       ArchivalStorageIngest.configure do |config|
         config.logger = Logger.new(STDOUT)
@@ -185,7 +185,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable BlockLength
     end
   end
 
-  describe 'IngestSFSFixityGenerator' do # rubocop:disable BlockLength
+  describe 'IngestSFSFixityGenerator' do # rubocop:disable Metrics/BlockLength
     let(:worker) do
       ArchivalStorageIngest.configure do |config|
         config.logger = Logger.new(STDOUT)

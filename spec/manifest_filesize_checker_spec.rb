@@ -4,7 +4,7 @@ require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/manifests/manifest_filesize_checker'
 require 'rspec'
 
-RSpec.describe 'IngestEnvInitializer' do # rubocop:disable BlockLength
+RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
   let(:depositor) { 'test_depositor' }
   let(:collection) { 'test_collection' }
   let(:source_data) do

@@ -10,7 +10,7 @@ require 'archival_storage_ingest/work_queuer/input_checker'
 require 'archival_storage_ingest/work_queuer/work_queuer'
 require 'json'
 
-RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
+RSpec.describe ArchivalStorageIngest do # rubocop:disable Metrics/BlockLength
   it 'has a version number' do
     expect(ArchivalStorageIngest::VERSION).not_to be nil
   end
@@ -19,7 +19,7 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
   let(:dir) { File.join(File.dirname(__FILE__), %w[resources manifests]) }
   let(:file) { File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'success', 'manifest.json') }
 
-  describe 'IngestQueuer' do # rubocop:disable BlockLength
+  describe 'IngestQueuer' do # rubocop:disable Metrics/BlockLength
     context 'when queuing message' do
       it 'should send message to ingest queue' do
         allow(queuer).to receive(:put_message)
@@ -91,7 +91,7 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable BlockLength
     end
   end
 
-  describe 'MessageMover' do # rubocop:disable BlockLength
+  describe 'MessageMover' do # rubocop:disable Metrics/BlockLength
     let(:message_mover) do
       ArchivalStorageIngest.configure do |config|
         config.queuer = queuer

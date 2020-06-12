@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop:disable BlockLength
+# rubocop:disable Metrics/BlockLength
 
 require 'spec_helper'
 require 'rspec/mocks'
@@ -218,4 +218,4 @@ RSpec.describe 'IngestManager' do
     end
   end
 end
-# rubocop:enable BlockLength
+# rubocop:enable Metrics/BlockLength

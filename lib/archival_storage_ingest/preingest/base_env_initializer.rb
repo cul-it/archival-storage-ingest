@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'yaml'
+
 module Preingest
   DEFAULT_INGEST_ROOT = '/cul/app/archival_storage_ingest/ingest'
   DEFAULT_FIXITY_ROOT = '/cul/app/archival_storage_ingest/periodic_fixity'
@@ -72,6 +74,7 @@ module Preingest
     def _initialize_config(ingest_manifest_path:, named_params:)
       ingest_config = generate_config(ingest_manifest_path: ingest_manifest_path, named_params: named_params)
       ingest_config_file = prepare_config_path
+
       File.open(ingest_config_file, 'w') { |file| file.write(ingest_config.to_yaml) }
     end
 

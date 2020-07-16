@@ -131,7 +131,7 @@ module ConvertManifest
       packages
     end
 
-    def add_package_metadata(package:, csv_metadata:) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
+    def add_package_metadata(package:, csv_metadata:) # rubocop:disable Metrics/AbcSize
       filepath = package[:files][0][:filepath]
       csv_entry = csv_data(csv_metadata: csv_metadata, filepath: filepath)
       csv_local_id = csv_entry['local_id']

@@ -1,0 +1,4 @@
+package_id,filepath,sha1,size
+fixity_temporary_package,1/one.txt,fe05bcdcdc4928012781a5f1a2a77cbb5398e106,3
+fixity_temporary_package,2/two.txt,ad782ecdac770fc6eb9a62e44f90873fb97fb26b,3
+fixity_temporary_package,3/three.txt,4b6ff8cf664a7db66f45ad3dfca4baafd22a0b85,31

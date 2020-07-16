@@ -248,7 +248,7 @@ module Manifests
       file_to_update
     end
 
-    def ==(other) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
+    def ==(other) # rubocop:disable Metrics/AbcSize
       return false unless other.instance_of?(Package)
 
       return false unless source_path == other.source_path

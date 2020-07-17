@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/exception/ingest_exception'
+require 'archival_storage_ingest/disseminate/request'
+require 'archival_storage_ingest/disseminate/transferer'
+require 'archival_storage_ingest/disseminate/fixity_checker'
+require 'archival_storage_ingest/disseminate/packager'
 
 module Disseminate
   DEFAULT_SFS_PREFIX = '/cul/data'

@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'archival_storage_ingest/disseminate/disseminator'
+
+depositor = ARGV[0]
+collection = ARGV[1]
+manifest_file = ARGV[2]
+csv_file = ARGV[3]
+target_dir = ARGV[4]
+zip_filename = ARGV[5]
+sfs_bucket = ARGV[6]
+
+disseminator = Disseminate::Disseminator.new(target_dir: target_dir, sfs_bucket: sfs_bucket)
+disseminator.disseminate(manifest: manifest_file, csv: csv_file,
+                         depositor: depositor, collection: collection,
+                         zip_filename: zip_filename)
+
+puts 'Dissemination complete'

@@ -18,7 +18,7 @@ module FixityCompareWorker
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
     end
 
-    def work(msg) # rubocop:disable Metrics/AbcSize
+    def work(msg)
       ingest_manifest, sfs_manifest, s3_manifest = retrieve_manifests(msg)
 
       # ignore collection manifest as itself is not part of the manifest

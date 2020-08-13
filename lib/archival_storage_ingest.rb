@@ -167,7 +167,6 @@ module ArchivalStorageIngest
     # logger.info appears to trigger ABC (Assignment Branch Condition) rubocop error.
     #
     # rubocop:disable Metrics/MethodLength
-    # rubocop:disable Metrics/AbcSize
     def do_work
       # work is to get a message from msg_q,
       # process it, and pass it along to the next queue
@@ -194,7 +193,6 @@ module ArchivalStorageIngest
       end
     end
     # rubocop:enable Metrics/MethodLength
-    # rubocop:enable Metrics/AbcSize
 
     def _do_work_and_notify(msg)
       go_to_next_queue = worker.work(msg)

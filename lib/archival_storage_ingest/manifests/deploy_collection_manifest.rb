@@ -76,6 +76,10 @@ module Manifests
       @s3_manager.upload_file(manifest_def[:s3key], cm_path)
     end
 
+    def deploy_asif(cm_path:, manifest_def:)
+      @s3_manager.upload_asif_manifest(s3_key: manifest_def[:s3key], manifest_file: cm_path)
+    end
+
     def deploy_manifest_definition
       file = File.new(@mom_path, 'w')
       output = JSON.pretty_generate(@manifest_of_manifests)

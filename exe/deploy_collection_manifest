@@ -12,8 +12,9 @@ sfs = ARGV.shift
 manifest_def = '/cul/app/archival_storage_ingest/manifest_of_manifests/manifest_of_manifests.json'
 manifest_def = ENV['asi_manifest_of_manifest'] if ENV['asi_manifest_of_manifest']
 
-s3_bucket = ENV['asi_develop'] || ENV['asi_queue_develop'] ? 's3-cular-dev' : 's3-cular'
-s3_manager = S3Manager.new(s3_bucket)
+s3_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-dev' : 's3-cular'
+asif_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-dev' : 's3-cular-asif-manifests'
+s3_manager = S3Manager.new(s3_bucket, asif_bucket)
 
 deployer = Manifests::CollectionManifestDeployer.new(manifests_path: manifest_def, s3_manager: s3_manager)
 manifest_definition = deployer.prepare_manifest_definition(

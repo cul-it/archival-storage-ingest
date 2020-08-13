@@ -21,8 +21,9 @@ class S3Manager
     @s3 ||= Aws::S3::Resource.new
   end
 
-  def initialize(s3_bucket, max_retry = MAX_RETRY)
+  def initialize(s3_bucket, asif_s3_bucket = 's3-cular-invalid', max_retry = MAX_RETRY)
     @s3_bucket = s3_bucket
+    @asif_s3_bucket = asif_s3_bucket
     @max_retry = max_retry
   end
 
@@ -30,10 +31,18 @@ class S3Manager
     "Code: #{error.code}\nContext: #{error.context}\nMessage: #{error.message}"
   end
 
-  def upload_file(s3_key, file_to_upload)
-    s3.bucket(@s3_bucket).object(s3_key).upload_file(file_to_upload)
+  def _upload_file(bucket:, s3_key:, file:)
+    s3.bucket(bucket).object(s3_key).upload_file(file)
   rescue Aws::S3::Errors::ServiceError => e
-    raise IngestException, "S3 upload file failed for #{file_to_upload}!\n" + parse_s3_error(e)
+    raise IngestException, "S3 upload file failed for #{file}!\n" + parse_s3_error(e)
+  end
+
+  def upload_file(s3_key, file_to_upload)
+    _upload_file(bucket: @s3_bucket, s3_key: s3_key, file: file_to_upload)
+  end
+
+  def upload_asif_manifest(s3_key:, manifest_file:)
+    _upload_file(bucket: @asif_s3_bucket, s3_key: s3_key, file: manifest_file)
   end
 
   def upload_string(s3_key, data)

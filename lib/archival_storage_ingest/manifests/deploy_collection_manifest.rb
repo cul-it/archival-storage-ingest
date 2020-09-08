@@ -17,14 +17,39 @@ module Manifests
       @sfs_prefix = sfs_prefix
     end
 
-    def prepare_manifest_definition(collection_manifest:, sfs: nil)
+    def prepare_manifest_definition(collection_manifest:, ingest_manifest:, ingest_date: nil, sfs: nil)
       cm_obj = Manifests.read_manifest(filename: collection_manifest)
+      im_obj = Manifests.read_manifest(filename: ingest_manifest)
+      cm_obj = prepare_collection_manifest(manifest_path: collection_manifest, ingest_date: ingest_date,
+                                           collection_manifest: cm_obj, ingest_manifest: im_obj)
       manifest_def = manifest_definition(cm_path: collection_manifest, collection_manifest: cm_obj)
       if manifest_def.nil?
         manifest_def = add_manifest_definition(cm_path: collection_manifest,
                                                collection_manifest: cm_obj, sfs: sfs)
       end
       manifest_def
+    end
+
+    def prepare_collection_manifest(manifest_path:, collection_manifest:, ingest_manifest:, ingest_date: nil)
+      manifest = add_ingest_date(collection_manifest: collection_manifest,
+                                 ingest_manifest: ingest_manifest,
+                                 ingest_date: ingest_date)
+      json_to_write = JSON.pretty_generate(manifest.to_json_storage_hash)
+      File.open(manifest_path, 'w') { |file| file.write(json_to_write) }
+      manifest
+    end
+
+    def add_ingest_date(collection_manifest:, ingest_manifest:, ingest_date: nil)
+      ingest_date = Time.new.strftime('%Y-%m-%d') if ingest_date.nil?
+      ingest_manifest.walk_packages do |package|
+        cm_package = collection_manifest.get_package(package_id: package.package_id)
+        package.walk_files do |file|
+          cm_file = cm_package.find_file(filepath: file.filepath)
+          cm_file.ingest_date = ingest_date
+        end
+      end
+
+      collection_manifest
     end
 
     def manifest_definition(cm_path:, collection_manifest:)

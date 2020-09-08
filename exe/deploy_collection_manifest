@@ -7,6 +7,7 @@ require 'archival_storage_ingest/s3/s3_manager'
 # These MUST be shifted so that gets will get user input properly!
 # https://www.ruby-forum.com/t/argv-stdin-and-gets/166427/3
 new_collection_manifest = ARGV.shift
+ingest_manifest = ARGV.shift
 sfs = ARGV.shift
 
 manifest_def = '/cul/app/archival_storage_ingest/manifest_of_manifests/manifest_of_manifests.json'
@@ -19,6 +20,7 @@ s3_manager = S3Manager.new(s3_bucket, asif_bucket)
 deployer = Manifests::CollectionManifestDeployer.new(manifests_path: manifest_def, s3_manager: s3_manager)
 manifest_definition = deployer.prepare_manifest_definition(
   collection_manifest: new_collection_manifest,
+  ingest_manifest: ingest_manifest,
   sfs: sfs
 )
 

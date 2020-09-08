@@ -270,7 +270,7 @@ module Manifests
         bibid: bibid,
         local_id: local_id,
         number_files: number_files,
-        files: files.map(&:to_json_hash)
+        files: files.map(&:to_json_hash_storage)
       }.compact
     end
 
@@ -294,12 +294,13 @@ module Manifests
   end
 
   class FileEntry
-    attr_accessor :filepath, :sha1, :md5, :size
+    attr_accessor :filepath, :sha1, :md5, :size, :ingest_date
     def initialize(file:)
       @filepath = file[:filepath]
       @sha1 = file[:sha1]
       @md5 = file[:md5]
       @size = file[:size]
+      @ingest_date = file[:ingest_date]
     end
 
     def copy(other)
@@ -308,6 +309,7 @@ module Manifests
       @sha1 = other.sha1
       @md5 = other.md5
       @size = other.size
+      @ingest_date = other.ingest_date
     end
 
     # All assets in archival storage must have SHA1 checksum.
@@ -324,7 +326,19 @@ module Manifests
       # pp "#{size} : #{other.size}" unless size == other.size
       return false unless size == other.size
 
+      return false unless ingest_date == other.ingest_date
+
       true
+    end
+
+    def to_json_hash_storage
+      {
+        filepath: filepath,
+        sha1: sha1,
+        md5: md5,
+        size: size,
+        ingest_date: ingest_date
+      }.compact
     end
 
     def to_json_hash

@@ -6,8 +6,9 @@ require 'json'
 
 module ArchiveSize
     class ArchiveSize
-        def initialize(archives:)
+        def initialize(archives:, s3_manager:)
             @archives = archives
+            @s3_manager = s3_manager
         end
         def archive_size
             json_data = {}
@@ -20,6 +21,9 @@ module ArchiveSize
                 (json_data[:archives]) << a
             end
             JSON.pretty_generate(json_data)
+        end
+        def deploy_asif_archive_size
+          @s3_manager.upload_asif_manifest(s3_key: "cular_archive_space.json", file: archive_size)
         end
     end
 end

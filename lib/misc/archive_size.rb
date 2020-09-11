@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Get array of paths to SFS archives and return JSON of capacity and usage
+
 require 'json'
 
 module ArchiveSize

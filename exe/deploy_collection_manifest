@@ -27,11 +27,11 @@ manifest_definition = deployer.prepare_manifest_definition(
 )
 
 archives = [
-  a1 = { path: '/cul/data/archival01' },
-  a2 = { path: '/cul/data/archival02' },
-  a3 = { path: '/cul/data/archival03' },
-  a4 = { path: '/cul/data/archival04' },
-  a5 = { path: '/cul/data/archival05' }
+  { a1: { path: '/cul/data/archival01' } },
+  { a2: { path: '/cul/data/archival02' } },
+  { a3: { path: '/cul/data/archival03' } },
+  { a4: { path: '/cul/data/archival04' } },
+  { a5: { path: '/cul/data/archival05' } }
 ]
 
 archive_size = ArchiveSize::ArchiveSize.new(archives: archives, s3_manager: s3_manager)

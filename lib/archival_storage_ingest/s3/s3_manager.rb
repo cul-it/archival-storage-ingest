@@ -21,7 +21,12 @@ class S3Manager
     @s3 ||= Aws::S3::Resource.new
   end
 
-  def initialize(s3_bucket, asif_s3_bucket = 's3-cular-invalid', asif_archive_size_s3_bucket = 's3-cular-invalid', max_retry = MAX_RETRY)
+  def initialize(
+    s3_bucket,
+    asif_s3_bucket = 's3-cular-invalid',
+    asif_archive_size_s3_bucket = 's3-cular-invalid',
+    max_retry = MAX_RETRY
+  )
     @s3_bucket = s3_bucket
     @asif_s3_bucket = asif_s3_bucket
     @asif_archive_size_s3_bucket = asif_archive_size_s3_bucket

@@ -24,8 +24,8 @@ module ArchiveSize
       JSON.pretty_generate(json_data)
     end
 
-    def deploy_asif_archive_size
-      @s3_manager.upload_asif_manifest(s3_key: 'cular_archive_space.json', file: archive_size)
+    def deploy_asif_archive_size(archive_size_json = archive_size)
+      @s3_manager.upload_asif_archive_size(s3_key: 'cular_archive_space.json', archive_size_file: archive_size_json)
     end
   end
 end

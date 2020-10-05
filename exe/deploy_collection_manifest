@@ -16,8 +16,13 @@ manifest_def = ENV['asi_manifest_of_manifest'] if ENV['asi_manifest_of_manifest'
 s3_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-dev' : 's3-cular'
 asif_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-dev' : 's3-cular-asif-manifests'
 s3_manager = S3Manager.new(s3_bucket, asif_bucket)
+sfs_prefix = if ENV['asi_develop'] || ENV['asi_deploy_manifest_develop']
+               '/cul/app/archival_storage_ingest/test/deploy'
+             else
+               Manifests::SFS_PREFIX
+             end
 
-deployer = Manifests::CollectionManifestDeployer.new(manifests_path: manifest_def, s3_manager: s3_manager)
+deployer = Manifests::CollectionManifestDeployer.new(manifests_path: manifest_def, s3_manager: s3_manager, sfs_prefix: sfs_prefix)
 manifest_definition = deployer.prepare_manifest_definition(
   collection_manifest: new_collection_manifest,
   ingest_manifest: ingest_manifest,

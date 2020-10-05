@@ -87,6 +87,7 @@ module Manifests
     def deploy_collection_manifest(manifest_def:, collection_manifest:)
       deploy_sfs(cm_path: collection_manifest, manifest_def: manifest_def)
       deploy_s3(cm_path: collection_manifest, manifest_def: manifest_def)
+      deploy_asif(cm_path: collection_manifest, manifest_def: manifest_def)
       deploy_manifest_definition
     end
 

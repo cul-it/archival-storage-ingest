@@ -27,7 +27,8 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
   let(:man_of_man) { resolve_filename(%w[manifests manifest_of_manifest_copy.json]) }
   let(:old_manifest_sha1) { 'deadbeef' }
   let(:new_manifest_sha1) { '3e9e7777b9e84f3b51c123f823eff0423a4aa568' }
-  let(:s3_manager) do
+  let(:asif_bucket) { 's3-cular-invalid' }
+  let(:s3_manager) do # rubocop: disable Metrics/BlockLength
     s3m = S3Manager.new('bogus_bucket')
 
     allow(s3m).to receive(:upload_string)
@@ -50,10 +51,20 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
       .and_raise(IngestException, 'retrieve_file must not be called in this test!')
 
     allow(s3m).to receive(:upload_file)
+      .with(any_args)
+      .and_raise(IngestException, 'upload_file called with invalid arguments!')
+
+    allow(s3m).to receive(:upload_file)
       .with(td_s3_key, td_manifest_path) { true }
 
     allow(s3m).to receive(:upload_file)
       .with(arxiv_s3_key, arxiv_manifest_path) { true }
+
+    allow(s3m).to receive(:_upload_file)
+      .with(bucket: asif_bucket, s3_key: td_s3_key, file: td_manifest_path) { true }
+
+    allow(s3m).to receive(:_upload_file)
+      .with(bucket: asif_bucket, s3_key: arxiv_s3_key, file: arxiv_manifest_path) { true }
 
     s3m
   end

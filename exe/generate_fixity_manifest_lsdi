@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'archival_storage_ingest/manifests/manifest_generator'
+require 'json'
+
+# If ingest_manifest is supplied, it will generate checksums for only assets in the manifest.
+# Otherwise, it will generate checksums for all assets.
+
+sfs_location = ARGV[0]
+dir1 = ARGV[1]
+depositor = 'foo'
+collection_id = 'bar'
+ingest_manifest = nil
+
+if dir1.nil? || dir1.empty?
+  data_path = File.join('/lsdi/data', sfs_location)
+  puts 'No directory given'
+else
+  data_path = File.join('/lsdi/data', sfs_location, dir1)
+end
+
+manifest_generator = Manifests::ManifestGeneratorSFS.new(depositor: depositor,
+                                                         collection_id: collection_id,
+                                                         data_path: data_path,
+                                                         ingest_manifest: ingest_manifest)
+manifest = manifest_generator.generate_manifest
+puts JSON.pretty_generate(manifest.to_json_fixity_hash)

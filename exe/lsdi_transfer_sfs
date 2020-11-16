@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'fileutils'
+require 'find'
+require 'pathname'
+
+source_sfs = ARGV[0]
+target_sfs = ARGV[1]
+dir1 = ARGV[2]
+
+def process_file(source:, target:)
+  FileUtils.mkdir_p(File.dirname(target)) unless File.directory?(File.dirname(target))
+  FileUtils.copy(source, target)
+end
+
+# source_path = File.join('/lsdi/data', source_sfs, dir1)
+# target_path = File.join('/lsdi/data', target_sfs, dir1)
+
+if dir1.nil? || dir1.empty?
+  source_path = File.join('/lsdi/data', source_sfs, '**/*')
+  puts 'No directory given'
+else
+  source_path = File.join('/lsdi/data', source_sfs, dir1, '**/*')
+end
+
+Dir.glob(source_path) do |filename|
+  next if filename == '.' or filename == '..'
+  next if File.directory?(filename)
+  puts filename
+  source_sfs_path = File.join('/lsdi/data', source_sfs)
+  target_sfs_path = File.join('/lsdi/data', target_sfs)
+  dest_filename = filename.sub(source_sfs_path, target_sfs_path)
+  process_file(source: filename, target: dest_filename)
+end
+# process_file(source: source_path, target: target_path)

@@ -58,7 +58,7 @@ class S3Manager
   def upload_string(s3_key, data)
     s3.bucket(@s3_bucket).object(s3_key).put(body: data)
   rescue Aws::S3::Errors::ServiceError => e
-    raise IngestException, "S3 upload data stream failed!\n" + parse_s3_error(e)
+    raise IngestException, "S3 upload data stream failed!\n#{parse_s3_error(e)}"
   end
 
   # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Client.html#list_objects_v2-instance_method
@@ -101,7 +101,7 @@ class S3Manager
       sleep(RETRY_INTERVAL)
       errors << "Size mismatch: #{s3_obj.content_length}, #{size}!"
     end
-    raise IngestException, "S3 calculate_checksum failed for #{s3_key}:\n" . errors.join("\n")
+    raise IngestException, "S3 calculate_checksum failed for #{s3_key}:\n".errors.join("\n")
   end
 
   def _calculate_checksum(s3_key)

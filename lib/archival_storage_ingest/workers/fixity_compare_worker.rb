@@ -15,6 +15,7 @@ module FixityCompareWorker
 
     # Pass s3_manager only for tests.
     def initialize(s3_manager = nil)
+      super(_name)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
     end
 
@@ -36,7 +37,7 @@ module FixityCompareWorker
       false
     end
 
-    def name
+    def _name
       'Manifest Comparator'
     end
 
@@ -76,7 +77,7 @@ module FixityCompareWorker
       @relay_queue_name = named_params.fetch(:relay_queue_name)
     end
 
-    def name
+    def _name
       'Periodic Manifest Comparator'
     end
 

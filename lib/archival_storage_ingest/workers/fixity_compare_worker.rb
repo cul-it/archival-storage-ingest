@@ -6,7 +6,6 @@ require 'archival_storage_ingest/manifests/manifest_of_manifests'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/preingest/periodic_fixity_env_initializer'
 require 'archival_storage_ingest/work_queuer/work_queuer'
-require 'archival_storage_ingest/workers/worker'
 require 'yaml'
 
 module FixityCompareWorker

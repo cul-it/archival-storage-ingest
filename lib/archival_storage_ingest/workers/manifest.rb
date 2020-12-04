@@ -28,10 +28,8 @@ module WorkerManifest
       @number_files += 1
     end
 
-    def walk_manifest
-      files.each do |filepath, sha1|
-        yield(filepath, sha1)
-      end
+    def walk_manifest(&block)
+      files.each(&block)
     end
 
     def to_old_manifest(depositor, collection)

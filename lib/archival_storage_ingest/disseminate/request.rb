@@ -48,17 +48,13 @@ module Disseminate
       end
     end
 
-    def walk_packages
-      @packages.each do |package_id, package|
-        yield(package_id, package)
-      end
+    def walk_packages(&block)
+      @packages.each(&block)
     end
 
-    def walk_files
+    def walk_files(&block)
       @packages.each_value do |package|
-        package.each do |disseminate_file|
-          yield(disseminate_file)
-        end
+        package.each(&block)
       end
     end
 

@@ -7,6 +7,7 @@ require 'csv'
 module ConvertManifest
   class ConvertManifest # rubocop:disable Metrics/ClassLength
     attr_reader :pid_list
+
     def initialize(pid_file:)
       @pid_list = populate_csv(filename: pid_file, key: 'json_filename')
     end
@@ -57,7 +58,7 @@ module ConvertManifest
       return (locations || {}).keys if (locations['s3']).nil?
 
       locs = []
-      locations.keys.each do |storage_type|
+      locations.each_key do |storage_type|
         locations[storage_type].each do |loc|
           locs << loc['uri']
         end

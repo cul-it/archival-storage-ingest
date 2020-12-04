@@ -29,7 +29,7 @@ module Manifests
 
     # IPP xml manifest has windows separator "\" and needs to be replaced to "/"
     def clean_filepath(filepath:)
-      filepath = filepath[1..-1] if filepath[0] == '\\'
+      filepath = filepath[1..] if filepath[0] == '\\'
       filepath.gsub('\\', '/')
     end
 
@@ -45,11 +45,9 @@ module Manifests
       package
     end
 
-    def walk_xml(xml)
+    def walk_xml(xml, &block)
       doc = File.open(xml) { |f| Nokogiri::XML(f) }
-      doc.css('dfxml fileobject').each do |node|
-        yield(node)
-      end
+      doc.css('dfxml fileobject').each(&block)
     end
 
     def generate_base_manifest(manifest:)
@@ -92,6 +90,7 @@ module Manifests
 
   class ConvertedResponse
     attr_reader :ingest_manifest, :overwrite_list
+
     def initialize(ingest_manifest:, overwrite_list:)
       @ingest_manifest = ingest_manifest
       @overwrite_list = overwrite_list

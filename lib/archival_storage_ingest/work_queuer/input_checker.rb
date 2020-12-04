@@ -6,6 +6,7 @@ require 'archival_storage_ingest/workers/fixity_worker'
 module WorkQueuer
   class InputChecker
     attr_accessor :ingest_manifest, :errors
+
     def initialize
       @errors = []
     end

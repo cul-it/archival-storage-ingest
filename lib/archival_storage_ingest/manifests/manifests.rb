@@ -70,23 +70,17 @@ module Manifests
       packages.find { |package| package.package_id == package_id }
     end
 
-    def walk_packages
-      packages.each do |package|
-        yield(package)
-      end
+    def walk_packages(&block)
+      packages.each(&block)
     end
 
-    def walk_filepath(package_id:)
-      get_package(package_id: package_id).walk_files do |file|
-        yield(file)
-      end
+    def walk_filepath(package_id:, &block)
+      get_package(package_id: package_id).walk_files(&block)
     end
 
-    def walk_all_filepath
+    def walk_all_filepath(&block)
       walk_packages do |package|
-        package.walk_files do |file|
-          yield(file)
-        end
+        package.walk_files(&block)
       end
     end
 
@@ -165,6 +159,7 @@ module Manifests
 
   class ManifestComparator
     attr_accessor :collection_manifest_filename
+
     def initialize(cm_filename:)
       @collection_manifest_filename = cm_filename
     end
@@ -199,6 +194,7 @@ module Manifests
   # It currently lacks validating whether required attributes are missing.
   class Package
     attr_accessor :package_id, :source_path, :bibid, :local_id, :number_files, :files
+
     def initialize(package:)
       @package_id = package[:package_id]
       @source_path = package[:source_path]
@@ -219,10 +215,8 @@ module Manifests
       file
     end
 
-    def walk_files
-      files.each do |file|
-        yield(file)
-      end
+    def walk_files(&block)
+      files.each(&block)
     end
 
     def find_file(filepath:)
@@ -295,6 +289,7 @@ module Manifests
 
   class FileEntry
     attr_accessor :filepath, :sha1, :md5, :size, :ingest_date
+
     def initialize(file:)
       @filepath = file[:filepath]
       @sha1 = file[:sha1]

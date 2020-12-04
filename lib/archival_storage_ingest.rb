@@ -20,10 +20,9 @@ module ArchivalStorageIngest
   WIP_REMOVAL_WAIT_TIME = 10
 
   class Configuration
-    attr_accessor :message_queue_name, :in_progress_queue_name, :log_path, :debug
-    attr_accessor :worker, :dest_queue_names, :develop
-    attr_accessor :inhibit_file, :global_inhibit_file
-
+    # rubocop:disable Metrics/LineLength
+    attr_accessor :message_queue_name, :in_progress_queue_name, :log_path, :debug, :worker, :dest_queue_names, :develop, :inhibit_file, :global_inhibit_file
+    # rubocop:enable Metrics/LineLength
     # Only set issue_tracker_helper in test!
     attr_writer :msg_q, :dest_qs, :wip_q, :ticket_handler, :issue_tracker_helper
 
@@ -149,7 +148,7 @@ module ArchivalStorageIngest
     def notify_and_quit(exception, ingest_msg)
       logger.fatal(exception)
 
-      error_msg = exception.to_s + "\n\n" + exception.backtrace.join("\n")
+      error_msg = "#{exception}\n\n#{exception.backtrace.join("\n")}"
 
       if ingest_msg.nil?
         notify_error(error_msg)

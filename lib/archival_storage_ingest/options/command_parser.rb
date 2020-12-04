@@ -21,7 +21,7 @@ module CommandParser
         end
       end.parse!(args)
 
-      raise IngestException, options[:ingest_config] + ' is not a valid file' unless
+      raise IngestException, "#{options[:ingest_config]} is not a valid file" unless
           File.file?(options[:ingest_config])
 
       @ingest_config = options[:ingest_config]

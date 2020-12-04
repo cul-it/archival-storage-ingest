@@ -10,6 +10,7 @@ require 'pathname'
 module TransferWorker
   class TransferWorker < Workers::Worker
     attr_reader :s3_manager
+
     # Pass s3_manager only for tests.
     def initialize(s3_manager = nil)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager

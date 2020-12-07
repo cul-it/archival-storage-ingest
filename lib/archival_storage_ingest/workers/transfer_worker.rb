@@ -13,8 +13,11 @@ module TransferWorker
 
     # Pass s3_manager only for tests.
     def initialize(s3_manager = nil)
+      super(_name)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
     end
+
+    def _name; end
 
     def work(msg)
       ingest_manifest = fetch_ingest_manifest(msg)
@@ -50,7 +53,7 @@ module TransferWorker
   end
 
   class S3Transferer < TransferWorker
-    def name
+    def _name
       'S3 Transferer'
     end
 
@@ -67,7 +70,7 @@ module TransferWorker
   end
 
   class SFSTransferer < TransferWorker
-    def name
+    def _name
       'SFS Transferer'
     end
 

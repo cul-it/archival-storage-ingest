@@ -7,8 +7,12 @@ module Workers
 
   # Base class for specific workers
   class Worker
-    def work(msg) end
+    attr_reader :name
 
-    def name; end
+    def initialize(worker_name)
+      @name = worker_name
+    end
+
+    def work(msg); end
   end
 end

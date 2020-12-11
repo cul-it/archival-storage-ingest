@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/manifests/deploy_collection_manifest'
+require 'misc/archive_size'
 require 'archival_storage_ingest/s3/s3_manager'
 
 # These MUST be shifted so that gets will get user input properly!
@@ -12,22 +13,34 @@ sfs = ARGV.shift
 
 manifest_def = '/cul/app/archival_storage_ingest/manifest_of_manifests/manifest_of_manifests.json'
 manifest_def = ENV['asi_manifest_of_manifest'] if ENV['asi_manifest_of_manifest']
-
+# rubocop:disable Metrics/LineLength
 s3_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-dev' : 's3-cular'
-asif_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-dev' : 's3-cular-asif-manifests'
-s3_manager = S3Manager.new(s3_bucket, asif_bucket)
+asif_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-asif-manifests-dev' : 's3-cular-asif-manifests-prod'
+asif_archive_size_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-asif-archive-size-dev' : 's3-cular-asif-archive-size-prod'
+s3_manager = S3Manager.new(s3_bucket, asif_bucket, asif_archive_size_bucket)
+# rubocop:enable Metrics/LineLength
 sfs_prefix = if ENV['asi_develop'] || ENV['asi_deploy_manifest_develop']
                '/cul/app/archival_storage_ingest/test/deploy'
              else
                Manifests::SFS_PREFIX
              end
-
 deployer = Manifests::CollectionManifestDeployer.new(manifests_path: manifest_def, s3_manager: s3_manager, sfs_prefix: sfs_prefix)
+
 manifest_definition = deployer.prepare_manifest_definition(
   collection_manifest: new_collection_manifest,
   ingest_manifest: ingest_manifest,
   sfs: sfs
 )
+
+archives = [
+  { path: '/cul/data/archival01' },
+  { path: '/cul/data/archival02' },
+  { path: '/cul/data/archival03' },
+  { path: '/cul/data/archival04' },
+  { path: '/cul/data/archival05' }
+]
+
+archive_size = ArchiveSize::ArchiveSize.new(archives: archives, s3_manager: s3_manager)
 
 puts 'Deployment Summary'
 puts "S3 bucket: #{s3_bucket}"
@@ -39,3 +52,4 @@ unless 'y'.casecmp(gets.chomp).zero?
 end
 
 deployer.deploy_collection_manifest(manifest_def: manifest_definition, collection_manifest: new_collection_manifest)
+archive_size.deploy_asif_archive_size

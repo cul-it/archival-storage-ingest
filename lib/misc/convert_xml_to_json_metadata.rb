@@ -27,11 +27,9 @@ module ConvertXmlToJsonMetadata
       end
     end
 
-    def walk_xml(xml)
+    def walk_xml(xml, &block)
       doc = File.open(xml) { |f| Nokogiri::XML(f) }
-      doc.css('dfxml fileobject').each do |node|
-        yield(node)
-      end
+      doc.css('dfxml fileobject').each(&block)
     end
 
     def generate_skeleton_json_data
@@ -58,10 +56,9 @@ module ConvertXmlToJsonMetadata
     end
 
     def break_path(path)
-      path = path[1..-1] if path[0] == '\\'
+      path = path[1..] if path[0] == '\\'
 
-      paths = path.split('\\')
-      paths
+      path.split('\\')
     end
 
     def add_checksum(item, hash_type, hash_data)

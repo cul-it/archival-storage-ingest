@@ -29,10 +29,13 @@ module FixityWorker
 
     # Pass s3_manager only for tests.
     def initialize(s3_manager = nil)
+      super(_name)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
       @debug = ArchivalStorageIngest.configuration.debug
       @logger = ArchivalStorageIngest.configuration.logger
     end
+
+    def _name; end
 
     def worker_type
       raise NotImplementedError
@@ -106,7 +109,7 @@ module FixityWorker
   end
 
   class IngestFixityS3Generator < IngestFixityGenerator
-    def name
+    def _name
       'S3 Fixity Generator'
     end
 
@@ -121,7 +124,7 @@ module FixityWorker
   end
 
   class PeriodicFixityS3Generator < FixityGenerator
-    def name
+    def _name
       'Periodic S3 Fixity Generator'
     end
 
@@ -138,7 +141,7 @@ module FixityWorker
     # Remove collection prefix.
     def object_paths(msg)
       object_paths = @s3_manager.list_object_keys(msg.collection_s3_prefix)
-      ops = object_paths.map { |path| path.sub(msg.collection_s3_prefix + '/', '') }
+      ops = object_paths.map { |path| path.sub("#{msg.collection_s3_prefix}/", '') }
       logger.debug("Object keys: #{ops}") if debug
 
       ops
@@ -146,7 +149,7 @@ module FixityWorker
   end
 
   class IngestFixitySFSGenerator < IngestFixityGenerator
-    def name
+    def _name
       'SFS Fixity Generator'
     end
 
@@ -163,7 +166,7 @@ module FixityWorker
   class PeriodicFixitySFSGenerator < FixityGenerator
     DEST_PATH_DELIMITER = ','
 
-    def name
+    def _name
       'Periodic SFS Fixity Generator'
     end
 

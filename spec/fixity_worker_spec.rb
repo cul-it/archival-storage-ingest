@@ -153,7 +153,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
   describe 'IngestS3FixityGenerator' do # rubocop:disable Metrics/BlockLength
     let(:worker) do
       ArchivalStorageIngest.configure do |config|
-        config.logger = Logger.new(STDOUT)
+        config.logger = Logger.new($stdout)
         config.worker = FixityWorker::IngestFixityS3Generator.new(s3_manager)
       end
       ArchivalStorageIngest.configuration.worker
@@ -188,7 +188,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
   describe 'IngestSFSFixityGenerator' do # rubocop:disable Metrics/BlockLength
     let(:worker) do
       ArchivalStorageIngest.configure do |config|
-        config.logger = Logger.new(STDOUT)
+        config.logger = Logger.new($stdout)
         config.worker = FixityWorker::IngestFixityS3Generator.new(s3_manager)
       end
       ArchivalStorageIngest.configuration.worker

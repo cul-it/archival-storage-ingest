@@ -29,6 +29,7 @@ module Manifests
 
   class ManifestDefinition
     attr_accessor :depositor, :collection, :sha1, :sfs, :depcol, :path, :s3_key
+
     def initialize(manifest_def_hash)
       @depositor = manifest_def_hash[:depositor]
       @collection = manifest_def_hash[:collection]

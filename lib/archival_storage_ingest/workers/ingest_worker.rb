@@ -5,12 +5,13 @@ require 'archival_storage_ingest/workers/worker'
 class IngestWorker < Workers::Worker
   # Pass s3_manager only for tests.
   def initialize(s3_manager = nil)
+    super('Ingest Initiator')
     @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
   end
 
-  def name
-    'Ingest Initiator'
-  end
+  # def name
+  #   'Ingest Initiator'
+  # end
 
   def work(msg)
     s3_key = @s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_INGEST)

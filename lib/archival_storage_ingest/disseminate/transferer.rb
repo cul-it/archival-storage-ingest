@@ -5,6 +5,7 @@ require 'archival_storage_ingest/exception/ingest_exception'
 module Disseminate
   class BaseTransferer
     attr_reader :transferred_packages
+
     def initialize
       @transferred_packages = {}
     end

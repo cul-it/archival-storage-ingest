@@ -21,9 +21,15 @@ class S3Manager
     @s3 ||= Aws::S3::Resource.new
   end
 
-  def initialize(s3_bucket, asif_s3_bucket = 's3-cular-invalid', max_retry = MAX_RETRY)
+  def initialize(
+    s3_bucket,
+    asif_s3_bucket = 's3-cular-invalid',
+    asif_archive_size_s3_bucket = 's3-cular-invalid',
+    max_retry = MAX_RETRY
+  )
     @s3_bucket = s3_bucket
     @asif_s3_bucket = asif_s3_bucket
+    @asif_archive_size_s3_bucket = asif_archive_size_s3_bucket
     @max_retry = max_retry
   end
 
@@ -45,10 +51,14 @@ class S3Manager
     _upload_file(bucket: @asif_s3_bucket, s3_key: s3_key, file: manifest_file)
   end
 
+  def upload_asif_archive_size(s3_key:, archive_size_file:)
+    _upload_file(bucket: @asif_archive_size_s3_bucket, s3_key: s3_key, file: archive_size_file)
+  end
+
   def upload_string(s3_key, data)
     s3.bucket(@s3_bucket).object(s3_key).put(body: data)
   rescue Aws::S3::Errors::ServiceError => e
-    raise IngestException, "S3 upload data stream failed!\n" + parse_s3_error(e)
+    raise IngestException, "S3 upload data stream failed!\n#{parse_s3_error(e)}"
   end
 
   # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Client.html#list_objects_v2-instance_method
@@ -91,7 +101,7 @@ class S3Manager
       sleep(RETRY_INTERVAL)
       errors << "Size mismatch: #{s3_obj.content_length}, #{size}!"
     end
-    raise IngestException, "S3 calculate_checksum failed for #{s3_key}:\n" . errors.join("\n")
+    raise IngestException, "S3 calculate_checksum failed for #{s3_key}:\n".errors.join("\n")
   end
 
   def _calculate_checksum(s3_key)

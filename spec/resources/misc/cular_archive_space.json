@@ -1,0 +1,34 @@
+{
+  "archives": [
+    {
+      "archive": "/cul/data/archival01",
+      "size": 25165824000,
+      "used": 23870054784,
+      "available": 1295769216
+    },
+    {
+      "archive": "/cul/data/archival02",
+      "size": 20145242112,
+      "used": 18799811072,
+      "available": 1345431040
+    },
+    {
+      "archive": "/cul/data/archival03",
+      "size": 23068672000,
+      "used": 22099346880,
+      "available": 969325120
+    },
+    {
+      "archive": "/cul/data/archival04",
+      "size": 24117248000,
+      "used": 21217077376,
+      "available": 2900170624
+    },
+    {
+      "archive": "/cul/data/archival05",
+      "size": 28269608960,
+      "used": 27837661824,
+      "available": 431947136
+    }
+  ]
+}

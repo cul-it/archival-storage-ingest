@@ -51,8 +51,8 @@ class S3Manager
     _upload_file(bucket: @asif_s3_bucket, s3_key: s3_key, file: manifest_file)
   end
 
-  def upload_asif_archive_size(s3_key, data)
-    s3.bucket(@asif_archive_size_s3_bucket).object(s3_key).put(body: data)
+  def upload_asif_archive_size(s3_key:, data:)
+    s3.bucket(@asif_archive_size_s3_bucket).object(s3_key: s3_key).put(body: data)
   rescue Aws::S3::Errors::ServiceError => e
     raise IngestException, "Archive Size S3 upload data stream failed!\n#{parse_s3_error(e)}"
   end

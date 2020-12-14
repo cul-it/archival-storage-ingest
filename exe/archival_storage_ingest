@@ -30,7 +30,7 @@ ArchivalStorageIngest.configure do |config|
     config.in_progress_queue_name = Queues::QUEUE_INGEST_IN_PROGRESS
   end
 
-  config.worker = Workers::Worker.new
+  config.worker = Workers::Worker.new('Noop Ingest Queuer')
 end
 
 option_parser = CommandParser::IngestCommandParser.new

@@ -25,7 +25,7 @@ module ArchiveSize
     end
 
     def deploy_asif_archive_size(archive_size_json = archive_size)
-      @s3_manager.upload_asif_archive_size(s3_key: 'cular_archive_space.json', archive_size_file: archive_size_json)
+      @s3_manager.upload_asif_archive_size(s3_key: 'cular_archive_space.json', data: archive_size_json)
     end
   end
 end

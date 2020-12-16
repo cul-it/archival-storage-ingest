@@ -19,7 +19,13 @@ asif_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cul
 asif_archive_size_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-asif-archive-size-dev' : 's3-cular-asif-archive-size-prod'
 s3_manager = S3Manager.new(s3_bucket, asif_bucket, asif_archive_size_bucket)
 # rubocop:enable Metrics/LineLength
-deployer = Manifests::CollectionManifestDeployer.new(manifests_path: manifest_def, s3_manager: s3_manager)
+sfs_prefix = if ENV['asi_develop'] || ENV['asi_deploy_manifest_develop']
+               '/cul/app/archival_storage_ingest/test/deploy'
+             else
+               Manifests::SFS_PREFIX
+             end
+deployer = Manifests::CollectionManifestDeployer.new(manifests_path: manifest_def, s3_manager: s3_manager, sfs_prefix: sfs_prefix)
+
 manifest_definition = deployer.prepare_manifest_definition(
   collection_manifest: new_collection_manifest,
   ingest_manifest: ingest_manifest,

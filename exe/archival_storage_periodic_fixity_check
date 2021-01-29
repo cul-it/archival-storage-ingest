@@ -28,7 +28,7 @@ ArchivalStorageIngest.configure do |config|
     config.message_queue_name = Queues::QUEUE_PERIODIC_FIXITY
   end
 
-  config.worker = Workers::Worker.new
+  config.worker = Workers::Worker.new('Noop Periodic Fixity Queuer')
 end
 
 option_parser = CommandParser::IngestCommandParser.new

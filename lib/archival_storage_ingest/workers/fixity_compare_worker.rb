@@ -25,8 +25,8 @@ module FixityCompareWorker
       # ignore collection manifest as itself is not part of the manifest
       cm_filename = Manifests.collection_manifest_filename(depositor: msg.depositor, collection: msg.collection)
       comparator = Manifests::ManifestComparator.new(cm_filename: cm_filename)
-      sfs_status, sfs_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: sfs_manifest)
-      s3_status, s3_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: s3_manifest)
+      sfs_status, sfs_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: sfs_manifest, periodic: periodic?)
+      s3_status, s3_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: s3_manifest, periodic: periodic?)
 
       raise IngestException, "Ingest and SFS manifests do not match: #{sfs_diff}" unless sfs_status
 
@@ -34,6 +34,10 @@ module FixityCompareWorker
 
       true
     rescue Aws::S3::Errors::NoSuchKey
+      false
+    end
+
+    def periodic?
       false
     end
 
@@ -75,6 +79,10 @@ module FixityCompareWorker
       @periodic_fixity_root = named_params.fetch(:periodic_fixity_root)
       @sfs_root = named_params.fetch(:sfs_root)
       @relay_queue_name = named_params.fetch(:relay_queue_name)
+    end
+
+    def periodic?
+      true
     end
 
     def _name

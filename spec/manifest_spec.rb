@@ -146,10 +146,18 @@ RSpec.describe 'Manifest Comparator' do # rubocop:disable Metrics/BlockLength
     end
   end
 
-  context 'when comparing collection manifest to fixity manifest' do
-    it 'ignores collection manifest entry from fixity manifest and passes' do
+  context 'when comparing collection manifest to fixity manifest with normal fixity compare mode with ingest date' do
+    it 'fails' do
       comparator = Manifests::ManifestComparator.new(cm_filename: '_EM_RMC_RMA_RMA02205_Cornell_football_films.json')
       status, _diff = comparator.fixity_diff(ingest: collection_manifest, fixity: sfs_manifest)
+      expect(status).to eq(false)
+    end
+  end
+
+  context 'when comparing collection manifest to fixity manifest in periodic fixity mode' do
+    it 'ignores collection manifest entry from fixity manifest and passes' do
+      comparator = Manifests::ManifestComparator.new(cm_filename: '_EM_RMC_RMA_RMA02205_Cornell_football_films.json')
+      status, _diff = comparator.fixity_diff(ingest: collection_manifest, fixity: sfs_manifest, periodic: true)
       expect(status).to eq(true)
     end
   end

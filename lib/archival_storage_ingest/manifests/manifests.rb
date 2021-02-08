@@ -164,10 +164,14 @@ module Manifests
       @collection_manifest_filename = cm_filename
     end
 
-    def fixity_diff(ingest:, fixity:)
+    def fixity_diff(ingest:, fixity:, periodic: false)
       ingest_f = flatten_and_remove_cm(manifest: ingest)
       fixity_f = flatten_and_remove_cm(manifest: fixity)
-      diffs = diff(m1_flat: ingest_f, m2_flat: fixity_f)
+      diffs = if periodic
+                periodic_diff(m1_flat: ingest_f, m2_flat: fixity_f)
+              else
+                diff(m1_flat: ingest_f, m2_flat: fixity_f)
+              end
       status = (diffs[:ingest].count + diffs[:other].count).zero?
       [status, diffs]
     end
@@ -185,6 +189,17 @@ module Manifests
       end
       m2_flat.each do |key, value|
         diffs[:other] << key unless value == m1_flat[key]
+      end
+      diffs
+    end
+
+    def periodic_diff(m1_flat:, m2_flat:)
+      diffs = { ingest: [], other: [] }
+      m1_flat.each do |key, value|
+        diffs[:ingest] << key unless value.fixity_equals(m2_flat[key])
+      end
+      m2_flat.each do |key, value|
+        diffs[:other] << key unless value.fixity_equals(m1_flat[key])
       end
       diffs
     end
@@ -310,6 +325,14 @@ module Manifests
     # All assets in archival storage must have SHA1 checksum.
     # We will ignore the MD5 value at all times during fixity checks.
     def ==(other)
+      return false unless fixity_equals(other)
+
+      return false unless ingest_date == other.ingest_date
+
+      true
+    end
+
+    def fixity_equals(other)
       return false unless other.instance_of?(FileEntry)
 
       # pp "#{filepath} : #{other.filepath}" unless filepath == other.filepath
@@ -321,7 +344,8 @@ module Manifests
       # pp "#{size} : #{other.size}" unless size == other.size
       return false unless size == other.size
 
-      return false unless ingest_date == other.ingest_date
+      # ignore ingest date for periodic fixity check
+      # return false unless ingest_date == other.ingest_date
 
       true
     end

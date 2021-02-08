@@ -15,12 +15,14 @@
         {
           "filepath": "RMA02205_F0154/RMA02205_F0154.avi",
           "sha1": "4a7ecf48e12fcc01d4e5665a699cfa4f8b05c25c",
-          "size": 9305073664
+          "size": 9305073664,
+          "ingest_date": "2021-02-10"
         },
         {
           "filepath": "RMA02205_F0154/RMA02205_F0154.mp4",
           "sha1": "3f0839278cf3c6238195fba4891c24b89e0fc1ef",
-          "size": 71810989
+          "size": 71810989,
+          "ingest_date": "2021-02-10"
         }
       ],
       "number_files": 2,
@@ -32,12 +34,14 @@
         {
           "filepath": "RMA02205_F0153/RMA02205_F0153.mp4",
           "sha1": "61972f771177ea3335407cfc08eb33f68eb3548b",
-          "size": 66590651
+          "size": 66590651,
+          "ingest_date": "2021-02-11"
         },
         {
           "filepath": "RMA02205_F0153/RMA02205_F0153.avi",
           "sha1": "def3fd7cc387cf42490faef0cefdbc463db46ea9",
-          "size": 8690022400
+          "size": 8690022400,
+          "ingest_date": "2021-02-11"
         }
       ],
       "number_files": 2,

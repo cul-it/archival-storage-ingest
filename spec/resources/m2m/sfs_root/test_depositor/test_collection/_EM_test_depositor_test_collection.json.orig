@@ -1,0 +1,32 @@
+{
+  "depositor": "test_depositor",
+  "collection_id": "test_collection",
+  "steward": "sk274",
+  "documentation": "cular:xxxxx",
+  "locations": [
+    "s3://s3-cular-test/test_depositor/test_collection",
+    "smb://files.library.cornell.edu/lib/archival0x/test_depositor/test_collection"
+  ],
+  "number_packages": 1,
+  "packages": [
+    {
+      "package_id": "urn:uuid:ef5e5f46-438f-470c-ad52-ad2600e4e268",
+      "local_id": "RMA02665_V00410",
+      "number_files": 4,
+      "files": [
+        {
+          "filepath": "RMA02665_V00410/RMA02665_V00410.mkv",
+          "sha1": "82681371dcde29bbe1ebc0841637f99745425d21",
+          "size": 2910204782,
+          "ingest_date": "2020-06-12"
+        },
+        {
+          "filepath": "RMA02665_V00410/RMA02665_V00410.mp4",
+          "sha1": "ad9bd5d5ee017e7a04cb14817d4825985db54ca2",
+          "size": 270009348,
+          "ingest_date": "2020-06-12"
+        }
+      ]
+    }
+  ]
+}

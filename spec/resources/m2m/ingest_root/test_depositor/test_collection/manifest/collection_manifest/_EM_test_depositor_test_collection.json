@@ -1,0 +1,30 @@
+{
+  "depositor": "test_depositor",
+  "collection_id": "test_collection",
+  "steward": "?",
+  "documentation": "?",
+  "locations": [
+    "?"
+  ],
+  "number_packages": 1,
+  "packages": [
+    {
+      "package_id": "?",
+      "bibid": "?",
+      "local_id": "?",
+      "number_files": 2,
+      "files": [
+        {
+          "filepath": "1/one.txt",
+          "sha1": "c7059bb19433cc3cabaa6236c83d56668a843dd2",
+          "size": 4
+        },
+        {
+          "filepath": "2/two.txt",
+          "sha1": "7bbef45b3bc70855010e02460717643125c3beca",
+          "size": 4
+        }
+      ]
+    }
+  ]
+}

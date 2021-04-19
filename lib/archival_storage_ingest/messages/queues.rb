@@ -75,6 +75,11 @@ module Queues
   DEV_QUEUE_ERROR = 'cular_development_error'
   DEV_QUEUE_COMPLETE = 'cular_development_done'
 
+  QUEUE_ECOMMONS_INTEGRATION = 'sqs-cular-ecommons-integration-prod'
+  QUEUE_ECOMMONS_INTEGRATION_IN_PROGRESS = 'sqs-cular-ecommons-integration-prod-in-progress'
+  DEV_QUEUE_ECOMMONS_INTEGRATION = 'sqs-cular-ecommons-integration-dev'
+  DEV_QUEUE_ECOMMONS_INTEGRATION_IN_PROGRESS = 'sqs-cular-ecommons-integration-dev-in-progress'
+
   def self.valid_queue_name?(queue_name)
     const = Queues.constants.find { |q_symbol| Queues.const_get(q_symbol).eql?(queue_name) }
     !const.nil?

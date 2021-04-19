@@ -21,17 +21,23 @@ class S3Manager
     @s3 ||= Aws::S3::Resource.new
   end
 
+  # rubocop:disable Metrics/ParameterLists
   def initialize(
-    s3_bucket,
-    asif_s3_bucket = 's3-cular-invalid',
+    s3_bucket, asif_s3_bucket = 's3-cular-invalid',
     asif_archive_size_s3_bucket = 's3-cular-invalid',
-    max_retry = MAX_RETRY
+    m2m_bucket = 's3-cular-invalid', max_retry = MAX_RETRY
   )
     @s3_bucket = s3_bucket
     @asif_s3_bucket = asif_s3_bucket
     @asif_archive_size_s3_bucket = asif_archive_size_s3_bucket
+    @m2m_bucket = m2m_bucket
     @max_retry = max_retry
   end
+  # rubocop:enable Metrics/ParameterLists
+
+  # def if_nil(val, replacement)
+  #   val.nil? ? replacement : val
+  # end
 
   def parse_s3_error(error)
     "Code: #{error.code}\nContext: #{error.context}\nMessage: #{error.message}"
@@ -125,8 +131,16 @@ class S3Manager
     s3.bucket(@s3_bucket).object(s3_key).get.body
   end
 
+  def _download_file(bucket:, s3_key:, dest_path:)
+    s3.client.get_object({ bucket: bucket, key: s3_key }, target: dest_path)
+  end
+
   def download_file(s3_key:, dest_path:)
-    s3.client.get_object({ bucket: @s3_bucket, key: s3_key }, target: dest_path)
+    _download_file(bucket: @s3_bucket, s3_key: s3_key, dest_path: dest_path)
+  end
+
+  def download_m2m_file(s3_key:, dest_path:)
+    _download_file(bucket: @m2m_bucket, s3_key: s3_key, dest_path: dest_path)
   end
 
   def delete_object(s3_key:)

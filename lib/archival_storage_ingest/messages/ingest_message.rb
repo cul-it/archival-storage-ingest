@@ -15,6 +15,7 @@ module IngestMessage
   TYPE_PERIODIC_FIXITY_S3 = 'Periodic Fixity S3'
   TYPE_PERIODIC_FIXITY_SFS = 'Periodic Fixity SFS'
   TYPE_PERIODIC_FIXITY_COMPARISON = 'Periodic Fixity Comparison'
+  TYPE_M2M = 'M2M Ingest'
   WORK_TYPE_TO_QUEUE = {
     TYPE_INGEST => Queues::QUEUE_INGEST,
     TYPE_TRANSFER_S3 => Queues::QUEUE_TRANSFER_S3,
@@ -25,7 +26,8 @@ module IngestMessage
     TYPE_PERIODIC_FIXITY => Queues::QUEUE_PERIODIC_FIXITY,
     TYPE_PERIODIC_FIXITY_S3 => Queues::QUEUE_PERIODIC_FIXITY_S3,
     TYPE_PERIODIC_FIXITY_SFS => Queues::QUEUE_PERIODIC_FIXITY_SFS,
-    TYPE_PERIODIC_FIXITY_COMPARISON => Queues::QUEUE_PERIODIC_FIXITY_COMPARISON
+    TYPE_PERIODIC_FIXITY_COMPARISON => Queues::QUEUE_PERIODIC_FIXITY_COMPARISON,
+    TYPE_M2M => Queues::QUEUE_ECOMMONS_INTEGRATION
   }.freeze
 
   def self.convert_sqs_response(sqs_message)
@@ -35,7 +37,8 @@ module IngestMessage
       ingest_id: json['ingest_id'],
       dest_path: json['dest_path'], depositor: json['depositor'],
       collection: json['collection'], ingest_manifest: json['ingest_manifest'],
-      ticket_id: json['ticket_id'], original_msg: sqs_message
+      ticket_id: json['ticket_id'], original_msg: sqs_message,
+      package: json['package']
     )
   end
 
@@ -56,9 +59,11 @@ module IngestMessage
       @collection = params[:collection]
       @ingest_manifest = params[:ingest_manifest]
       @ticket_id = params[:ticket_id]
+      @package = params[:package]
     end
 
-    attr_reader :type, :ingest_id, :original_msg, :dest_path, :depositor, :collection, :ingest_manifest, :ticket_id
+    attr_reader :type, :ingest_id, :original_msg, :dest_path, :depositor, :collection,
+                :ingest_manifest, :ticket_id, :package
 
     def collection_s3_prefix
       "#{depositor}/#{collection}"
@@ -72,8 +77,9 @@ module IngestMessage
         depositor: depositor,
         collection: collection,
         ingest_manifest: ingest_manifest,
-        ticket_id: ticket_id
-      }
+        ticket_id: ticket_id,
+        package: package
+      }.compact
     end
 
     def to_json(_opts = nil)

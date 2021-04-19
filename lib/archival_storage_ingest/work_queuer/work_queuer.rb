@@ -15,12 +15,8 @@ module WorkQueuer
     end
 
     def queue_work(ingest_config)
-      input_checker = input_checker_impl
-      input_checker.check_input(ingest_config)
-      if input_checker.errors.size.positive?
-        puts input_checker.errors
-        return
-      end
+      input_checker, status = check_input(ingest_config)
+      return unless status
 
       return if work_type_mismatch(ingest_config)
 
@@ -31,14 +27,25 @@ module WorkQueuer
       send_notification(work_msg)
     end
 
+    def check_input(ingest_config)
+      input_checker = input_checker_impl
+      input_checker.check_input(ingest_config)
+      if input_checker.errors.size.positive?
+        puts input_checker.errors
+        return [input_checker, false]
+      end
+
+      [input_checker, true]
+    end
+
     def input_checker_impl; end
 
     def send_notification(work_msg); end
 
     def put_work_message(ingest_config)
       msg = IngestMessage::SQSMessage.new(
-        type: work_type,
-        ingest_id: SecureRandom.uuid, ticket_id: ingest_config[:ticket_id],
+        type: work_type, ticket_id: ingest_config[:ticket_id],
+        ingest_id: ingest_config[:ingest_id].nil? ? SecureRandom.uuid : ingest_config[:ingest_id],
         depositor: ingest_config[:depositor], collection: ingest_config[:collection],
         dest_path: ingest_config[:dest_path],
         ingest_manifest: ingest_config[:ingest_manifest]
@@ -102,6 +109,42 @@ module WorkQueuer
       puts "Source path: #{input_checker.ingest_manifest.packages[0].source_path}"
       puts 'Queue ingest? (Y/N)'
       'y'.casecmp(gets.chomp).zero?
+    end
+  end
+
+  class M2MIngestQueuer < WorkQueuer
+    # alias for better readability
+    def queue_ingest(ingest_config)
+      queue_work(ingest_config)
+    end
+
+    def work_type
+      IngestMessage::TYPE_INGEST
+    end
+
+    def input_checker_impl
+      IngestInputChecker.new
+    end
+
+    def check_input(ingest_config)
+      input_checker = input_checker_impl
+      input_checker.check_input(ingest_config)
+      if input_checker.errors.size.positive?
+        send_error_notification(input_checker.errors)
+        return [input_checker, false]
+      end
+
+      [input_checker, true]
+    end
+
+    def send_notification(work_msg); end
+
+    def send_error_notification(errors)
+      # do something!
+    end
+
+    def confirm_work(_ingest_config, _input_checker)
+      true
     end
   end
 

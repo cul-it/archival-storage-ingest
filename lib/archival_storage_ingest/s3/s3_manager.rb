@@ -2,7 +2,7 @@
 
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
 require 'aws-sdk-s3'
-require 'digest/sha1'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 
 # This class will handle S3 interaction.
 # https://docs.aws.amazon.com/sdkforruby/api/Aws/S3/Client.html
@@ -99,11 +99,11 @@ class S3Manager
   # Doing so could cause file corruption on the client end by starting over mid-stream.
   #
   # We will need to put a retry mechanism for this function.
-  def calculate_checksum(s3_key)
+  def calculate_checksum(s3_key, algorithm = IngestUtils::ALGORITHM_SHA1)
     s3_obj = s3.bucket(@s3_bucket).object(s3_key)
     errors = []
     @max_retry.times do
-      dig, size = _calculate_checksum(s3_key)
+      dig, size = _calculate_checksum(s3_key, algorithm)
       return [dig, size, errors] if s3_obj.content_length == size
 
       sleep(RETRY_INTERVAL)
@@ -112,9 +112,9 @@ class S3Manager
     raise IngestException, "S3 calculate_checksum failed for #{s3_key}:\n".errors.join("\n")
   end
 
-  def _calculate_checksum(s3_key)
+  def _calculate_checksum(s3_key, algorithm)
     size = 0
-    dig = Digest::SHA1.new
+    dig = IngestUtils.digest(algorithm)
     s3.client.get_object(bucket: @s3_bucket, key: s3_key) do |chunk|
       dig.update(chunk)
       size += chunk.length

@@ -11,15 +11,28 @@ module IngestUtils
     '.bridgecachet' => true
   }.freeze
   BUFFER_SIZE = 4096
+  ALGORITHM_MD5 = 'md5'
+  ALGORITHM_SHA1 = 'sha1'
 
   def self.relativize(file, path_to_trim)
     Pathname.new(file).relative_path_from(path_to_trim).to_s
   end
 
-  def self.calculate_checksum(filepath)
+  def self.digest(algorithm)
+    case algorithm
+    when ALGORITHM_SHA1
+      Digest::SHA1.new
+    when ALGORITHM_MD5
+      Digest::MD5.new
+    else
+      raise IngestException, "Unknown algorithm #{algorithm}"
+    end
+  end
+
+  def self.calculate_checksum(filepath, algorithm = ALGORITHM_SHA1)
     size = 0
     File.open(filepath, 'rb') do |file|
-      dig = Digest::SHA1.new
+      dig = digest(algorithm)
       until file.eof?
         buffer = file.read(BUFFER_SIZE)
         dig.update(buffer)

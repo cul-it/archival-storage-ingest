@@ -62,8 +62,8 @@ module IngestMessage
       @package = params[:package]
     end
 
-    attr_reader :type, :ingest_id, :original_msg, :dest_path, :depositor, :collection,
-                :ingest_manifest, :ticket_id, :package
+    attr_reader :type, :ingest_id, :original_msg, :depositor, :collection, :ticket_id, :package
+    attr_accessor :dest_path, :ingest_manifest
 
     def collection_s3_prefix
       "#{depositor}/#{collection}"

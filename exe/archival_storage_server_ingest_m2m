@@ -7,7 +7,7 @@ require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/preingest/base_env_initializer'
 require 'archival_storage_ingest/workers/m2m_initiate_worker'
 
-ArchivalStorageIngest.configure do |config|
+ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLength
   config.log_path = ENV['asi_ingest_m2m_log_path'] ||
                     '/cul/app/archival_storage_ingest/logs/ingest_m2m.log'
   config.dry_run = ENV['asi_ingest_m2m_dry_run'] || false
@@ -19,24 +19,28 @@ ArchivalStorageIngest.configure do |config|
                                '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
 
   package_zip_dir = ENV['asi_ingest_m2m_zip_dir'] ||
-                     '/cul/app/archival_storage_ingest/m2m_package_zip'
+                    '/cul/app/archival_storage_ingest/m2m_package_zip'
   package_extract_dir = ENV['asi_ingest_m2m_extract_dir'] ||
                         '/cul/app/archival_storage_ingest/m2m_package_extract'
   ingest_root = ENV['asi_ingest_m2m_inhibit_file'] ||
                 Preingest::DEFAULT_INGEST_ROOT
   sfs_root = ENV['asi_ingest_m2m_inhibit_file'] ||
              Preingest::DEFAULT_SFS_ROOT
+  s3_bucket = 's3-cular'
+  s3_m2m_bucket = 's3-cular-ecommons-integration-prod'
   if ENV['asi_develop'] || ENV['asi_ingest_m2m_develop']
     config.s3_bucket = 's3-cular-dev'
     config.debug = true
     config.develop = true
     config.message_queue_name = Queues::DEV_QUEUE_ECOMMONS_INTEGRATION
-    config.in_progress_queue_name = Queues::QUEUE_ECOMMONS_INTEGRATION_IN_PROGRESS
+    config.in_progress_queue_name = Queues::DEV_QUEUE_ECOMMONS_INTEGRATION_IN_PROGRESS
     config.dest_queue_names = [Queues::DEV_QUEUE_INGEST]
     package_zip_dir = "#{package_zip_dir}_dev"
     package_extract_dir = "#{package_extract_dir}_dev"
     ingest_root = '/cul/app/archival_storage_ingest/test/integration_test/ingest_root'
     sfs_root = '/cul/app/archival_storage_ingest/test/integration_test/sfs_root'
+    s3_bucket = 's3-cular-dev'
+    s3_m2m_bucket = 's3-cular-ecommons-integration-dev'
   else
     config.s3_bucket = 's3-cular'
     config.debug = ENV['asi_ingest_m2m_debug'] ? true : false
@@ -46,20 +50,16 @@ ArchivalStorageIngest.configure do |config|
     config.dest_queue_names = [Queues::QUEUE_INGEST]
   end
 
-  # @s3_manager = named_params.fetch(:s3_manager) { ArchivalStorageIngest.configuration.s3_manager }
-  #     @package_zip_dir = named_params.fetch(:package_zip_dir)
-  #     @package_extract_dir = named_params.fetch(:package_extract_dir)
-  #     @ingest_root = named_params.fetch(:ingest_root)
-  #     @sfs_root = named_params.fetch(:sfs_root)
-  #     @queuer = named_params.fetch(:queuer, WorkQueuer::M2MIngestQueuer.new(confirm: false))
+  s3_manager = S3Manager.new(s3_bucket, 'invalid-asif-bucket',
+                             'invalid-size-bucket', s3_m2m_bucket)
   config.worker = M2MInitiateWorker.new({
                                           package_zip_dir: package_zip_dir,
                                           package_extract_dir: package_extract_dir,
                                           ingest_root: ingest_root,
-                                          sfs_root: sfs_root
+                                          sfs_root: sfs_root,
+                                          s3_manager: s3_manager
                                         })
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new
 ingest_manager.start_server
-

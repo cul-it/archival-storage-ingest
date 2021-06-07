@@ -3,6 +3,7 @@
 require 'archival_storage_ingest/workers/worker'
 require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/manifests/manifest_of_manifests'
+require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/preingest/periodic_fixity_env_initializer'
 require 'archival_storage_ingest/work_queuer/work_queuer'
@@ -56,6 +57,19 @@ module FixityCompareWorker
       manifest_name = s3_manager.manifest_key(msg.ingest_id, suffix)
       manifest_file = s3_manager.retrieve_file(manifest_name)
       Manifests.read_manifest_io(json_io: manifest_file)
+    end
+
+    def deploy_manifest_if_m2m(msg:)
+      return true unless msg.type == IngestMessage::TYPE_M2M
+
+      # how are we going to do this?
+      # The storage manifest needs to be created with newly ingested contents
+      # option 1: generate & push to s3 when preparing m2m ingest
+      #   advantage: simpler ingest process
+      #   disadvantage: trickier to resolve errors
+      # option 2: fetch storage manifest from s3, update & push to s3 at the end of ingest process
+      #   advantage: simpler ingest prepare
+      #   disadvantage: s3 bandwidth charges?
     end
   end
 

@@ -15,7 +15,6 @@ class M2MInitiateWorker < Workers::Worker # rubocop:disable Metrics/ClassLength
   attr_reader :s3_manager, :package_zip_dir, :package_extract_dir,
               :ingest_root, :sfs_root, :queuer
 
-  # Pass s3_manager only for tests.
   def initialize(named_params)
     super(_name)
     @s3_manager = named_params.fetch(:s3_manager) { ArchivalStorageIngest.configuration.s3_manager }
@@ -75,6 +74,8 @@ class M2MInitiateWorker < Workers::Worker # rubocop:disable Metrics/ClassLength
                                           sfs_location: sfs_root, ticket_id: 'NO_REPORT')
 
     ingest_config = YAML.load_file(env_initializer.config_path)
+    msg.dest_path = ingest_config[:dest_path]
+    msg.ingest_manifest = ingest_config[:ingest_manifest]
     queuer.queue_ingest(ingest_config)
   end
 

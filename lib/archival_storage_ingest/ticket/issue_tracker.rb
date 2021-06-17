@@ -70,4 +70,27 @@ module TicketHandler
 
     def notify_worker_skipped(ingest_msg); end
   end
+
+  # This tracker will notify slack channel for error
+  # Otherwise, same as NoopIssueTracker
+  class PeriodicFixityTracker < NoopIssueTracker
+    attr_reader :slack_handler
+
+    def initialize(worker_name:, ticket_handler:, slack_handler:)
+      super(worker_name: worker_name, ticket_handler: ticket_handler)
+      @slack_handler = slack_handler
+    end
+
+    def notify_error(error_msg)
+      super(error_msg)
+      subject = "#{worker_name} service has terminated due to fatal error."
+      slack_handler.update_issue_tracker(subject: subject, body: error_msg)
+    end
+
+    def notify_worker_error(ingest_msg:, error_msg:)
+      super(ingest_msg: ingest_msg, error_msg: error_msg)
+      subject = "#{worker_name} service has terminated due to fatal error."
+      slack_handler.update_issue_tracker(subject: subject, body: error_msg)
+    end
+  end
 end

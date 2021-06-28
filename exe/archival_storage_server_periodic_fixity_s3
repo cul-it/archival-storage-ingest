@@ -8,6 +8,11 @@ require 'archival_storage_ingest/workers/fixity_worker'
 require 'archival_storage_ingest/ticket/ticket_handler'
 require 'archival_storage_ingest/ticket/issue_tracker'
 
+if ENV['asi_periodic_fixity_slack_web_hook'].nil?
+  puts 'asi_periodic_fixity_slack_web_hook env variable is required'
+  exit
+end
+
 ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLength
   config.log_path = ENV['asi_periodic_fixity_s3_log_path'] ||
                     '/cul/app/archival_storage_ingest/logs/periodic_fixity_s3.log'
@@ -39,8 +44,10 @@ ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLengt
 
   ticket_handler = TicketHandler::JiraHandler.new
   config.ticket_handler = ticket_handler
-  config.issue_tracker_helper = TicketHandler::NoopIssueTracker.new(worker_name: config.worker.name,
-                                                                    ticket_handler: ticket_handler)
+  slack_handler = TicketHandler::SlackHandler.new(web_hook: ENV['asi_periodic_fixity_slack_web_hook'])
+  config.issue_tracker_helper = TicketHandler::PeriodicFixityTracker.new(worker_name: config.worker.name,
+                                                                         ticket_handler: ticket_handler,
+                                                                         slack_handler: slack_handler)
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

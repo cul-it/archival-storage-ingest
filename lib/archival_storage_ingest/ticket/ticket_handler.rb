@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'json'
 require 'mail'
 require 'net/http'
 
@@ -15,7 +16,7 @@ module TicketHandler
     attr_reader :from, :to
 
     def initialize(from: DEFAULT_FROM, to: DEFAULT_TO)
-      super
+      super()
       @from = from
       @to = to
       Mail.defaults do
@@ -47,7 +48,7 @@ module TicketHandler
     attr_reader :web_hook
 
     def initialize(web_hook:)
-      super
+      super()
       @web_hook = URI(web_hook)
     end
 
@@ -55,9 +56,9 @@ module TicketHandler
       req = Net::HTTP::Post.new(web_hook)
       req.set_form_data('payload' => JSON.generate(payload(subject: subject, body: body)))
 
-      res = Net::HTTP.start(uri.hostname, uri.port) do |http|
-        http.request(req)
-      end
+      http = Net::HTTP.new(web_hook.hostname, web_hook.port)
+      http.use_ssl = true
+      http.request(req)
 
       # Should we raise exception when it fails?
       # case res

@@ -13,7 +13,7 @@ require 'archival_storage_ingest/ingest_utils/ingest_utils'
 # See Plugins::RetryErrors for more details.
 class S3Manager
   MAX_RETRY = 3
-  RETRY_INTERVAL = 60
+  RETRY_INTERVAL = 120
 
   attr_writer :s3
 

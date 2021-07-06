@@ -13,6 +13,7 @@ module IngestUtils
   BUFFER_SIZE = 4096
   ALGORITHM_MD5 = 'md5'
   ALGORITHM_SHA1 = 'sha1'
+  MAX_RETRY = 3
 
   def self.relativize(file, path_to_trim)
     Pathname.new(file).relative_path_from(path_to_trim).to_s
@@ -29,7 +30,26 @@ module IngestUtils
     end
   end
 
-  def self.calculate_checksum(filepath, algorithm = ALGORITHM_SHA1)
+  def self.calculate_checksum(filepath:, algorithm: ALGORITHM_SHA1, retry_interval: 120) # rubocop:disable Metrics/MethodLength
+    errors = []
+    file_size = File.size(filepath)
+    MAX_RETRY.times do
+      begin
+        dig, size = _calculate_checksum(filepath: filepath, algorithm: algorithm)
+        return [dig, size, errors] if file_size == size
+
+        errors << "Size mismatch: #{file_size}, #{size}!"
+      rescue Error
+        errors << "Error calculating checksum: #{Error}!"
+      end
+
+      sleep(retry_interval)
+    end
+
+    raise IngestException, "SFS calculate_checksum failed for #{filepath}:\n".errors.join("\n")
+  end
+
+  def self._calculate_checksum(filepath:, algorithm:)
     size = 0
     File.open(filepath, 'rb') do |file|
       dig = digest(algorithm)

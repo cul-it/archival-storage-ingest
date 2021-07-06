@@ -159,7 +159,7 @@ module FixityWorker
 
     def calculate_checksum(object_path, msg)
       full_path = File.join(msg.dest_path, object_path).to_s
-      IngestUtils.calculate_checksum(full_path)
+      IngestUtils.calculate_checksum(filepath: full_path)
     end
   end
 
@@ -180,7 +180,7 @@ module FixityWorker
         full_path = File.join(dest_path, file_path).to_s
         next unless File.exist?(full_path)
 
-        checksum = IngestUtils.calculate_checksum(full_path)
+        checksum = IngestUtils.calculate_checksum(filepath: full_path)
         break
       end
       checksum

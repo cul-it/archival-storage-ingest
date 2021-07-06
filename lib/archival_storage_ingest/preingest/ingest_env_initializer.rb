@@ -16,6 +16,14 @@ module Preingest
   class IngestEnvInitializer < BaseEnvInitializer
     def initialize_ingest_env(named_params)
       initialize_env(named_params)
+
+      unless depositor == named_params.fetch(:depositor) &&
+             collection_id == named_params.fetch(:collection_id)
+        msg = "Depositor/Collection mismatch!\n" \
+              "  Given values: #{named_params.fetch(:depositor)}/#{named_params.fetch(:collection_id)}" \
+              "  Manifest values: #{depositor}/#{collection_id}"
+        raise IngestException, msg
+      end
     end
 
     # Add data integrity check after copying ingest manifest to correct place

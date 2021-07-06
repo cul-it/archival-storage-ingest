@@ -97,7 +97,7 @@ module Manifests
     end
 
     def calculate_checksum(filepath)
-      IngestUtils.calculate_checksum(filepath)
+      IngestUtils.calculate_checksum(filepath: filepath)
     end
 
     def manifest_key(filepath)

@@ -29,7 +29,7 @@ module Disseminate
 
     def check_fixity_file(request_file:, transferred_file:)
       request_fixity = request_file[:fixity]
-      transferred_fixity, _size = IngestUtils.calculate_checksum(transferred_file)
+      transferred_fixity, _size = IngestUtils.calculate_checksum(filepath: transferred_file)
       @errors << "Fixity mismatch #{request_file[:filepath]} : #{request_fixity} : #{transferred_fixity}" unless
         request_fixity.eql?(transferred_fixity)
     end

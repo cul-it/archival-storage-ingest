@@ -138,11 +138,11 @@ RSpec.describe 'M2MInitiateWorker' do # rubocop:disable Metrics/BlockLength
   end
 
   context 'when generating ingest manifest from package' do
-    it 'creates one from extracted package content' do
+    it 'creates manifest from extracted package content' do
       extract_zip(zip_file: test_zip, extract_dest: temp_dir) unless Dir.exist?(temp_extracted_dir)
-      manifest_file = m2m_initiate_worker.ingest_manifest(msg: m2m_msg, path: temp_extracted_dir)
+      manifest = m2m_initiate_worker.ingest_manifest(msg: m2m_msg, path: temp_extracted_dir)
+      manifest_file = m2m_initiate_worker.create_ingest_manifest_file(msg: m2m_msg, manifest: manifest)
       expect(manifest_file).to eq(File.join(ingest_root, zip_filename, 'ingest_manifest.json'))
-      manifest = Manifests.read_manifest(filename: manifest_file)
       expect(manifest.number_packages).to eq(1)
       package = manifest.packages[0]
       expect(package.number_files).to eq(2)

@@ -59,7 +59,7 @@ module Manifests
       end
       return nil if definition_index.nil?
 
-      @manifest_of_manifests[definition_index][:sha1] = IngestUtils.calculate_checksum(cm_path)[0]
+      @manifest_of_manifests[definition_index][:sha1] = IngestUtils.calculate_checksum(filepath: cm_path)[0]
       @manifest_of_manifests[definition_index]
     end
 
@@ -70,7 +70,7 @@ module Manifests
       depositor = collection_manifest.depositor
       collection = collection_manifest.collection_id
       manifest_definition = {
-        depositor: depositor, collection: collection, sha1: IngestUtils.calculate_checksum(cm_path)[0],
+        depositor: depositor, collection: collection, sha1: IngestUtils.calculate_checksum(filepath: cm_path)[0],
         sfs: [sfs], path: File.basename(cm_path), s3key: "#{depositor}/#{collection}/#{File.basename(cm_path)}",
         depcol: "#{collection_manifest.depositor}/#{collection_manifest.collection_id}"
       }

@@ -67,16 +67,23 @@ class M2MInitiateWorker < Workers::Worker # rubocop:disable Metrics/ClassLength
 
   def queue_ingest(msg:, path:)
     im = ingest_manifest(msg: msg, path: path)
-    cm = collection_manifest(msg: msg)
+    im_path = create_ingest_manifest_file(msg: msg, manifest: im)
+    cm = collection_manifest(msg: msg) # filename or none
 
     env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root)
-    env_initializer.initialize_ingest_env(data: path, cmf: cm, imf: im,
-                                          sfs_location: sfs_root, ticket_id: 'NO_REPORT')
+    env_initializer.initialize_ingest_env(data: path, cmf: cm, imf: im_path,
+                                          sfs_location: sfs_root, ticket_id: 'NO_REPORT',
+                                          depositor: im.depositor, collection_id: im.collection_id)
 
+    ic = ingest_config(env_initializer: env_initializer, msg: msg)
+    queuer.queue_ingest(ic)
+  end
+
+  def ingest_config(env_initializer:, msg:)
     ingest_config = YAML.load_file(env_initializer.config_path)
     msg.dest_path = ingest_config[:dest_path]
     msg.ingest_manifest = ingest_config[:ingest_manifest]
-    queuer.queue_ingest(ingest_config)
+    ingest_config
   end
 
   # :package_id, :source_path, :bibid, :local_id, :number_files, :files
@@ -88,7 +95,7 @@ class M2MInitiateWorker < Workers::Worker # rubocop:disable Metrics/ClassLength
       package.add_file(file: file)
     end
     manifest.add_package(package: package)
-    create_ingest_manifest_file(msg: msg, manifest: manifest)
+    manifest
   end
 
   def base_ingest_manifest(msg:)

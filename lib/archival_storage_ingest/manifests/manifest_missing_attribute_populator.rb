@@ -19,7 +19,7 @@ module Manifests
         package.source_path = source_path
         package.walk_files do |file|
           full_path = File.join(source_path, file.filepath)
-          (file.sha1, _size) = IngestUtils.calculate_checksum(full_path) if IngestUtils.blank?(file.sha1)
+          (file.sha1, _size) = IngestUtils.calculate_checksum(filepath: full_path) if IngestUtils.blank?(file.sha1)
           file.size = File.size?(full_path) if file.size.nil?
         end
       end

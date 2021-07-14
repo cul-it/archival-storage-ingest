@@ -81,7 +81,7 @@ module WorkQueuer
       dest_paths.each do |path|
         unless super(path)
           status = false
-          last
+          break
         end
       end
       status

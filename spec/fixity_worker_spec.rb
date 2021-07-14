@@ -127,7 +127,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
     # The list_object_keys will return one, two and three.
     # It will be an error if ingest fixity check requests three.
     allow(s3m).to receive(:list_object_keys)
-      .with("#{depositor}/#{collection}") do
+      .with("#{depositor}/#{collection}/") do
       %W[
         #{depositor}/#{collection}/1/one.zip
         #{depositor}/#{collection}/2/two.zip

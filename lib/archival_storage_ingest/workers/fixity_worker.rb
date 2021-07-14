@@ -140,7 +140,7 @@ module FixityWorker
     # We expect object_paths to return same format as filepath in manifest.
     # Remove collection prefix.
     def object_paths(msg)
-      object_paths = @s3_manager.list_object_keys(msg.collection_s3_prefix)
+      object_paths = @s3_manager.list_object_keys("#{msg.collection_s3_prefix}/")
       ops = object_paths.map { |path| path.sub("#{msg.collection_s3_prefix}/", '') }
       logger.debug("Object keys: #{ops}") if debug
 

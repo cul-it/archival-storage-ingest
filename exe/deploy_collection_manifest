@@ -37,7 +37,8 @@ archives = [
   { archive: '/cul/data/archival02' },
   { archive: '/cul/data/archival03' },
   { archive: '/cul/data/archival04' },
-  { archive: '/cul/data/archival05' }
+  { archive: '/cul/data/archival05' },
+  { archive: '/cul/data/archival06' }
 ]
 
 archive_size = ArchiveSize::ArchiveSize.new(archives: archives, s3_manager: s3_manager)

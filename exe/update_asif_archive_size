@@ -4,9 +4,11 @@
 require 'misc/archive_size'
 require 'archival_storage_ingest/s3/s3_manager'
 
+# rubocop:disable Metrics/LineLength
 s3_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-dev' : 's3-cular'
 asif_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-asif-manifests-dev' : 's3-cular-asif-manifests-prod'
 asif_archive_size_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-asif-archive-size-dev' : 's3-cular-asif-archive-size-prod'
+# rubocop:enable Metrics/LineLength
 s3_manager = S3Manager.new(s3_bucket, asif_bucket, asif_archive_size_bucket)
 
 archives = [

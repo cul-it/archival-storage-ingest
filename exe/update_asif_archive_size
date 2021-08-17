@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'misc/archive_size'
+require 'archival_storage_ingest/s3/s3_manager'
+
+s3_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-dev' : 's3-cular'
+asif_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-asif-manifests-dev' : 's3-cular-asif-manifests-prod'
+asif_archive_size_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-asif-archive-size-dev' : 's3-cular-asif-archive-size-prod'
+s3_manager = S3Manager.new(s3_bucket, asif_bucket, asif_archive_size_bucket)
+
+archives = [
+  { archive: '/cul/data/archival01' },
+  { archive: '/cul/data/archival02' },
+  { archive: '/cul/data/archival03' },
+  { archive: '/cul/data/archival04' },
+  { archive: '/cul/data/archival05' },
+  { archive: '/cul/data/archival06' }
+]
+
+archive_size = ArchiveSize::ArchiveSize.new(archives: archives, s3_manager: s3_manager)
+
+archive_size.deploy_asif_archive_size

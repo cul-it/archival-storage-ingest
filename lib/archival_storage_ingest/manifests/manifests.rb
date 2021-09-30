@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/exception/ingest_exception'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'json'
+require 'json_schemer'
+require 'pathname'
 
 module Manifests
   BLANK_JSON_TEXT = '{"locations":[],"packages":[]}'
@@ -126,7 +130,7 @@ module Manifests
       {
         depositor: depositor, collection_id: collection_id,
         steward: steward, documentation: documentation,
-        locations: locations, number_packages: number_packages,
+        number_packages: number_packages,
         packages: packages.map(&:to_json_ingest)
       }.compact
     end
@@ -303,7 +307,7 @@ module Manifests
   end
 
   class FileEntry
-    attr_accessor :filepath, :sha1, :md5, :size, :ingest_date
+    attr_accessor :filepath, :sha1, :md5, :size, :ingest_date, :tool_version, :media_type
 
     def initialize(file:)
       @filepath = file[:filepath]
@@ -311,6 +315,8 @@ module Manifests
       @md5 = file[:md5]
       @size = file[:size]
       @ingest_date = file[:ingest_date]
+      @tool_version = 'Apache Tika 2.1.0' # fix it to a specific version of Tika
+      @media_type = file[:media_type].nil? ? '' : file[:media_type]
     end
 
     def copy(other)
@@ -320,6 +326,8 @@ module Manifests
       @md5 = other.md5
       @size = other.size
       @ingest_date = other.ingest_date
+      @tool_version = other.tool_version
+      @media_type = other.media_type
     end
 
     # All assets in archival storage must have SHA1 checksum.
@@ -328,6 +336,9 @@ module Manifests
       return false unless fixity_equals(other)
 
       return false unless ingest_date == other.ingest_date
+
+      return false unless tool_version == other.tool_version &&
+                          media_type == other.media_type
 
       true
     end
@@ -356,7 +367,9 @@ module Manifests
         sha1: sha1,
         md5: md5,
         size: size,
-        ingest_date: ingest_date
+        ingest_date: ingest_date,
+        tool_version: tool_version,
+        media_type: media_type
       }.compact
     end
 
@@ -375,6 +388,87 @@ module Manifests
         sha1: sha1,
         size: size
       }.compact
+    end
+  end
+
+  class ManifestValidator
+    INGEST_SCHEMA = '/cul/app/cular-metadata/manifest_schema_ingest.json'
+    STORAGE_SCHEMA = '/cul/app/cular-metadata/manifest_schema_storage.json'
+    attr_reader :ingest_schema, :storage_schema
+
+    def initialize(ingest_schema: INGEST_SCHEMA, storage_schema: STORAGE_SCHEMA)
+      @ingest_schema = JSONSchemer.schema(Pathname.new(ingest_schema))
+      @storage_schema = JSONSchemer.schema(Pathname.new(storage_schema))
+    end
+
+    def _validate_manifest(schema:, data_symbol_hash:)
+      # we need to generate/parse to convert symbol to quotes as this schema doesn't work with symbols
+      json = JSON.generate(data_symbol_hash)
+
+      json_data_hash = JSON.parse(json)
+      errors = schema.validate(json_data_hash).to_a
+      raise IngestException, "Failed to validate manifest: #{errors}" unless errors.size.zero?
+
+      true
+    end
+
+    def validate_ingest_manifest(manifest:)
+      _validate_manifest(schema: ingest_schema, data_symbol_hash: manifest.to_json_ingest_hash)
+    end
+
+    def validate_storage_manifest(manifest:)
+      _validate_manifest(schema: storage_schema, data_symbol_hash: manifest.to_json_storage_hash)
+    end
+  end
+
+  class FileIdentifier
+    attr_reader :java_path, :sfs_prefix, :tika_path
+
+    DEFAULT_JAVA_PATH = 'java'
+    DEFAULT_TIKA_PATH = '/cul/app/tika/tika-app-2.1.0.jar'
+    SFS_TRIM_PREFIX = 'smb://files.cornell.edu/lib/'
+
+    def initialize(sfs_prefix:, java_path: DEFAULT_JAVA_PATH, tika_path: DEFAULT_TIKA_PATH)
+      @java_path = java_path
+      @tika_path = tika_path
+      @sfs_prefix = sfs_prefix
+    end
+
+    def resolve_filepath(manifest:, file:)
+      location = nil
+      puts "locations: #{manifest.locations}"
+      manifest.locations.each do |loc|
+        next if loc.start_with?('s3')
+
+        relative_path = IngestUtils.relative_path(loc, SFS_TRIM_PREFIX)
+        path = File.join(sfs_prefix, relative_path, file.filepath)
+        location = path if File.exist?(path)
+      end
+
+      location
+    end
+
+    def identify_from_source(ingest_package:, file:)
+      abs_path = File.join(ingest_package.source_path, file.filepath)
+      raise IngestException, "Failed to identify file #{file.filepath}" unless File.exist?(abs_path)
+
+      _identify(abs_path: abs_path)
+    end
+
+    def identify_from_storage(manifest:, file:)
+      abs_path = resolve_filepath(manifest: manifest, file: file)
+      # resolve_filepath only returns valid abs_path if file exists
+      raise IngestException, "Failed to identify file #{file.filepath}" if abs_path.nil?
+
+      _identify(abs_path: abs_path)
+    end
+
+    def _identify(abs_path:)
+      puts("#{java_path}, #{tika_path}, #{abs_path}")
+      stdout, _stderr, status = Open3.capture3(java_path, '-jar', tika_path, '-x', '-d', abs_path)
+      return stdout.chomp if status.success?
+
+      'application/octet-stream'
     end
   end
 end

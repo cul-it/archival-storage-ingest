@@ -2,6 +2,7 @@
   "steward": "t123",
   "collection_id": "test_collection",
   "depositor": "test_depositor",
+  "documentation": "cular:test_me",
   "number_packages": 1,
   "packages": [
     {

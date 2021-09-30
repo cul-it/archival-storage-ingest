@@ -4,20 +4,22 @@ require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/preingest/ingest_env_initializer'
 
 require 'fileutils'
+require 'json_schemer'
 require 'rspec'
 require 'yaml'
 
 RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
   let(:depositor) { 'test_depositor' }
   let(:collection) { 'test_collection' }
+  let(:base_dir) { File.dirname(__FILE__) }
   let(:ingest_root) do
-    File.join(File.dirname(__FILE__), 'resources', 'preingest', 'ingest_root')
+    File.join(base_dir, 'resources', 'preingest', 'ingest_root')
   end
   let(:sfs_root) do
-    File.join(File.dirname(__FILE__), 'resources', 'preingest', 'sfs_root')
+    File.join(base_dir, 'resources', 'preingest', 'sfs_root')
   end
   let(:source_data) do
-    File.join(File.dirname(__FILE__), 'resources', 'preingest', 'source_data')
+    File.join(base_dir, 'resources', 'preingest', 'source_data')
   end
   let(:collection_manifest) do
     File.join(source_data, '_EM_collection_manifest.json')
@@ -39,6 +41,16 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
   let(:dir_to_clean) do
     File.join(ingest_root, depositor)
   end
+  let(:storage_schema) do
+    File.join(base_dir, 'resources', 'schema', 'manifest_schema_storage.json')
+  end
+  let(:ingest_schema) do
+    File.join(base_dir, 'resources', 'schema', 'manifest_schema_ingest.json')
+  end
+  let(:manifest_validator) do
+    Manifests::ManifestValidator.new(ingest_schema: ingest_schema,
+                                     storage_schema: storage_schema)
+  end
 
   after(:each) do
     FileUtils.remove_dir(dir_to_clean)
@@ -46,7 +58,8 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
 
   context 'when initializing ingest env' do # rubocop:disable Metrics/BlockLength
     it 'creates ingest env' do # rubocop:disable Metrics/BlockLength
-      env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root)
+      env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root,
+                                                            manifest_validator: manifest_validator)
       env_initializer.initialize_ingest_env(data: data, cmf: collection_manifest, imf: ingest_manifest,
                                             sfs_location: sfs_location, ticket_id: ticket_id,
                                             depositor: depositor, collection_id: collection)
@@ -93,7 +106,8 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
 
   context 'when initializing ingest env without collection manifest' do
     it 'creates ingest env without merged collection manifest' do
-      env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root)
+      env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root,
+                                                            manifest_validator: manifest_validator)
       env_initializer.initialize_ingest_env(data: data, cmf: 'none', imf: ingest_manifest,
                                             sfs_location: sfs_location, ticket_id: ticket_id,
                                             depositor: depositor, collection_id: collection)

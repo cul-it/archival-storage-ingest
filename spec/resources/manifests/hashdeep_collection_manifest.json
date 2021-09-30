@@ -4,7 +4,7 @@
   "collection_id": "RMA03487_Cornell_University_Facilities_Construction_Records",
   "locations": [
     "s3://s3-cular/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records",
-    "smb://files.library.cornell.edu/lib/archival02/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records"
+    "smb://files.cornell.edu/lib/archival02/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records"
   ],
   "documentation": "cular:abcd",
   "number_packages": 3,

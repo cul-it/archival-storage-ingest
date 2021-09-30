@@ -2,6 +2,6 @@
 :type: Ingest
 :depositor: test_depositor
 :collection: test_collection
-:dest_path: "/cul/app/archival_storage_ingest/archival-storage-ingest/spec/resources/m2m/sfs_root/cul/app/archival_storage_ingest/archival-storage-ingest/spec/resources/m2m/sfs_root/test_depositor/test_collection"
-:ingest_manifest: "/cul/app/archival_storage_ingest/archival-storage-ingest/spec/resources/m2m/ingest_root/test_depositor/test_collection/manifest/ingest_manifest/ingest_manifest.json"
+:dest_path: "/Users/sk274/cul/app/archival_storage_ingest/archival-storage-ingest/spec/resources/m2m/sfs_root/Users/sk274/cul/app/archival_storage_ingest/archival-storage-ingest/spec/resources/m2m/sfs_root/test_depositor/test_collection"
+:ingest_manifest: "/Users/sk274/cul/app/archival_storage_ingest/archival-storage-ingest/spec/resources/m2m/ingest_root/test_depositor/test_collection/manifest/ingest_manifest/ingest_manifest.json"
 :ticket_id: NO_REPORT

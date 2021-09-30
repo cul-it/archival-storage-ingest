@@ -68,7 +68,7 @@ module Preingest
     end
 
     def full_sfs_location(sfs_location:)
-      "smb://files.library.cornell.edu/lib/#{sfs_location}/#{depositor}/#{collection_id}"
+      "smb://files.cornell.edu/lib/#{sfs_location}/#{depositor}/#{collection_id}"
     end
 
     def _initialize_config(ingest_manifest_path:, named_params:)

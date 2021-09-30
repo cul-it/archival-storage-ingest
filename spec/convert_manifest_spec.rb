@@ -54,7 +54,7 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
 
         expect(manifest['locations']).to contain_exactly(
           's3://s3-cular/RMC/RMA/RMA00507_Dexter_Simpson_Kimball_papers',
-          'smb://files.library.cornell.edu/lib/archival02/RMC/RMA/RMA00507_Dexter_Simpson_Kimball_papers'
+          'smb://files.cornell.edu/lib/archival02/RMC/RMA/RMA00507_Dexter_Simpson_Kimball_papers'
         )
       end
     end

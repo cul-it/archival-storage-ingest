@@ -61,6 +61,16 @@ RSpec.describe 'M2MInitiateWorker' do # rubocop:disable Metrics/BlockLength
   #                       package: 'test.zip'
   #                     })
   # end
+  let(:storage_schema) do
+    File.join(File.dirname(__FILE__), 'resources', 'schema', 'manifest_schema_storage.json')
+  end
+  let(:ingest_schema) do
+    File.join(File.dirname(__FILE__), 'resources', 'schema', 'manifest_schema_ingest.json')
+  end
+  let(:manifest_validator) do
+    Manifests::ManifestValidator.new(ingest_schema: ingest_schema,
+                                     storage_schema: storage_schema)
+  end
   let(:m2m_initiate_worker) do
     s3_manager = spy('s3_manager')
     allow(s3_manager).to receive(:upload_file)
@@ -87,7 +97,8 @@ RSpec.describe 'M2MInitiateWorker' do # rubocop:disable Metrics/BlockLength
       package_extract_dir: package_extract_dir,
       ingest_root: ingest_root,
       sfs_root: sfs_root,
-      queuer: queuer
+      queuer: queuer,
+      manifest_validator: manifest_validator
     }
     M2MInitiateWorker.new(named_params)
   end
@@ -207,7 +218,7 @@ RSpec.describe 'M2MInitiateWorker' do # rubocop:disable Metrics/BlockLength
 
     FileUtils.remove_dir(temp_extracted_dir) if Dir.exist?(temp_extracted_dir)
 
-    p2 = File.join(sfs_root, depositor, collection, '_EM_test_depositor_test_collection.json')
+    p2 = File.join(sfs_root, depositor, collection, '_EM_test_depositor_2_test_collection.json')
     File.delete(p2) if File.exist?(p2)
 
     zip_copy = File.join(resource_path, 'test_copy.zip')

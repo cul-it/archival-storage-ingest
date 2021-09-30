@@ -14,6 +14,12 @@ require 'yaml'
 
 module Preingest
   class IngestEnvInitializer < BaseEnvInitializer
+    def initialize(ingest_root:, sfs_root:, manifest_validator: Manifests::ManifestValidator.new)
+      super(ingest_root: ingest_root, sfs_root: sfs_root)
+
+      @manifest_validator = manifest_validator
+    end
+
     def initialize_ingest_env(named_params)
       initialize_env(named_params)
 
@@ -31,6 +37,8 @@ module Preingest
       im_path = super
       manifest = _populate_missing_attribute(ingest_manifest: im_path, source_path: source_path)
       raise IngestException, 'Asset mismatch' unless _compare_asset_existence(ingest_manifest: manifest)
+
+      @manifest_validator.validate_ingest_manifest(manifest: manifest)
 
       size_checker = Manifests::ManifestFilesizeChecker.new
       @total_size, @size_mismatch = size_checker.check_filesize(manifest: manifest)

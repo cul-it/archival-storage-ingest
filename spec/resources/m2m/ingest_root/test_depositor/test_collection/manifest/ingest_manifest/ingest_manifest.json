@@ -1,16 +1,13 @@
 {
   "depositor": "test_depositor",
   "collection_id": "test_collection",
-  "steward": "?",
+  "steward": "use-real-steward-test-will-fail",
   "documentation": "?",
-  "locations": [
-    "?"
-  ],
   "number_packages": 1,
   "packages": [
     {
-      "package_id": "?",
-      "source_path": "/cul/app/archival_storage_ingest/archival-storage-ingest/spec/resources/m2m/temp/handle-1234",
+      "package_id": "should-be-populated-from-ecommons-metadata-test-will-fail",
+      "source_path": "/Users/sk274/cul/app/archival_storage_ingest/archival-storage-ingest/spec/resources/m2m/temp/handle-1234",
       "bibid": "?",
       "local_id": "?",
       "number_files": 2,

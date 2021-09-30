@@ -1,0 +1,120 @@
+{
+  "$id": "https://github.com/cul-it/cular-metadata/blob/main/manifest_schema_storage.json",
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "type": "object",
+  "properties": {
+    "collection_id": {
+      "type": "string"
+    },
+    "depositor": {
+      "type": "string"
+    },
+    "steward": {
+      "type": "string",
+      "pattern": "^[a-zA-Z]{1,4}[0-9]{1,6}$"
+    },
+    "documentation": {
+      "type": "string"
+    },
+    "locations": {
+      "$ref": "#/definitions/locations"
+    },
+    "packages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/package"
+      }
+    },
+    "number_packages": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "collection_id",
+    "depositor",
+    "documentation",
+    "packages",
+    "number_packages"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "locations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^s3://.+|^smb://files.cornell.edu/lib/.+"
+      }
+    },
+    "package": {
+      "type": "object",
+      "properties": {
+        "package_id": {
+          "type": "string",
+          "pattern": "^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        },
+        "bibid": {
+          "type": "string"
+        },
+        "local_id": {
+          "type": "string"
+        },
+        "locations": {
+          "$ref": "#/definitions/locations"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/file"
+          }
+        },
+        "number_files": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "package_id",
+        "files",
+        "number_files"
+      ],
+      "additionalProperties": false
+    },
+    "file": {
+      "type": "object",
+      "properties": {
+        "filepath": {
+          "type": "string"
+        },
+        "sha1": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "md5": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{32}$"
+        },
+        "size": {
+          "type": "integer"
+        },
+        "ingest_date": {
+          "type": "string",
+          "pattern": "^[0-9-]{10}$"
+        },
+        "tool_version": {
+          "type": "string"
+        },
+        "media_type": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filepath",
+        "sha1",
+        "size",
+        "ingest_date",
+        "tool_version",
+        "media_type"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

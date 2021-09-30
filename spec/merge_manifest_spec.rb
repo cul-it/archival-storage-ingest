@@ -75,7 +75,7 @@ RSpec.describe 'MergeManifest' do # rubocop:disable Metrics/BlockLength
           ],
           'sfs' => [
             {
-              'uri': 'smb://files.library.cornell.edu/lib/archival02/RMC/' \
+              'uri': 'smb://files.cornell.edu/lib/archival02/RMC/' \
                      'RMA/RMA03487_Cornell_University_Facilities_Construction_Records'
             }
           ]

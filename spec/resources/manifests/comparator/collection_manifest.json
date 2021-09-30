@@ -4,7 +4,7 @@
   "collection_id": "RMA02205_Cornell_football_films",
   "locations": [
     "s3://s3-cular/RMC/RMA/RMA02205_Cornell_football_films",
-    "smb://files.library.cornell.edu/lib/archival02/RMC/RMA/RMA02205_Cornell_football_films"
+    "smb://files.cornell.edu/lib/archival02/RMC/RMA/RMA02205_Cornell_football_films"
   ],
   "documentation": "cular:1330291",
   "number_packages": 48,

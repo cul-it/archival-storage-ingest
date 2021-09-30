@@ -2,8 +2,9 @@
   "depositor": "test_depositor",
   "collection_id": "test_collection",
   "steward": "t123",
+  "documentation": "cular:test",
   "locations": [
-
+    "s3://bogus-bucket/test_depositor/test_collection"
   ],
   "number_packages": 2,
   "packages": [
@@ -15,19 +16,25 @@
           "filepath": "1/one.txt",
           "sha1": "c7059bb19433cc3cabaa6236c83d56668a843dd2",
           "size": 4,
-          "ingest_date": "2020-09-08"
+          "ingest_date": "2020-09-08",
+          "tool_version": "Apache Tika 2.1.0",
+          "media_type": "text/plain"
         },
         {
           "filepath": "1/more/resource1.txt",
           "sha1": "f7aa11a22a605d4655e1d1ae122ceb43ddcfe5a9",
           "size": 16,
-          "ingest_date": "2020-09-08"
+          "ingest_date": "2020-09-08",
+          "tool_version": "Apache Tika 2.1.0",
+          "media_type": "text/plain"
         },
         {
           "filepath": "1/more/resource2.txt",
           "sha1": "6662c3da403be36f1b24a6e8c3fa42f7f4215066",
           "size": 16,
-          "ingest_date": "2020-09-08"
+          "ingest_date": "2020-09-08",
+          "tool_version": "Apache Tika 2.1.0",
+          "media_type": "text/plain"
         }
       ]
     },
@@ -39,19 +46,25 @@
           "filepath": "2/two.txt",
           "sha1": "7bbef45b3bc70855010e02460717643125c3beca",
           "size": 4,
-          "ingest_date": "2020-09-08"
+          "ingest_date": "2020-09-08",
+          "tool_version": "tika-2.1.0",
+          "media_type": "text/plain"
         },
         {
           "filepath": "2/dir1/random.txt",
           "sha1": "5d64b71392b1e00a3ad893db02d381d58262c2d6",
           "size": 7,
-          "ingest_date": "2020-09-08"
+          "ingest_date": "2020-09-08",
+          "tool_version": "tika-2.1.0",
+          "media_type": "text/plain"
         },
         {
           "filepath": "2/dir2/data.txt",
           "sha1": "c5d84736ba451747dd5f0eb9d17e104f3697ef47",
           "size": 5,
-          "ingest_date": "2020-09-08"
+          "ingest_date": "2020-09-08",
+          "tool_version": "tika-2.1.0",
+          "media_type": "text/plain"
         }
       ]
     }

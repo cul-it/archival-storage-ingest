@@ -4,7 +4,7 @@
   "collection_id": "test_collection",
   "locations": [
     "s3://some_bucket/test_depositor/test_collection",
-    "smb://files.library.cornell.edu/lib/archival0x/test_depositor/test_collection"
+    "smb://files.cornell.edu/lib/archival0x/test_depositor/test_collection"
   ],
   "documentation": "cular:xxxx",
   "number_packages": 2,

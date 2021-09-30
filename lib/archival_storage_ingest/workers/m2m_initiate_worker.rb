@@ -13,7 +13,7 @@ require 'zip'
 
 class M2MInitiateWorker < Workers::Worker # rubocop:disable Metrics/ClassLength
   attr_reader :s3_manager, :package_zip_dir, :package_extract_dir,
-              :ingest_root, :sfs_root, :queuer
+              :ingest_root, :sfs_root, :queuer, :manifest_validator
 
   def initialize(named_params)
     super(_name)
@@ -23,6 +23,7 @@ class M2MInitiateWorker < Workers::Worker # rubocop:disable Metrics/ClassLength
     @ingest_root = named_params.fetch(:ingest_root)
     @sfs_root = named_params.fetch(:sfs_root)
     @queuer = named_params.fetch(:queuer, WorkQueuer::M2MIngestQueuer.new(confirm: false))
+    @manifest_validator = named_params.fetch(:manifest_validator, Manifests::ManifestValidator.new)
   end
 
   def _name
@@ -70,7 +71,8 @@ class M2MInitiateWorker < Workers::Worker # rubocop:disable Metrics/ClassLength
     im_path = create_ingest_manifest_file(msg: msg, manifest: im)
     cm = collection_manifest(msg: msg) # filename or none
 
-    env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root)
+    env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root,
+                                                          manifest_validator: manifest_validator)
     env_initializer.initialize_ingest_env(data: path, cmf: cm, imf: im_path,
                                           sfs_location: sfs_root, ticket_id: 'NO_REPORT',
                                           depositor: im.depositor, collection_id: im.collection_id)
@@ -89,7 +91,8 @@ class M2MInitiateWorker < Workers::Worker # rubocop:disable Metrics/ClassLength
   # :package_id, :source_path, :bibid, :local_id, :number_files, :files
   def ingest_manifest(msg:, path:)
     manifest = base_ingest_manifest(msg: msg)
-    package_args = { package_id: '?', source_path: '?', bibid: '?', local_id: '?', files: [] }
+    package_args = { package_id: 'should-be-populated-from-ecommons-metadata-test-will-fail',
+                     source_path: '?', bibid: '?', local_id: '?', files: [] }
     package = Manifests::Package.new(package: package_args)
     populate_files(path: path).each do |file|
       package.add_file(file: file)
@@ -101,8 +104,8 @@ class M2MInitiateWorker < Workers::Worker # rubocop:disable Metrics/ClassLength
   def base_ingest_manifest(msg:)
     base_hash = {
       depositor: msg.depositor, collection_id: msg.collection,
-      steward: '?', documentation: '?',
-      locations: ['?']
+      steward: 'use-real-steward-test-will-fail', documentation: '?',
+      locations: ['use-real-s3/sfs-location-test-will-fail']
     }
     Manifests::Manifest.new(json_text: base_hash.to_json.to_s)
   end

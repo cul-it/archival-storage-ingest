@@ -1,94 +1,94 @@
 {
-  "$id": "https://github.com/cul-it/cular-metadata/blob/main/manifest_schema_ingest.json",
-  "$schema": "http://json-schema.org/draft-06/schema#",
-  "type": "object",
-  "properties": {
-    "collection_id": {
-      "type": "string"
-    },
-    "depositor": {
-      "type": "string"
-    },
-    "steward": {
-      "type": "string",
-      "pattern": "^[a-zA-Z]{1,4}[0-9]{1,6}$"
-    },
-    "documentation": {
-      "type": "string"
-    },
-    "packages": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/package"
-      }
-    },
-    "number_packages": {
-      "type": "integer"
-    }
-  },
-  "required": [
-    "collection_id",
-    "depositor",
-    "documentation",
-    "packages"
-  ],
-  "additionalProperties": false,
-  "definitions": {
-    "package": {
-      "type": "object",
-      "properties": {
-        "package_id": {
-          "type": "string",
-          "pattern": "^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    "$id": "https://github.com/cul-it/cular-metadata/blob/main/manifest_schema_ingest.json",
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "type": "object",
+    "properties": {
+        "collection_id": {
+            "type": "string"
         },
-        "source_path": {
-          "type": "^$"
+        "depositor": {
+            "type": "string"
         },
-        "bibid": {
-          "type": "string"
+        "steward": {
+            "type": "string",
+            "pattern": "^[a-zA-Z]{1,4}[0-9]{1,6}$"
         },
-        "local_id": {
-          "type": "string"
+        "documentation": {
+            "type": "string"
         },
-        "files": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/file"
-          }
+        "packages": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/package"
+            }
         },
-        "number_files": {
-          "type": "integer"
+        "number_packages": {
+            "type": "integer"
         }
-      },
-      "required": [
-        "files",
-        "package_id",
-        "source_path"
-      ],
-      "additionalProperties": false
     },
-    "file": {
-      "type": "object",
-      "properties": {
-        "filepath": {
-          "type": "string"
+    "required": [
+        "collection_id",
+        "depositor",
+        "documentation",
+        "packages"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "package": {
+            "type": "object",
+            "properties": {
+                "package_id": {
+                    "type": "string",
+                    "pattern": "^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                "source_path": {
+                    "type": "string"
+                },
+                "bibid": {
+                    "type": "string"
+                },
+                "local_id": {
+                    "type": "string"
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/file"
+                    }
+                },
+                "number_files": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "files",
+		"package_id",
+                "source_path"
+            ],
+            "additionalProperties": false
         },
-        "sha1": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "md5": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{32}$"
-        },
-        "size": {
-          "type": "integer"
+        "file": {
+            "type": "object",
+            "properties": {
+                "filepath": {
+                    "type": "string"
+                },
+                "sha1": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{40}$"
+                },
+                "md5": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "filepath"
+            ],
+            "additionalProperties": false
         }
-      },
-      "required": [
-        "filepath"
-      ],
-      "additionalProperties": false
     }
-  }
 }

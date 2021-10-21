@@ -68,6 +68,7 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
 
       # compare ingest manifest
       source_imf = Manifests.read_manifest(filename: ingest_manifest)
+
       source_imf.walk_packages do |package|
         package.source_path = data
       end

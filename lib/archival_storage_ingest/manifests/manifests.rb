@@ -436,7 +436,6 @@ module Manifests
 
     def resolve_filepath(manifest:, file:)
       location = nil
-      puts "locations: #{manifest.locations}"
       manifest.locations.each do |loc|
         next if loc.start_with?('s3')
 
@@ -464,7 +463,6 @@ module Manifests
     end
 
     def _identify(abs_path:)
-      puts("#{java_path}, #{tika_path}, #{abs_path}")
       stdout, _stderr, status = Open3.capture3(java_path, '-jar', tika_path, '-x', '-d', abs_path)
       return stdout.chomp if status.success?
 

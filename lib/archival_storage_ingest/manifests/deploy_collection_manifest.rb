@@ -70,8 +70,9 @@ module Manifests
     end
 
     def describe_deployment(manifest_def:)
-      manifest_def.keys.sort.each do |key|
-        puts "#{key}: #{manifest_def[key]}"
+      mdef_hash = manifest_def.to_hash
+      mdef_hash.keys.sort.each do |key|
+        puts "#{key}: #{mdef_hash[key]}"
       end
     end
 

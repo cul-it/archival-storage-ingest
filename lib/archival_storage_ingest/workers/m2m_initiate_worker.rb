@@ -15,6 +15,9 @@ class M2MInitiateWorker < Workers::Worker # rubocop:disable Metrics/ClassLength
   attr_reader :s3_manager, :package_zip_dir, :package_extract_dir,
               :ingest_root, :sfs_root, :queuer, :manifest_validator
 
+  # For the oddest of reasons,
+  # @manifest_validator = named_params.fetch(:manifest_validator, Manifests::ManifestValidator.new
+  # does not work!!!
   def initialize(named_params)
     super(_name)
     @s3_manager = named_params.fetch(:s3_manager) { ArchivalStorageIngest.configuration.s3_manager }
@@ -23,7 +26,15 @@ class M2MInitiateWorker < Workers::Worker # rubocop:disable Metrics/ClassLength
     @ingest_root = named_params.fetch(:ingest_root)
     @sfs_root = named_params.fetch(:sfs_root)
     @queuer = named_params.fetch(:queuer, WorkQueuer::M2MIngestQueuer.new(confirm: false))
-    @manifest_validator = named_params.fetch(:manifest_validator, Manifests::ManifestValidator.new)
+    @manifest_validator = _fetch_manifest_validator(params: named_params)
+  end
+
+  def _fetch_manifest_validator(params:)
+    if params.key?(:manifest_validator)
+      params.fetch(:manifest_validator)
+    else
+      Manifests::ManifestValidator.new
+    end
   end
 
   def _name

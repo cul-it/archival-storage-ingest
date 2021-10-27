@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Use this script to retroactively add file id to existing collection
+
+require 'archival_storage_ingest/manifests/manifests'
+require 'json'
+
+java_path = ENV['asi_java_path'] || '/usr/bin/java'
+tika_path = ENV['asi_tika_path'] || '/cul/app/tika/tika-app-2.1.0.jar'
+file_identifier = Manifests::FileIdentifier.new(java_path: java_path, tika_path: tika_path,
+                                                sfs_prefix: Manifests::SFS_PREFIX)
+
+storage_manifest_file = ARGV.shift
+storage_manifest = Manifests.read_manifest(filename: storage_manifest_file)
+
+def identify_files_from_storage(storage_manifest:, file_identifier:)
+  storage_manifest.walk_all_filepath do |file|
+    file.media_type = file_identifier.identify_from_storage(manifest: storage_manifest, file: file)
+    file.tool_version = Manifests::IDENTIFY_TOOL
+  end
+
+  storage_manifest
+end
+
+new_storage_manifest = identify_files_from_storage(storage_manifest: storage_manifest,
+                                                   file_identifier: file_identifier)
+puts JSON.pretty_generate(new_storage_manifest.to_json_storage_hash)

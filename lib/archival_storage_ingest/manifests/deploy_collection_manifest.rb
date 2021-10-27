@@ -8,7 +8,7 @@ require 'json'
 require 'open3'
 
 module Manifests
-  IDENTIFY_TOOL = 'tika-2.1.0'
+  IDENTIFY_TOOL = 'Apache Tika 2.1.0'
   SFS_PREFIX = '/cul/data'
 
   # collection manifest is old term for storage manifest

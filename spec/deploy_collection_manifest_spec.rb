@@ -38,7 +38,7 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
   let(:man_of_man_source) { resolve_filename(%w[manifests manifest_of_manifest.json]) }
   let(:man_of_man) { resolve_filename(%w[manifests manifest_of_manifest_copy.json]) }
   let(:old_manifest_sha1) { 'deadbeef' }
-  let(:new_manifest_sha1) { '2fbb00930be72d77e95b695be608da36984e9650' }
+  let(:new_manifest_sha1) { '921d09399fdba978bb0863c98f372c9c211f8573' }
   let(:asif_bucket) { 's3-cular-invalid' }
   let(:s3_manager) do # rubocop: disable Metrics/BlockLength
     s3m = S3Manager.new('bogus_bucket')

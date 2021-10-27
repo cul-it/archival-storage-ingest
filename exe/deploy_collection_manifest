@@ -11,6 +11,9 @@ require 'archival_storage_ingest/s3/s3_manager'
 new_collection_manifest = ARGV.shift
 ingest_manifest = ARGV.shift
 sfs = ARGV.shift
+skip_data_addition = ARGV.shift
+identify_from_source = ARGV.shift
+
 storage_schema = ENV['asi_storage_schema'] || '/cul/app/cular-metadata/manifest_schema_storage.json'
 java_path = ENV['asi_java_path'] || '/usr/bin/java'
 tika_path = ENV['asi_tika_path'] || '/cul/app/tika/tika-app-2.1.0.jar'
@@ -35,8 +38,14 @@ deployer = Manifests::CollectionManifestDeployer.new(manifests_path: manifest_de
                                                      sfs_prefix: sfs_prefix, manifest_validator: manifest_validator,
                                                      file_identifier: file_identifier)
 
+# :storage_manifest_path, :ingest_manifest_path, :storage_manifest, :ingest_manifest, :sfs,
+#                 :skip_data_addition, :identify_from_source, :ingest_date
+skip_data_addition = skip_data_addition.nil? || skip_data_addition != 'true' ? false : true
+identify_from_source = identify_from_source.nil? || identify_from_source != 'false' ? true : false
 manifest_parameters = Manifests::ManifestParameters.new(storage_manifest_path: new_collection_manifest,
-                                                        ingest_manifest_path: ingest_manifest, sfs: sfs)
+                                                        ingest_manifest_path: ingest_manifest, sfs: sfs,
+                                                        skip_data_addition: skip_data_addition,
+                                                        identify_from_source: identify_from_source)
 manifest_definition = deployer.prepare_manifest_definition(manifest_parameters: manifest_parameters)
 
 archives = [

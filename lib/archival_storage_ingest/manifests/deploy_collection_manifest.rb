@@ -8,7 +8,6 @@ require 'json'
 require 'open3'
 
 module Manifests
-  IDENTIFY_TOOL = 'Apache Tika 2.1.0'
   SFS_PREFIX = '/cul/data'
 
   # collection manifest is old term for storage manifest
@@ -168,7 +167,7 @@ module Manifests
     def identify_files_from_storage(storage_manifest:)
       storage_manifest.walk_all_filepath do |file|
         file.media_type = file_identifier.identify_from_storage(manifest: storage_manifest, file: file)
-        file.tool_version = IDENTIFY_TOOL
+        file.tool_version = Manifests::IDENTIFY_TOOL
       end
 
       storage_manifest

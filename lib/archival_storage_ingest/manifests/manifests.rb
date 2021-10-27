@@ -8,6 +8,7 @@ require 'pathname'
 
 module Manifests
   BLANK_JSON_TEXT = '{"locations":[],"packages":[]}'
+  IDENTIFY_TOOL = 'Apache Tika 2.1.0'
   MANIFEST_TYPE_INGEST = 'ingest_manifest'
   MANIFEST_TYPE_STORAGE = 'storage_manifest'
   MANIFEST_TYPE_FIXITY = 'fixity_manifest'
@@ -315,7 +316,7 @@ module Manifests
       @md5 = file[:md5]
       @size = file[:size]
       @ingest_date = file[:ingest_date]
-      @tool_version = 'Apache Tika 2.1.0' # fix it to a specific version of Tika
+      @tool_version = IDENTIFY_TOOL # fix it to a specific version of Tika
       @media_type = file[:media_type].nil? ? '' : file[:media_type]
     end
 

@@ -58,7 +58,7 @@ module Manifests
 
     def populate_manifest_data(manifest_parameters:)
       if manifest_parameters.skip_data_addition
-        collection_manifest
+        manifest_parameters.storage_manifest
       else
         smi = StorageManifestInitializer.new(file_identifier: file_identifier,
                                              identify_from_source: manifest_parameters.identify_from_source)

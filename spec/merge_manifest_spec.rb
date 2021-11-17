@@ -36,7 +36,7 @@ RSpec.describe 'MergeManifest' do # rubocop:disable Metrics/BlockLength
     File.join(File.dirname(__FILE__), 'resources', 'm2m', 'ingest_manifest_store')
   end
   let(:expected_merged_ingest_manifest) do
-    File.join(File.dirname(__FILE__ ), 'resources', 'm2m', 'merged_ingest_manifest.json')
+    File.join(File.dirname(__FILE__), 'resources', 'm2m', 'merged_ingest_manifest.json')
   end
 
   before(:each) do

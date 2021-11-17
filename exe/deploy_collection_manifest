@@ -3,8 +3,17 @@
 
 require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/manifests/deploy_collection_manifest'
+require 'exe/base_manifest_deployer'
 require 'misc/archive_size'
 require 'archival_storage_ingest/s3/s3_manager'
+
+class StorageManifestDeployer < BaseManifestDeployer
+  def _manifest_deployer
+    Manifests::CollectionManifestDeployer.new(manifests_path: manifest_of_manifests, s3_manager: s3_manager,
+                                              sfs_prefix: sfs_prefix, manifest_validator: manifest_validator,
+                                              file_identifier: file_identifier)
+  end
+end
 
 # These MUST be shifted so that gets will get user input properly!
 # https://www.ruby-forum.com/t/argv-stdin-and-gets/166427/3
@@ -12,61 +21,20 @@ new_collection_manifest = ARGV.shift
 ingest_manifest = ARGV.shift
 sfs = ARGV.shift
 skip_data_addition = ARGV.shift
-identify_from_source = ARGV.shift
-
-storage_schema = ENV['asi_storage_schema'] || '/cul/app/cular-metadata/manifest_schema_storage.json'
-java_path = ENV['asi_java_path'] || '/usr/bin/java'
-tika_path = ENV['asi_tika_path'] || '/cul/app/tika/tika-app-2.1.0.jar'
-file_identifier = Manifests::FileIdentifier.new(java_path: java_path, tika_path: tika_path,
-                                                sfs_prefix: Manifests::SFS_PREFIX)
-
-manifest_def = '/cul/app/archival_storage_ingest/manifest_of_manifests/manifest_of_manifests.json'
-manifest_def = ENV['asi_manifest_of_manifest'] if ENV['asi_manifest_of_manifest']
-# rubocop:disable Layout/LineLength
-s3_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-dev' : 's3-cular'
-asif_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-asif-manifests-dev' : 's3-cular-asif-manifests-prod'
-asif_archive_size_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-asif-archive-size-dev' : 's3-cular-asif-archive-size-prod'
-s3_manager = S3Manager.new(s3_bucket, asif_bucket, asif_archive_size_bucket)
-# rubocop:enable Layout/LineLength
-sfs_prefix = if ENV['asi_develop'] || ENV['asi_deploy_manifest_develop']
-               '/cul/app/archival_storage_ingest/test/deploy'
-             else
-               Manifests::SFS_PREFIX
-             end
-manifest_validator = Manifests::ManifestValidator.new(storage_schema: storage_schema)
-deployer = Manifests::CollectionManifestDeployer.new(manifests_path: manifest_def, s3_manager: s3_manager,
-                                                     sfs_prefix: sfs_prefix, manifest_validator: manifest_validator,
-                                                     file_identifier: file_identifier)
-
-# :storage_manifest_path, :ingest_manifest_path, :storage_manifest, :ingest_manifest, :sfs,
-#                 :skip_data_addition, :identify_from_source, :ingest_date
 skip_data_addition = skip_data_addition.nil? || skip_data_addition != 'true' ? false : true
-identify_from_source = identify_from_source.nil? || identify_from_source != 'false' ? true : false
+
+manifest_deployer = StorageManifestDeployer.new
 manifest_parameters = Manifests::ManifestParameters.new(storage_manifest_path: new_collection_manifest,
                                                         ingest_manifest_path: ingest_manifest, sfs: sfs,
-                                                        skip_data_addition: skip_data_addition,
-                                                        identify_from_source: identify_from_source)
-manifest_definition = deployer.prepare_manifest_definition(manifest_parameters: manifest_parameters)
-
-archives = [
-  { archive: '/cul/data/archival01' },
-  { archive: '/cul/data/archival02' },
-  { archive: '/cul/data/archival03' },
-  { archive: '/cul/data/archival04' },
-  { archive: '/cul/data/archival05' },
-  { archive: '/cul/data/archival06' }
-]
-
-archive_size = ArchiveSize::ArchiveSize.new(archives: archives, s3_manager: s3_manager)
+                                                        skip_data_addition: skip_data_addition)
 
 puts 'Deployment Summary'
 puts "S3 bucket: #{s3_bucket}"
-deployer.describe_deployment(manifest_def: manifest_definition)
+manifest_deployer.manifest_deployer.describe_deployment(manifest_def: manifest_definition)
 puts 'Proceed with deployment? (Y/N)'
 unless 'y'.casecmp(gets.chomp).zero?
   puts 'Deployment terminated by user input.'
   exit(true)
 end
 
-deployer.deploy_collection_manifest(manifest_def: manifest_definition, collection_manifest: new_collection_manifest)
-archive_size.deploy_asif_archive_size
+manifest_deployer.deploy_manifest(manifest_parameters: manifest_parameters)

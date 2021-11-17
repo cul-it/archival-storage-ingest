@@ -18,6 +18,7 @@ module Manifests
   end
 
   class ManifestOfManifests
+    DEFAULT_MANIFEST_OF_MANIFESTS = '/cul/app/archival_storage_ingest/manifest_of_manifests/manifest_of_manifests.json'
     attr_accessor :mom_path, :manifest_of_manifests
 
     def initialize(manifests_path)

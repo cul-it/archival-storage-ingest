@@ -51,6 +51,12 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
     Manifests::ManifestValidator.new(ingest_schema: ingest_schema,
                                      storage_schema: storage_schema)
   end
+  let(:file_identifier) do
+    fi = Manifests::FileIdentifier.new(sfs_prefix: 'bogus')
+    allow(fi).to receive(:identify_from_source).with(any_args) { 'text/plain' }
+    allow(fi).to receive(:identify_from_storage).with(any_args) { 'text/plain' }
+    fi
+  end
 
   after(:each) do
     FileUtils.remove_dir(dir_to_clean)
@@ -59,7 +65,8 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
   context 'when initializing ingest env' do # rubocop:disable Metrics/BlockLength
     it 'creates ingest env' do # rubocop:disable Metrics/BlockLength
       env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root,
-                                                            manifest_validator: manifest_validator)
+                                                            manifest_validator: manifest_validator,
+                                                            file_identifier: file_identifier)
       env_initializer.initialize_ingest_env(data: data, cmf: collection_manifest, imf: ingest_manifest,
                                             sfs_location: sfs_location, ticket_id: ticket_id,
                                             depositor: depositor, collection_id: collection)
@@ -75,11 +82,19 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
       got_imf_path = File.join(got_manifest_path, 'ingest_manifest', File.basename(ingest_manifest))
       got_imf = Manifests.read_manifest(filename: got_imf_path)
 
-      got_imf.walk_packages do |package|
-        source_package = source_imf.get_package(package_id: package.package_id)
-        expect(package).to eq(source_package)
+      expected_imf = Manifests.read_manifest(filename: ingest_manifest)
+      expected_imf.walk_packages do |package|
+        package.source_path = data
+        package.walk_files do |file|
+          file.media_type = 'text/plain'
+        end
       end
-      expect(got_imf.number_packages).to eq(source_imf.number_packages)
+
+      got_imf.walk_packages do |package|
+        expected_package = expected_imf.get_package(package_id: package.package_id)
+        expect(package).to eq(expected_package)
+      end
+      expect(got_imf.number_packages).to eq(expected_imf.number_packages)
 
       # compare merged collection manifest
       expected_mm = Manifests.read_manifest(filename: merged_manifest)
@@ -108,7 +123,8 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
   context 'when initializing ingest env without collection manifest' do
     it 'creates ingest env without merged collection manifest' do
       env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root,
-                                                            manifest_validator: manifest_validator)
+                                                            manifest_validator: manifest_validator,
+                                                            file_identifier: file_identifier)
       env_initializer.initialize_ingest_env(data: data, cmf: 'none', imf: ingest_manifest,
                                             sfs_location: sfs_location, ticket_id: ticket_id,
                                             depositor: depositor, collection_id: collection)

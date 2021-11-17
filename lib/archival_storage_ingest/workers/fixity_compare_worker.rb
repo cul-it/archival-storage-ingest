@@ -8,6 +8,7 @@ require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/preingest/periodic_fixity_env_initializer'
 require 'archival_storage_ingest/work_queuer/work_queuer'
 # require 'archival_storage_ingest/workers/worker'
+require 'date'
 require 'yaml'
 
 module FixityCompareWorker
@@ -26,8 +27,8 @@ module FixityCompareWorker
       # ignore collection manifest as itself is not part of the manifest
       cm_filename = Manifests.collection_manifest_filename(depositor: msg.depositor, collection: msg.collection)
       comparator = Manifests::ManifestComparator.new(cm_filename: cm_filename)
-      sfs_status, sfs_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: sfs_manifest, periodic: periodic?)
-      s3_status, s3_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: s3_manifest, periodic: periodic?)
+      sfs_status, sfs_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: sfs_manifest)
+      s3_status, s3_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: s3_manifest)
 
       raise IngestException, "Ingest and SFS manifests do not match: #{sfs_diff}" unless sfs_status
 
@@ -59,17 +60,19 @@ module FixityCompareWorker
       Manifests.read_manifest_io(json_io: manifest_file)
     end
 
+    # Put a file with ingest id as its name and content to a temporary s3 bucket
+    # A cronjob will run every night to pick up all ingest id,
+    # find ingest id, merge ingest manifests to storage manifest,
+    # and deploy to proper location.
     def deploy_manifest_if_m2m(msg:)
       return true unless msg.type == IngestMessage::TYPE_M2M
 
-      # how are we going to do this?
-      # The storage manifest needs to be created with newly ingested contents
-      # option 1: generate & push to s3 when preparing m2m ingest
-      #   advantage: simpler ingest process
-      #   disadvantage: trickier to resolve errors
-      # option 2: fetch storage manifest from s3, update & push to s3 at the end of ingest process
-      #   advantage: simpler ingest prepare
-      #   disadvantage: s3 bandwidth charges?
+      now = Date.today
+      month = now.strftime('%m')
+      day = now.strftime('%d')
+      upload_date = "#{now.year}#{month}#{day}"
+      s3_key = ".m2m/ingest_manifest/#{msg.depositor}/#{msg.collection}/#{upload_date}/#{msg.ingest_id}"
+      s3_manager.upload_string(s3_key, msg.ingest_id)
     end
   end
 

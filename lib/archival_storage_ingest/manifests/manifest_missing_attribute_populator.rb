@@ -9,21 +9,35 @@ require 'archival_storage_ingest/manifests/manifests'
 # If each package may have different source_path, the this module needs to be updated.
 module Manifests
   class ManifestMissingAttributePopulator
+    attr_reader :file_identifier
+
+    def initialize(file_identifier:)
+      @file_identifier = file_identifier
+    end
+
     def populate_missing_attribute_from_file(manifest:, source_path:)
-      manif = Manifests.read_manifest(filename: manifest)
-      populate_missing_attribute(manifest: manif, source_path: source_path)
+      manifest = Manifests.read_manifest(filename: manifest)
+      populate_missing_attribute(manifest: manifest, source_path: source_path)
     end
 
     def populate_missing_attribute(manifest:, source_path:)
       manifest.walk_packages do |package|
         package.source_path = source_path
         package.walk_files do |file|
-          full_path = File.join(source_path, file.filepath)
-          (file.sha1, _size) = IngestUtils.calculate_checksum(filepath: full_path) if IngestUtils.blank?(file.sha1)
-          file.size = File.size?(full_path) if file.size.nil?
+          populate_missing_attribute_for_file(package: package, file: file)
         end
       end
+
       manifest
+    end
+
+    def populate_missing_attribute_for_file(package:, file:) # rubocop:disable Metrics/AbcSize
+      full_path = File.join(package.source_path, file.filepath)
+      (file.sha1, _size) = IngestUtils.calculate_checksum(filepath: full_path) if IngestUtils.blank?(file.sha1)
+      file.size = File.size?(full_path) if file.size.nil?
+
+      file.media_type = file_identifier.identify_from_source(ingest_package: package, file: file)
+      file.tool_version = file_identifier.identify_tool
     end
 
     def to_file(destination:, manifest:, json_type: Manifests::MANIFEST_TYPE_INGEST)

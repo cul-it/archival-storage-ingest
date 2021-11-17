@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-require 'optparse'
 require 'archival_storage_ingest/exception/ingest_exception'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
+require 'optparse'
 
 # option parser
 module CommandParser
@@ -50,5 +51,66 @@ module CommandParser
     end
 
     attr_reader :config
+  end
+
+  class SetupIngestEnvCommandParser
+    attr_reader :data_path, :depositor, :collection_id, :storage_manifest, :ingest_manifest,
+                :sfs_bucket, :ticket_id
+
+    def parse!(args) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+      OptionParser.new do |opts|
+        opts.banner = 'Usage: setup_ingest_env -p -d -c -s -i -b -t [-n -g -r -j -k -h -m]'
+
+        # Required parameters
+        opts.on('-p', '--data_path [String]', 'Data path') { |p| @data_path = p }
+        opts.on('-d', '--depositor [String]', 'Depositor') { |d| @depositor = d }
+        opts.on('-c', '--collection_id [String]', 'Collection ID') { |c| @collection_id = c }
+        opts.on('-s', '--storage_manifest [String]', 'Storage manifest') { |s| @storage_manifest = s }
+        opts.on('-i', '--ingest_manifest [String]', 'Ingest manifest') { |i| @ingest_manifest = i }
+        opts.on('-b', '--sfs_bucket [String]', 'SFS bucket') { |b| @sfs_bucket = b }
+        opts.on('-t', '--ticket_id [String]', 'Jira ticket id') { |t| @ticket_id = t }
+
+        # Optional parameters, default values will be used if not specified
+        opts.on('-n', '--notify_email [String]', 'Notify email') { |n| @notify_email = n }
+        opts.on('-g', '--ingest_root [String]', 'Ingest root') { |g| @ingest_root = g }
+        opts.on('-s', '--sfs_root [String]', 'SFS root') { |r| @sfs_root = r }
+        opts.on('-j', '--java_path [String]', 'Java path') { |j| @java_path = j }
+        opts.on('-k', '--tika_path [String]', 'Tika path') { |k| @tika_path = k }
+        opts.on('-h', '--storage_manifest_schema [String]', 'Storage manifest schema') { |h| @storage_manifest_schema = h }
+        opts.on('-m', '--ingest_manifest_schema [String]', 'Ingest manifest schema') { |m| @ingest_manifest_schema = m }
+      end.parse!(args)
+    end
+
+    def notify_email
+      @notify_email ||= nil
+    end
+
+    def ingest_root
+      @ingest_root ||= Preingest::DEFAULT_INGEST_ROOT
+    end
+
+    def sfs_root
+      @sfs_root ||= Preingest::DEFAULT_SFS_ROOT
+    end
+
+    def java_path
+      @java_path ||= Manifests::FileIdentifier::DEFAULT_JAVA_PATH
+    end
+
+    def tika_path
+      @tika_path ||= Manifests::FileIdentifier::DEFAULT_TIKA_PATH
+    end
+
+    def storage_manifest_schema
+      @storage_manifest_schema ||= Manifests::ManifestValidator::DEFAULT_STORAGE_SCHEMA
+    end
+
+    def ingest_manifest_schema
+      @ingest_manifest_schema ||= Manifests::ManifestValidator::DEFAULT_INGEST_SCHEMA
+    end
+
+    def if_blank(param, if_blank)
+      IngestUtils.blank?(param) ? if_blank : param
+    end
   end
 end

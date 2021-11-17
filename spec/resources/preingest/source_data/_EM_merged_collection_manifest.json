@@ -58,12 +58,16 @@
         {
           "filepath": "3/three.txt",
           "sha1": "5cf9b030a86ada15de49dbeec3d04c881e9ab76f",
-          "size": 10
+          "size": 10,
+          "tool_version": "Apache Tika 2.1.0",
+          "media_type": "text/plain"
         },
         {
           "filepath": "3/three_alpha.txt",
           "sha1": "94799bedb79a3dbaef33539d1e24c80e138847b1",
-          "size": 20
+          "size": 20,
+          "tool_version": "Apache Tika 2.1.0",
+          "media_type": "text/plain"
         }
       ]
     },
@@ -74,12 +78,16 @@
         {
           "filepath": "4/four.txt",
           "sha1": "815393d4e1198296c9b3cb3ebaf7a1fe0a8101ee",
-          "size": 10
+          "size": 10,
+          "tool_version": "Apache Tika 2.1.0",
+          "media_type": "text/plain"
         },
         {
           "filepath": "4/extra_layer/four.txt",
           "sha1": "4119235d33fe585cc71b80016c0b7082378c13ee",
-          "size": 16
+          "size": 16,
+          "tool_version": "Apache Tika 2.1.0",
+          "media_type": "text/plain"
         }
       ]
     }

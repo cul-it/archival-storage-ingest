@@ -11,9 +11,10 @@ require 'archival_storage_ingest/ingest_utils/ingest_utils'
 # Generally, these are throttling errors, data checksum errors, networking errors,
 #   timeout errors and auth errors from expired credentials.
 # See Plugins::RetryErrors for more details.
-class S3Manager
+class S3Manager # rubocop:disable Metrics/ClassLength
   MAX_RETRY = 3
   RETRY_INTERVAL = 120
+  MAX_DELETE_SIZE = 1000 # set by AWS
 
   attr_writer :s3
 
@@ -22,11 +23,9 @@ class S3Manager
   end
 
   # rubocop:disable Metrics/ParameterLists
-  def initialize(
-    s3_bucket, asif_s3_bucket = 's3-cular-invalid',
-    asif_archive_size_s3_bucket = 's3-cular-invalid',
-    m2m_bucket = 's3-cular-invalid', max_retry = MAX_RETRY
-  )
+  def initialize(s3_bucket, asif_s3_bucket = 's3-cular-invalid',
+                 asif_archive_size_s3_bucket = 's3-cular-invalid',
+                 m2m_bucket = 's3-cular-invalid', max_retry = MAX_RETRY)
     @s3_bucket = s3_bucket
     @asif_s3_bucket = asif_s3_bucket
     @asif_archive_size_s3_bucket = asif_archive_size_s3_bucket
@@ -71,13 +70,12 @@ class S3Manager
 
   # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Client.html#list_objects_v2-instance_method
   # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Types/ListObjectsV2Output.html#next_continuation_token-instance_method
-  # RubyMine can't recognize any of the attributes of the response!
   def list_object_keys(prefix)
     resp = _list_object(prefix, nil)
-    object_keys = _list_keys(resp)
+    object_keys = resp.contents.map(&:key)
     while resp.is_truncated
       resp = _list_object(prefix, resp.next_continuation_token)
-      object_keys.concat(_list_keys(resp))
+      object_keys.concat(resp.contents.map(&:key))
     end
 
     object_keys
@@ -87,10 +85,6 @@ class S3Manager
 
   def _list_object(prefix, continuation_token)
     s3.client.list_objects_v2(bucket: @s3_bucket, prefix: prefix, continuation_token: continuation_token)
-  end
-
-  def _list_keys(list_object_resp)
-    list_object_resp.contents.map(&:key)
   end
 
   # https://aws.amazon.com/blogs/developer/downloading-objects-from-amazon-s3-using-the-aws-sdk-for-ruby/
@@ -139,11 +133,26 @@ class S3Manager
     _download_file(bucket: @s3_bucket, s3_key: s3_key, dest_path: dest_path)
   end
 
+  # used to download m2m zip package
   def download_m2m_file(s3_key:, dest_path:)
     _download_file(bucket: @m2m_bucket, s3_key: s3_key, dest_path: dest_path)
   end
 
   def delete_object(s3_key:)
     s3.client.delete_object(bucket: @s3_bucket, key: s3_key)
+  end
+
+  def delete_objects(s3_keys:)
+    num_deleted = 0
+    s3_keys.each_slice(MAX_DELETE_SIZE) do |s3_keys_chunk|
+      req = { bucket: @s3_bucket, delete: { objects: [] } }
+      s3_keys_chunk.each do |s3_key|
+        req[:delete][:objects] << { key: s3_key }
+      end
+      resp = s3.client.delete_objects(req).to_h
+      num_deleted += resp[:deleted][:delete][:objects].size
+    end
+
+    num_deleted
   end
 end

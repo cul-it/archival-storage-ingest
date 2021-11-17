@@ -2,25 +2,33 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/ingest_utils/ingest_utils'
+require 'archival_storage_ingest/manifests/manifests'
+require 'archival_storage_ingest/options/command_parser'
 require 'archival_storage_ingest/preingest/base_env_initializer'
 require 'archival_storage_ingest/preingest/ingest_env_initializer'
+require 'archival_storage_ingest/ticket/ticket_handler'
+require 'mail'
 
-# it expect data to be in the form /.../depositor/collection
-data = ARGV[0]
-depositor = ARGV[1]
-collection_id = ARGV[2]
-cmf = ARGV[3]
-imf = ARGV[4]
-sfs = ARGV[5]
-ticket_id = ARGV[6]
-ingest_root = ARGV[7]
-ingest_root = Preingest::DEFAULT_INGEST_ROOT if IngestUtils.blank?(ingest_root)
-sfs_root = ARGV[8]
-sfs_root = Preingest::DEFAULT_SFS_ROOT if IngestUtils.blank?(sfs_root)
+options = CommandParser::SetupIngestEnvCommandParser.new
+options.parse!(ARGV)
 
-env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root)
-env_initializer.initialize_ingest_env(data: data, depositor: depositor, collection_id: collection_id,
-                                      cmf: cmf, imf: imf, sfs_location: sfs, ticket_id: ticket_id)
+sfs_prefix = if ENV['asi_develop'] || ENV['asi_deploy_manifest_develop']
+               '/cul/app/archival_storage_ingest/test/deploy'
+             else
+               Manifests::DEFAULT_SFS_PREFIX
+             end
+file_identifier = Manifests::FileIdentifier.new(sfs_prefix: sfs_prefix, java_path: options.java_path,
+                                                tika_path: options.tika_path)
+manifest_validator = Manifests::ManifestValidator.new(storage_schema: options.storage_manifest_schema,
+                                                      ingest_schema: options.ingest_manifest_schema)
+env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: options.ingest_root,
+                                                      sfs_root: options.sfs_root,
+                                                      file_identifier: file_identifier,
+                                                      manifest_validator: manifest_validator)
+env_initializer.initialize_ingest_env(data: options.data_path,
+                                      depositor: options.depositor, collection_id: options.collection_id,
+                                      cmf: options.storage_manifest, imf: options.ingest_manifest,
+                                      sfs_location: options.sfs_bucket, ticket_id: options.ticket_id)
 
 if env_initializer.size_mismatch.empty?
   puts "Total size of assets: #{env_initializer.total_size}\n"
@@ -32,4 +40,17 @@ else
     fs_size = mismatch[:fs]
     puts "#{path}: manifest file size: #{manifest_size}, source file size: #{fs_size}\n"
   end
+end
+
+# Currently, the jira ticket handler sends email to update Jira.
+# We will use this logic to send notification email to dev admin.
+# If we change the implementation of jira ticket handler, update this function.
+unless options.notify_email.nil?
+  mail = Mail.new do
+    subject "Setup ingest env complete for #{options.depositor}/#{options.collection_id}"
+    body "Setup ingest env complete for #{options.depositor}/#{options.collection_id}"
+  end
+  mail.from(TicketHandler::DEFAULT_FROM)
+  mail.to(options.notify_email)
+  mail.deliver
 end

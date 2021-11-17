@@ -1,0 +1,36 @@
+{
+  "depositor": "test_depositor",
+  "collection_id": "test_collection",
+  "steward": "t123",
+  "documentation": "cular:test",
+  "number_packages": 1,
+  "packages": [
+    {
+      "package_id": "urn:uuid:28872ed7-f2f3-4c20-836b-3908c3ad8ef3",
+      "number_files": 3,
+      "files": [
+        {
+          "filepath": "2/two.txt",
+          "sha1": "7bbef45b3bc70855010e02460717643125c3beca",
+          "size": 4,
+          "tool_version": "Apache Tika 2.1.0",
+          "media_type": "text/plain"
+        },
+        {
+          "filepath": "2/dir1/random.txt",
+          "sha1": "5d64b71392b1e00a3ad893db02d381d58262c2d6",
+          "size": 7,
+          "tool_version": "Apache Tika 2.1.0",
+          "media_type": "text/plain"
+        },
+        {
+          "filepath": "2/dir2/data.txt",
+          "sha1": "c5d84736ba451747dd5f0eb9d17e104f3697ef47",
+          "size": 5,
+          "tool_version": "Apache Tika 2.1.0",
+          "media_type": "text/plain"
+        }
+      ]
+    }
+  ]
+}

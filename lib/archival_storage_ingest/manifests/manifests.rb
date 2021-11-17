@@ -4,6 +4,7 @@ require 'archival_storage_ingest/exception/ingest_exception'
 require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'json'
 require 'json_schemer'
+require 'open3'
 require 'pathname'
 
 module Manifests
@@ -12,6 +13,7 @@ module Manifests
   MANIFEST_TYPE_INGEST = 'ingest_manifest'
   MANIFEST_TYPE_STORAGE = 'storage_manifest'
   MANIFEST_TYPE_FIXITY = 'fixity_manifest'
+  DEFAULT_SFS_PREFIX = '/cul/data'
 
   def self.read_manifest(filename:)
     json_io = File.open(filename)
@@ -163,20 +165,17 @@ module Manifests
   end
 
   class ManifestComparator
-    attr_accessor :collection_manifest_filename
+    attr_accessor :collection_manifest_filename, :fixity_mode
 
-    def initialize(cm_filename:)
+    def initialize(cm_filename:, fixity_mode: true)
       @collection_manifest_filename = cm_filename
+      @fixity_mode = fixity_mode
     end
 
-    def fixity_diff(ingest:, fixity:, periodic: false)
+    def fixity_diff(ingest:, fixity:)
       ingest_f = flatten_and_remove_cm(manifest: ingest)
       fixity_f = flatten_and_remove_cm(manifest: fixity)
-      diffs = if periodic
-                periodic_diff(m1_flat: ingest_f, m2_flat: fixity_f)
-              else
-                diff(m1_flat: ingest_f, m2_flat: fixity_f)
-              end
+      diffs = diff(m1_flat: ingest_f, m2_flat: fixity_f)
       status = (diffs[:ingest].count + diffs[:other].count).zero?
       [status, diffs]
     end
@@ -190,23 +189,20 @@ module Manifests
     def diff(m1_flat:, m2_flat:)
       diffs = { ingest: [], other: [] }
       m1_flat.each do |key, value|
-        diffs[:ingest] << key unless value == m2_flat[key]
+        diffs[:ingest] << key unless _diff(value, m2_flat[key])
       end
       m2_flat.each do |key, value|
-        diffs[:other] << key unless value == m1_flat[key]
+        diffs[:other] << key unless _diff(value, m1_flat[key])
       end
       diffs
     end
 
-    def periodic_diff(m1_flat:, m2_flat:)
-      diffs = { ingest: [], other: [] }
-      m1_flat.each do |key, value|
-        diffs[:ingest] << key unless value.fixity_equals(m2_flat[key])
+    def _diff(file_a, file_b)
+      if fixity_mode
+        file_a.fixity_equals(file_b)
+      else
+        file_a == file_b
       end
-      m2_flat.each do |key, value|
-        diffs[:other] << key unless value.fixity_equals(m1_flat[key])
-      end
-      diffs
     end
   end
 
@@ -302,7 +298,7 @@ module Manifests
     def to_json_fixity
       {
         package_id: package_id,
-        files: files.map(&:to_json_hash)
+        files: files.map(&:to_fixity_json_hash)
       }
     end
   end
@@ -356,8 +352,8 @@ module Manifests
       # pp "#{size} : #{other.size}" unless size == other.size
       return false unless size == other.size
 
-      # ignore ingest date for periodic fixity check
-      # return false unless ingest_date == other.ingest_date
+      # This function checks only filepath, sha1, and size
+      # All other attributes of file are ignored
 
       true
     end
@@ -379,7 +375,9 @@ module Manifests
         filepath: filepath,
         sha1: sha1,
         md5: md5,
-        size: size
+        size: size,
+        tool_version: tool_version,
+        media_type: media_type
       }.compact
     end
 
@@ -393,11 +391,11 @@ module Manifests
   end
 
   class ManifestValidator
-    INGEST_SCHEMA = '/cul/app/cular-metadata/manifest_schema_ingest.json'
-    STORAGE_SCHEMA = '/cul/app/cular-metadata/manifest_schema_storage.json'
+    DEFAULT_INGEST_SCHEMA = '/cul/app/cular-metadata/manifest_schema_ingest.json'
+    DEFAULT_STORAGE_SCHEMA = '/cul/app/cular-metadata/manifest_schema_storage.json'
     attr_reader :ingest_schema, :storage_schema
 
-    def initialize(ingest_schema: INGEST_SCHEMA, storage_schema: STORAGE_SCHEMA)
+    def initialize(ingest_schema: DEFAULT_INGEST_SCHEMA, storage_schema: DEFAULT_STORAGE_SCHEMA)
       @ingest_schema = JSONSchemer.schema(Pathname.new(ingest_schema))
       @storage_schema = JSONSchemer.schema(Pathname.new(storage_schema))
     end
@@ -423,16 +421,18 @@ module Manifests
   end
 
   class FileIdentifier
-    attr_reader :java_path, :sfs_prefix, :tika_path
+    attr_reader :java_path, :sfs_prefix, :tika_path, :identify_tool
 
     DEFAULT_JAVA_PATH = 'java'
     DEFAULT_TIKA_PATH = '/cul/app/tika/tika-app-2.1.0.jar'
     SFS_TRIM_PREFIX = 'smb://files.cornell.edu/lib/'
 
-    def initialize(sfs_prefix:, java_path: DEFAULT_JAVA_PATH, tika_path: DEFAULT_TIKA_PATH)
+    def initialize(sfs_prefix:, java_path: DEFAULT_JAVA_PATH, tika_path: DEFAULT_TIKA_PATH,
+                   identify_tool: IDENTIFY_TOOL)
       @java_path = java_path
       @tika_path = tika_path
       @sfs_prefix = sfs_prefix
+      @identify_tool = identify_tool
     end
 
     def resolve_filepath(manifest:, file:)

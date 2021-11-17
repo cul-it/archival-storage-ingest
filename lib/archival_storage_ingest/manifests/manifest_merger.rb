@@ -43,4 +43,19 @@ module Manifests
       filepath
     end
   end
+
+  class M2MManifestMerger < ManifestMerger
+    def merge_all_ingest_manifests(ingest_manifest_store:)
+      ims = Dir["#{ingest_manifest_store}/*"]
+      return unless ims.any?
+
+      ingest_manifest = Manifests.read_manifest(filename: ims.shift)
+      ims.each do |im|
+        to_merge = Manifests.read_manifest(filename: im)
+        ingest_manifest = merge_manifests(storage_manifest: ingest_manifest, ingest_manifest: to_merge)
+      end
+
+      ingest_manifest
+    end
+  end
 end

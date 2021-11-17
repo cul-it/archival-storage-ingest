@@ -57,12 +57,16 @@ RSpec.describe 'ManifestMissingAttributePopulator' do # rubocop:disable Metrics/
             {
               filepath: '1/one.txt',
               sha1: 'ef72cf86c1599c80612317fdd2f50f4863c3efb0',
-              size: 10
+              size: 10,
+              tool_version: 'Apache Tika 2.1.0',
+              media_type: 'text/plain'
             },
             {
               filepath: '2/two.txt',
               sha1: '158481d59505dedf144ec5e4b87e92043f48ab68',
-              size: 10
+              size: 10,
+              tool_version: 'Apache Tika 2.1.0',
+              media_type: 'text/plain'
             }
           ]
         },
@@ -74,18 +78,26 @@ RSpec.describe 'ManifestMissingAttributePopulator' do # rubocop:disable Metrics/
             {
               filepath: '1/one.txt',
               sha1: 'ef72cf86c1599c80612317fdd2f50f4863c3efb0',
-              size: 10
+              size: 10,
+              tool_version: 'Apache Tika 2.1.0',
+              media_type: 'text/plain'
             }
           ]
         }
       ]
     }
   end
+  let(:file_identifier) do
+    fi = Manifests::FileIdentifier.new(sfs_prefix: 'bogus')
+    allow(fi).to receive(:identify_from_source).with(any_args) { 'text/plain' }
+    allow(fi).to receive(:identify_from_storage).with(any_args) { 'text/plain' }
+    fi
+  end
 
   context 'manifest contains all attributes' do
     it 'does nothing' do
       manifest = Manifests::Manifest.new(json_text: expected_ingest_manifest_hash.to_json)
-      populator = Manifests::ManifestMissingAttributePopulator.new
+      populator = Manifests::ManifestMissingAttributePopulator.new(file_identifier: file_identifier)
       populator.populate_missing_attribute(manifest: manifest, source_path: source_path)
       expect(manifest.get_package(package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID).to_json_ingest)
         .to eq(expected_ingest_manifest_hash[:packages][0])
@@ -95,7 +107,7 @@ RSpec.describe 'ManifestMissingAttributePopulator' do # rubocop:disable Metrics/
   context 'manifest is missing attributes' do
     it 'fills in missing attributes' do
       manifest = Manifests::Manifest.new(json_text: ingest_manifest_hash.to_json)
-      populator = Manifests::ManifestMissingAttributePopulator.new
+      populator = Manifests::ManifestMissingAttributePopulator.new(file_identifier: file_identifier)
       converted_manifest = populator.populate_missing_attribute(manifest: manifest, source_path: source_path)
       expect(converted_manifest.get_package(package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID).to_json_ingest)
         .to eq(expected_ingest_manifest_hash[:packages][0])

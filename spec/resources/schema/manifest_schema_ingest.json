@@ -62,7 +62,7 @@
             },
             "required": [
                 "files",
-		"package_id",
+                "package_id",
                 "source_path"
             ],
             "additionalProperties": false
@@ -83,10 +83,18 @@
                 },
                 "size": {
                     "type": "integer"
+                },
+                "tool_version" : {
+                    "type": "string"
+                },
+                "media_type": {
+                    "type": "string"
                 }
             },
             "required": [
-                "filepath"
+                "filepath",
+                "tool_version",
+                "media_type"
             ],
             "additionalProperties": false
         }

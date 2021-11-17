@@ -32,6 +32,12 @@ RSpec.describe 'MergeManifest' do # rubocop:disable Metrics/BlockLength
       ]
     }
   end
+  let(:ingest_manifest_store) do
+    File.join(File.dirname(__FILE__), 'resources', 'm2m', 'ingest_manifest_store')
+  end
+  let(:expected_merged_ingest_manifest) do
+    File.join(File.dirname(__FILE__ ), 'resources', 'm2m', 'merged_ingest_manifest.json')
+  end
 
   before(:each) do
     @storage_manifest = Manifests::Manifest.new
@@ -54,6 +60,17 @@ RSpec.describe 'MergeManifest' do # rubocop:disable Metrics/BlockLength
       merge_manifest = Manifests::ManifestMerger.new
       merge_manifest.merge_manifests(storage_manifest: @storage_manifest, ingest_manifest: @ingest_manifest)
       expect(@storage_manifest.packages[0].to_json_fixity).to eq(@ingest_manifest.packages[0].to_json_fixity)
+    end
+  end
+
+  context 'when merging m2m ingest manifests' do
+    it 'creates merged single ingest manifest' do
+      manifest_merger = Manifests::M2MManifestMerger.new
+      merged_ingest_manifest = manifest_merger.merge_all_ingest_manifests(ingest_manifest_store: ingest_manifest_store)
+      expected = Manifests.read_manifest(filename: expected_merged_ingest_manifest)
+      diff = merged_ingest_manifest.fixity_diff(expected)
+      expect(diff[:ingest].empty?).to eq(true)
+      expect(diff[:other].empty?).to eq(true)
     end
   end
 end

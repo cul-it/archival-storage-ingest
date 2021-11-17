@@ -14,12 +14,17 @@ require 'yaml'
 
 module Preingest
   class IngestEnvInitializer < BaseEnvInitializer
-    def initialize(ingest_root:, sfs_root:, manifest_validator: Manifests::ManifestValidator.new)
+    attr_reader :file_identifier, :manifest_validator
+
+    def initialize(ingest_root:, sfs_root:, manifest_validator:, file_identifier:)
       super(ingest_root: ingest_root, sfs_root: sfs_root)
 
+      @file_identifier = file_identifier
       @manifest_validator = manifest_validator
     end
 
+    # We need to run initialize_env first to populate depositor/collection from ingest manifest
+    # and compare it to the provided values.
     def initialize_ingest_env(named_params)
       initialize_env(named_params)
 
@@ -47,10 +52,10 @@ module Preingest
     end
 
     def _populate_missing_attribute(ingest_manifest:, source_path:)
-      mmap = Manifests::ManifestMissingAttributePopulator.new
+      mmap = Manifests::ManifestMissingAttributePopulator.new(file_identifier: file_identifier)
       manifest = mmap.populate_missing_attribute_from_file(manifest: ingest_manifest, source_path: source_path)
-      json_to_write = JSON.pretty_generate(manifest.to_json_ingest_hash)
-      File.open(ingest_manifest, 'w') { |file| file.write(json_to_write) }
+      File.open(ingest_manifest, 'w') { |file| file.write(JSON.pretty_generate(manifest.to_json_ingest_hash)) }
+
       manifest
     end
 
@@ -61,11 +66,10 @@ module Preingest
 
     def _initialize_collection_manifest(im_path:, named_params:)
       manifest = if named_params.fetch(:cmf).eql?(NO_COLLECTION_MANIFEST)
-                   _def_create_collection_manifest(im_path: im_path,
-                                                   sfs_location: named_params.fetch(:sfs_location))
+                   _def_create_collection_manifest(im_path: im_path, sfs_location: named_params.fetch(:sfs_location))
                  else
-                   _merge_ingest_manifest_to_collection_manifest(imf: im_path, sfs_loc: named_params.fetch(:sfs_location),
-                                                                 cmf: named_params.fetch(:cmf))
+                   _merge_ingest_manifest_to_collection_manifest(imf: im_path, cmf: named_params.fetch(:cmf),
+                                                                 sfs_loc: named_params.fetch(:sfs_location))
                  end
       _store_collection_manifest(manifest: manifest)
     end
@@ -78,9 +82,7 @@ module Preingest
                          sfs_location: full_sfs_location(sfs_location: sfs_location))
       end
 
-      manifest.walk_packages do |package|
-        package.source_path = nil
-      end
+      manifest.walk_packages { |package| package.source_path = nil }
 
       manifest
     end
@@ -113,11 +115,9 @@ module Preingest
     end
 
     def generate_config(ingest_manifest_path:, named_params:)
-      {
-        type: work_type, depositor: depositor, collection: collection_id,
+      { type: work_type, depositor: depositor, collection: collection_id,
         dest_path: dest_path(sfs_location: named_params.fetch(:sfs_location)),
-        ingest_manifest: ingest_manifest_path, ticket_id: named_params.fetch(:ticket_id)
-      }
+        ingest_manifest: ingest_manifest_path, ticket_id: named_params.fetch(:ticket_id) }
     end
 
     def dest_path(sfs_location:)

@@ -53,7 +53,7 @@ RSpec.describe 'MergeManifest' do # rubocop:disable Metrics/BlockLength
   end
 
   context 'when storage manifest does not have a file entry in ingest manifest' do
-    it 'addes the file to the package in storage manifest' do
+    it 'adds the file to the package in storage manifest' do
       test_package = Manifests::Package.new(package: { package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID })
       test_package.add_file_entry(filepath: '1/one.txt', sha1: 'ef72cf86c1599c80612317fdd2f50f4863c3efb0', size: 10)
       @storage_manifest.add_package(package: test_package)

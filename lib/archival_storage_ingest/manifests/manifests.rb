@@ -327,6 +327,13 @@ module Manifests
       @media_type = other.media_type
     end
 
+    def list_checksum_info
+      {
+        sha1: sha1,
+        md5: md5
+      }.compact
+    end
+
     # All assets in archival storage must have SHA1 checksum.
     # We will ignore the MD5 value at all times during fixity checks.
     def ==(other)
@@ -427,7 +434,7 @@ module Manifests
     DEFAULT_TIKA_PATH = '/cul/app/tika/tika-app-2.1.0.jar'
     SFS_TRIM_PREFIX = 'smb://files.cornell.edu/lib/'
 
-    def initialize(sfs_prefix:, java_path: DEFAULT_JAVA_PATH, tika_path: DEFAULT_TIKA_PATH,
+    def initialize(sfs_prefix: nil, java_path: DEFAULT_JAVA_PATH, tika_path: DEFAULT_TIKA_PATH,
                    identify_tool: IDENTIFY_TOOL)
       @java_path = java_path
       @tika_path = tika_path
@@ -436,6 +443,8 @@ module Manifests
     end
 
     def resolve_filepath(manifest:, file:)
+      raise IngestException, 'SFS prefix not specified' if sfs_prefix.nil?
+
       location = nil
       manifest.locations.each do |loc|
         next if loc.start_with?('s3')

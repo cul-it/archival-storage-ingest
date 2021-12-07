@@ -7,6 +7,13 @@ module Queues
   QUEUE_INGEST_IN_PROGRESS = 'cular_ingest_in_progress'
   QUEUE_INGEST_FAILURES = 'cular_ingest_failures'
 
+  QUEUE_LOG = 'cular_log'
+  QUEUE_LOG_IN_PROGRESS = 'cular_log_in_progress'
+  QUEUE_LOG_FAILURE = 'cular_log_faliure'
+  DEV_QUEUE_LOG = 'cular_development_log'
+  DEV_QUEUE_LOG_IN_PROGRESS = 'cular_development_log_in_progress'
+  DEV_QUEUE_LOG_FAILURE = 'cular_development_log_faliure'
+
   QUEUE_TRANSFER_S3 = 'cular_transfer_s3'
   QUEUE_TRANSFER_S3_IN_PROGRESS = 'cular_transfer_s3_in_progress'
   QUEUE_TRANSFER_S3_FAILURES = 'cular_transfer_s3_failures'

@@ -17,12 +17,12 @@ RSpec.describe 'IngestManager' do
     @dest1_q = spy('dest1 q')
     @dest2_q = spy('dest2 q')
     @worker = spy('worker')
-    @issue_tracker_helper = spy('issue_tracker_helper')
-    allow(@issue_tracker_helper).to receive(:notify_worker_started).and_return nil
-    allow(@issue_tracker_helper).to receive(:notify_worker_completed).and_return nil
-    allow(@issue_tracker_helper).to receive(:notify_worker_skipped).and_return nil
-    allow(@issue_tracker_helper).to receive(:notify_worker_error).and_return nil
-    allow(@issue_tracker_helper).to receive(:notify_error).and_return nil
+    @issue_logger = spy('issue_logger')
+    allow(@issue_logger).to receive(:notify_worker_started).and_return nil
+    allow(@issue_logger).to receive(:notify_worker_completed).and_return nil
+    allow(@issue_logger).to receive(:notify_worker_skipped).and_return nil
+    allow(@issue_logger).to receive(:notify_worker_error).and_return nil
+    allow(@issue_logger).to receive(:notify_error).and_return nil
 
     ArchivalStorageIngest.configure do |config|
       config.logger = @logger
@@ -32,7 +32,7 @@ RSpec.describe 'IngestManager' do
       config.dest_qs = [@dest1_q, @dest2_q]
       config.worker = @worker
       config.wip_removal_wait_time = 0
-      config.issue_tracker_helper = @issue_tracker_helper
+      config.issue_logger = @issue_logger
     end
 
     allow(@wip_q).to receive(:retrieve_message).and_return nil
@@ -117,8 +117,8 @@ RSpec.describe 'IngestManager' do
         it 'will send notification to ticket handler' do
           @manager.do_work
 
-          expect(@issue_tracker_helper).to have_received(:notify_worker_started).once
-          expect(@issue_tracker_helper).to have_received(:notify_worker_completed).once
+          expect(@issue_logger).to have_received(:notify_worker_started).once
+          expect(@issue_logger).to have_received(:notify_worker_completed).once
         end
       end
 
@@ -139,8 +139,8 @@ RSpec.describe 'IngestManager' do
         it 'will send notification to ticket handler and will not pass message on to next queue' do
           expect { @manager.do_work }.to raise_error(SystemExit)
 
-          expect(@issue_tracker_helper).to have_received(:notify_worker_started).once
-          expect(@issue_tracker_helper).to have_received(:notify_worker_error).once
+          expect(@issue_logger).to have_received(:notify_worker_started).once
+          expect(@issue_logger).to have_received(:notify_worker_error).once
           expect(@dest1_q).to_not have_received(:send_message)
         end
       end
@@ -159,8 +159,8 @@ RSpec.describe 'IngestManager' do
         it 'will send notification to ticket handler' do
           @manager.do_work
 
-          expect(@issue_tracker_helper).to have_received(:notify_worker_started).once
-          expect(@issue_tracker_helper).to have_received(:notify_worker_skipped).once
+          expect(@issue_logger).to have_received(:notify_worker_started).once
+          expect(@issue_logger).to have_received(:notify_worker_skipped).once
         end
       end
     end
@@ -183,12 +183,12 @@ RSpec.describe 'IngestManager' do
     @dest1_q = spy('dest1 q')
     @dest2_q = spy('dest2 q')
     @worker = spy('worker')
-    @issue_tracker_helper = spy('issue_tracker_helper')
-    allow(@issue_tracker_helper).to receive(:notify_worker_started).and_return nil
-    allow(@issue_tracker_helper).to receive(:notify_worker_completed).and_return nil
-    allow(@issue_tracker_helper).to receive(:notify_worker_skipped).and_return nil
-    allow(@issue_tracker_helper).to receive(:notify_worker_error).and_return nil
-    allow(@issue_tracker_helper).to receive(:notify_error).and_return nil
+    @issue_logger = spy('issue_logger')
+    allow(@issue_logger).to receive(:notify_worker_started).and_return nil
+    allow(@issue_logger).to receive(:notify_worker_completed).and_return nil
+    allow(@issue_logger).to receive(:notify_worker_skipped).and_return nil
+    allow(@issue_logger).to receive(:notify_worker_error).and_return nil
+    allow(@issue_logger).to receive(:notify_error).and_return nil
 
     ArchivalStorageIngest.configure do |config|
       config.logger = @logger
@@ -198,7 +198,7 @@ RSpec.describe 'IngestManager' do
       config.dest_qs = [@dest1_q, @dest2_q]
       config.worker = @worker
       config.wip_removal_wait_time = 0
-      config.issue_tracker_helper = @issue_tracker_helper
+      config.issue_logger = @issue_logger
     end
 
     allow(@wip_q).to receive(:retrieve_message).and_return message
@@ -212,8 +212,8 @@ RSpec.describe 'IngestManager' do
 
       expect { @manager.do_work }.to raise_error(SystemExit)
       expect(@worker).to_not have_received(:work)
-      expect(@issue_tracker_helper).to have_received(:notify_error).once
-      expect(@issue_tracker_helper).to_not have_received(:notify_worker_started)
+      expect(@issue_logger).to have_received(:notify_error).once
+      expect(@issue_logger).to_not have_received(:notify_worker_started)
       expect(@dest1_q).to_not have_received(:send_message)
     end
   end

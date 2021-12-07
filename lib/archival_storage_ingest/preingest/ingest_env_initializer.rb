@@ -5,7 +5,7 @@ require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/manifests/manifest_merger'
 require 'archival_storage_ingest/manifests/manifest_missing_attribute_populator'
 require 'archival_storage_ingest/manifests/manifest_to_filesystem_comparator'
-require 'archival_storage_ingest/manifests/manifest_filesize_checker'
+require 'archival_storage_ingest/manifests/manifest_checker'
 require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/preingest/base_env_initializer'
 require 'fileutils'
@@ -43,6 +43,8 @@ module Preingest
       manifest = _populate_missing_attribute(ingest_manifest: im_path, source_path: source_path)
       raise IngestException, 'Asset mismatch' unless _compare_asset_existence(ingest_manifest: manifest)
 
+      other_checksum_checker = Manifests::ManifestNonDefaultChecksumChecker.new
+      other_checksum_checker.check_non_default_checksums(ingest_manifest: manifest)
       @manifest_validator.validate_ingest_manifest(manifest: manifest)
 
       size_checker = Manifests::ManifestFilesizeChecker.new

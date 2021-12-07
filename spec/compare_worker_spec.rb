@@ -146,7 +146,7 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
     s3
   end
   let(:worker) do
-    ticket_handler = spy('ticket_handler')
+    issue_logger = spy('issue_logger')
     ArchivalStorageIngest.configure do |config|
       config.queuer = queuer
       config.s3_manager = s3_manager
@@ -156,7 +156,7 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
       config.s3_bucket = s3_bucket
       config.debug = true
       config.develop = true
-      config.ticket_handler = ticket_handler
+      config.issue_logger = issue_logger
     end
     manifest_dir = resource('manifests')
     man_of_mans = resource('manifest_of_manifests.json')

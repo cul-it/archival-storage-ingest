@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'archival_storage_ingest'
+require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
+require 'archival_storage_ingest/messages/queues'
+require 'archival_storage_ingest/ticket/ticket_handler'
+require 'archival_storage_ingest/workers/log_worker'
+
+ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLength
+  config.log_path = ENV['asi_ingest_logger_log_path'] ||
+                    '/cul/app/archival_storage_ingest/logs/logger.log'
+  config.dry_run = ENV['asi_ingest_logger_dry_run'] || false
+  config.polling_interval = ENV['asi_ingest_logger_polling_interval'] if ENV['asi_ingest_polling_interval']
+  config.inhibit_file = ENV['asi_ingest_logger_inhibit_file'] ||
+                        '/cul/app/archival_storage_ingest/control/logger.inhibit'
+  config.global_inhibit_file = ENV['asi_global_inhibit_file'] ||
+                               '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
+
+  if ENV['asi_develop'] || ENV['asi_logger_develop']
+    config.s3_bucket = 's3-cular-dev'
+    config.debug = true
+    config.develop = false # we want the dev log server to keep running!
+    config.message_queue_name = Queues::DEV_QUEUE_LOG
+    config.in_progress_queue_name = Queues::DEV_QUEUE_LOG_IN_PROGRESS
+    config.dest_queue_names = []
+    config.issue_logger = TicketHandler::NoopIssueTracker.new
+  else
+    config.s3_bucket = 's3-cular'
+    config.debug = ENV['asi_logger_debug'] ? true : false
+    config.develop = false
+    config.message_queue_name = Queues::QUEUE_LOG
+    config.in_progress_queue_name = Queues::QUEUE_LOG_IN_PROGRESS
+    config.dest_queue_names = []
+    slack_handler = TicketHandler::SlackHandler.new(web_hook: ENV['asi_log_slack_web_hook'])
+    config.issue_logger = TicketHandler::SlackErrorTracker(slack_handler: slack_handler)
+  end
+
+  ticket_handler = TicketHandler::JiraHandler.new
+  issue_tracker = TicketHandler::IssueTracker.new(ticket_handler: ticket_handler)
+
+  config.worker = LogWorker.new(issue_tracker: issue_tracker)
+end
+
+ingest_manager = ArchivalStorageIngest::IngestManager.new
+ingest_manager.start_server

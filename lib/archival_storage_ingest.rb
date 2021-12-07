@@ -20,16 +20,11 @@ module ArchivalStorageIngest
   WIP_REMOVAL_WAIT_TIME = 10
 
   class Configuration
-    # rubocop:disable Metrics/LineLength
-    attr_accessor :message_queue_name, :in_progress_queue_name, :log_path, :debug, :worker, :dest_queue_names, :develop, :inhibit_file, :global_inhibit_file
-    # rubocop:enable Metrics/LineLength
-    # Only set issue_tracker_helper in test!
-    attr_writer :msg_q, :dest_qs, :wip_q, :ticket_handler, :issue_tracker_helper
-
-    attr_writer :s3_bucket, :s3_manager, :dry_run, :polling_interval, :wip_removal_wait_time
-
-    # for use in tests
-    attr_writer :logger, :queuer
+    attr_accessor :message_queue_name, :in_progress_queue_name, :log_path, :debug, :worker, :dest_queue_names, :develop,
+                  :inhibit_file, :global_inhibit_file
+    # Only set log_queue/issue_logger in test!
+    attr_writer :msg_q, :dest_qs, :wip_q, :s3_bucket, :s3_manager, :dry_run, :polling_interval, :wip_removal_wait_time,
+                :logger, :queuer, :log_queue, :issue_logger
 
     def logger
       @logger ||= ArchivalStorageIngestLogger.get_file_logger(self)
@@ -71,13 +66,16 @@ module ArchivalStorageIngest
       @wip_removal_wait_time ||= WIP_REMOVAL_WAIT_TIME
     end
 
-    def ticket_handler
-      @ticket_handler ||= TicketHandler::JiraHandler.new
+    def log_queue
+      @log_queue ||= if develop
+                       IngestQueue::SQSQueue.new(Queues::DEV_QUEUE_LOG, queuer)
+                     else
+                       IngestQueue::SQSQueue.new(Queues::QUEUE_LOG, queuer)
+                     end
     end
 
-    def issue_tracker_helper
-      @issue_tracker_helper ||= TicketHandler::IssueTracker.new(worker_name: worker.name,
-                                                                ticket_handler: ticket_handler)
+    def issue_logger
+      @issue_logger ||= TicketHandler::LogTracker.new(queue: log_queue, worker: worker.name)
     end
   end
 
@@ -99,13 +97,13 @@ module ArchivalStorageIngest
 
     def initialize
       @configuration = ArchivalStorageIngest.configuration
-      @issue_tracker_helper = @configuration.issue_tracker_helper
+      @issue_logger = @configuration.issue_logger
     end
 
     def_delegators :@configuration, :logger, :msg_q, :wip_q, :dest_qs, :wip_removal_wait_time,
                    :worker, :polling_interval, :inhibit_file, :global_inhibit_file, :develop, :debug
 
-    def_delegators :@issue_tracker_helper, :notify_worker_started, :notify_worker_completed,
+    def_delegators :@issue_logger, :notify_worker_started, :notify_worker_completed,
                    :notify_worker_skipped, :notify_worker_error, :notify_error
 
     def start_server

@@ -33,12 +33,10 @@ module IngestMessage
   def self.convert_sqs_response(sqs_message)
     json = JSON.parse(sqs_message.body)
     SQSMessage.new(
-      type: json['type'],
-      ingest_id: json['ingest_id'],
-      dest_path: json['dest_path'], depositor: json['depositor'],
-      collection: json['collection'], ingest_manifest: json['ingest_manifest'],
-      ticket_id: json['ticket_id'], original_msg: sqs_message,
-      package: json['package']
+      type: json['type'], ingest_id: json['ingest_id'], dest_path: json['dest_path'], depositor: json['depositor'],
+      collection: json['collection'], ingest_manifest: json['ingest_manifest'], ticket_id: json['ticket_id'],
+      package: json['package'], steward: json['steward'], extract_dir: json['extract_dir'],
+      log: json['log'], worker: json['worker'], original_msg: sqs_message
     )
   end
 
@@ -50,6 +48,11 @@ module IngestMessage
   # original_msg is the message returned by the AWS SQS client
   # data_path is removed
   class SQSMessage
+    attr_reader :type, :ingest_id, :original_msg, :depositor, :collection, :ticket_id,
+                :package, :steward
+    attr_accessor :log, :dest_path, :ingest_manifest, :extract_dir, :worker
+
+    # non optional parameters are required unless the process crashed and work in progress was detected.
     def initialize(params)
       @type = params[:type]
       @ingest_id = params[:ingest_id]
@@ -59,11 +62,16 @@ module IngestMessage
       @collection = params[:collection]
       @ingest_manifest = params[:ingest_manifest]
       @ticket_id = params[:ticket_id]
-      @package = params[:package]
+      init_optional_params(params)
     end
 
-    attr_reader :type, :ingest_id, :original_msg, :depositor, :collection, :ticket_id, :package
-    attr_accessor :dest_path, :ingest_manifest
+    def init_optional_params(params)
+      @package = params[:package]
+      @steward = params[:steward]
+      @extract_dir = params[:extract_dir]
+      @log = params[:log]
+      @worker = params[:worker]
+    end
 
     def collection_s3_prefix
       "#{depositor}/#{collection}"
@@ -71,14 +79,11 @@ module IngestMessage
 
     def to_hash
       {
-        type: type,
-        ingest_id: ingest_id,
-        dest_path: dest_path,
-        depositor: depositor,
-        collection: collection,
-        ingest_manifest: ingest_manifest,
-        ticket_id: ticket_id,
-        package: package
+        type: type, ingest_id: ingest_id,
+        dest_path: dest_path, depositor: depositor,
+        collection: collection, ingest_manifest: ingest_manifest,
+        ticket_id: ticket_id, package: package, steward: steward,
+        extract_dir: extract_dir, log: log, worker: worker
       }.compact
     end
 

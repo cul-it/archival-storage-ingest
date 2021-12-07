@@ -20,7 +20,7 @@ module IngestUtils
   end
 
   def self.digest(algorithm)
-    case algorithm
+    case algorithm.to_s.downcase
     when ALGORITHM_SHA1
       Digest::SHA1.new
     when ALGORITHM_MD5

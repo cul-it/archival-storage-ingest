@@ -9,10 +9,12 @@ module WorkQueuer
 
       @queuer = @configuration.queuer
       @queue_name = @configuration.message_queue_name
-      @ticket_handler = @configuration.ticket_handler
+      @issue_logger = @configuration.issue_logger
       @develop = @configuration.develop
       @confirm = confirm
     end
+
+    def worker_name; end
 
     def queue_work(ingest_config)
       input_checker, status = check_input(ingest_config)
@@ -40,7 +42,15 @@ module WorkQueuer
 
     def input_checker_impl; end
 
-    def send_notification(work_msg); end
+    def send_notification(work_msg)
+      work_msg.worker = worker_name
+      body = "New ingest\n" \
+             "Ingest Info\n#{work_msg.to_pretty_json}"
+      work_msg.log = body
+      @issue_logger.notify_status(ingest_msg: work_msg, status: body)
+    end
+
+    def work_notification_message(work_msg); end
 
     def put_work_message(ingest_config)
       msg = IngestMessage::SQSMessage.new(
@@ -91,15 +101,17 @@ module WorkQueuer
       IngestMessage::TYPE_INGEST
     end
 
+    def worker_name
+      'Ingest Queuer'
+    end
+
     def input_checker_impl
       IngestInputChecker.new
     end
 
-    def send_notification(work_msg)
-      body = "New ingest queued at #{Time.new}.\n" \
-             "Depositor/Collection: #{work_msg.depositor}/#{work_msg.collection}\n" \
-             "Ingest Info\n#{work_msg.to_pretty_json}"
-      @ticket_handler.update_issue_tracker(subject: work_msg.ticket_id, body: body)
+    def work_notification_message(work_msg)
+      "New ingest\n" \
+      "Ingest Info\n#{work_msg.to_pretty_json}"
     end
 
     def confirm_work(ingest_config, input_checker)
@@ -116,6 +128,10 @@ module WorkQueuer
     # alias for better readability
     def queue_ingest(ingest_config)
       queue_work(ingest_config)
+    end
+
+    def worker_name
+      'M2M Ingest Queuer'
     end
 
     def work_type
@@ -137,7 +153,7 @@ module WorkQueuer
       [input_checker, true]
     end
 
-    def send_notification(work_msg); end
+    def work_notification_message(work_msg); end
 
     def send_error_notification(errors)
       # do something!
@@ -154,6 +170,10 @@ module WorkQueuer
       queue_work(ingest_config)
     end
 
+    def worker_name
+      'Periodic Fixity Queuer'
+    end
+
     def work_type
       IngestMessage::TYPE_PERIODIC_FIXITY
     end
@@ -162,11 +182,9 @@ module WorkQueuer
       FixityInputChecker.new
     end
 
-    def send_notification(work_msg)
-      body = "New fixity check queued for #{Time.new}.\n" \
-             "Depositor/Collection: #{work_msg.depositor}/#{work_msg.collection}\n" \
-             "Fixity Check Info\n#{work_msg.to_pretty_json}"
-      @ticket_handler.update_issue_tracker(subject: work_msg.ticket_id, body: body)
+    def work_notification_message(work_msg)
+      "New periodic fixity check queued.\n" \
+      "Fixity Check Info\n#{work_msg.to_pretty_json}"
     end
 
     def confirm_work(ingest_config, _input_checker)

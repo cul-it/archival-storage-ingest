@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/manifests/manifests'
-require 'archival_storage_ingest/manifests/manifest_filesize_checker'
+require 'archival_storage_ingest/manifests/manifest_checker'
 require 'rspec'
 
 RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength

@@ -9,8 +9,8 @@ require 'rspec'
 require 'yaml'
 require 'zip'
 
-depositor = 'test_depositor'
-collection = 'test_collection'
+depositor = 'eCommons'
+collection = 'eCommons'
 resource_path = File.join(File.dirname(__FILE__), 'resources', 'm2m')
 zip_filename = 'handle-1234.zip'
 test_zip = File.join(resource_path, zip_filename)
@@ -100,7 +100,7 @@ RSpec.describe 'M2MInitiateWorker' do # rubocop:disable Metrics/BlockLength
       queuer: queuer,
       manifest_validator: manifest_validator
     }
-    M2MInitiateWorker.new(named_params)
+    M2MWorker::M2MInitiateWorker.new(named_params)
   end
 
   # enable this test after putting right steward steward for eCommons
@@ -153,8 +153,9 @@ RSpec.describe 'M2MInitiateWorker' do # rubocop:disable Metrics/BlockLength
   context 'when generating ingest manifest from package' do
     it 'creates manifest from extracted package content' do
       extract_zip(zip_file: test_zip, extract_dest: temp_dir) unless Dir.exist?(temp_extracted_dir)
-      manifest = m2m_initiate_worker.ingest_manifest(msg: m2m_msg, path: temp_extracted_dir)
-      manifest_file = m2m_initiate_worker.create_ingest_manifest_file(msg: m2m_msg, manifest: manifest)
+      handler = m2m_initiate_worker.m2m_package_handler(msg: m2m_msg)
+      manifest = handler.ingest_manifest(msg: m2m_msg, path: temp_extracted_dir)
+      manifest_file = handler.create_ingest_manifest_file(msg: m2m_msg, manifest: manifest)
       expect(manifest_file).to eq(File.join(ingest_root, zip_filename, 'ingest_manifest.json'))
       expect(manifest.number_packages).to eq(1)
       package = manifest.packages[0]
@@ -167,7 +168,8 @@ RSpec.describe 'M2MInitiateWorker' do # rubocop:disable Metrics/BlockLength
   context 'when populating files from package' do
     it 'lists file path' do
       extract_zip(zip_file: test_zip, extract_dest: temp_dir) unless Dir.exist?(temp_extracted_dir)
-      files = m2m_initiate_worker.populate_files(path: temp_extracted_dir)
+      handler = m2m_initiate_worker.m2m_package_handler(msg: m2m_msg)
+      files = handler.populate_files(path: temp_extracted_dir)
       expect(files.size).to be(2)
       expect(files[0].filepath).to eq('1/one.txt')
       expect(files[1].filepath).to eq('2/two.txt')
@@ -177,37 +179,40 @@ RSpec.describe 'M2MInitiateWorker' do # rubocop:disable Metrics/BlockLength
   context 'when listing files from path' do
     it 'lists each file' do
       path = File.join(sfs_root, depositor, collection)
-      files = m2m_initiate_worker.list_files(path: path)
+      handler = m2m_initiate_worker.m2m_package_handler(msg: m2m_msg)
+      files = handler.list_files(path: path)
       expect(files.size).to be(1)
       expect(files[0]).to eq(File.join(sfs_root, depositor, collection,
-                                       '_EM_test_depositor_test_collection.json.orig'))
+                                       '_EM_eCommons_eCommons.json.orig'))
     end
   end
 
   context 'when locating collection manifest' do
     it 'returns none if not found in SFS root' do
-      expect(m2m_initiate_worker.collection_manifest(msg: m2m_msg)).to eq('none')
+      handler = m2m_initiate_worker.m2m_package_handler(msg: m2m_msg)
+      expect(handler.collection_manifest(msg: m2m_msg)).to eq('none')
     end
 
     it 'returns collection manifest path if present in SFS' do
-      p1 = File.join(sfs_root, depositor, collection, '_EM_test_depositor_test_collection.json.orig')
-      p2 = File.join(sfs_root, depositor, collection, '_EM_test_depositor_test_collection.json')
+      p1 = File.join(sfs_root, depositor, collection, '_EM_eCommons_eCommons.json.orig')
+      p2 = File.join(sfs_root, depositor, collection, '_EM_eCommons_eCommons.json')
       FileUtils.copy(p1, p2)
-      expect(m2m_initiate_worker.collection_manifest(msg: m2m_msg)).to eq(p2)
+      handler = m2m_initiate_worker.m2m_package_handler(msg: m2m_msg)
+      expect(handler.collection_manifest(msg: m2m_msg)).to eq(p2)
     end
   end
 
-  context 'when cleaning up' do
-    it 'removes files and directories recursively' do
-      zip_copy = File.join(resource_path, 'test_copy.zip')
-      FileUtils.copy(test_zip, zip_copy)
-      extract_dest = File.join(resource_path, 'test_path')
-      extract_zip(zip_file: zip_copy, extract_dest: extract_dest)
-      m2m_initiate_worker.clean_up(zip_path: zip_copy, extract_dir_path: extract_dest)
-      expect(File.exist?(zip_copy)).to be false
-      expect(Dir.exist?(extract_dest)).to be false
-    end
-  end
+  # context 'when cleaning up' do
+  #   it 'removes files and directories recursively' do
+  #     zip_copy = File.join(resource_path, 'test_copy.zip')
+  #     FileUtils.copy(test_zip, zip_copy)
+  #     extract_dest = File.join(resource_path, 'test_path')
+  #     extract_zip(zip_file: zip_copy, extract_dest: extract_dest)
+  #     m2m_initiate_worker.clean_up(zip_path: zip_copy, extract_dir_path: extract_dest)
+  #     expect(File.exist?(zip_copy)).to be false
+  #     expect(Dir.exist?(extract_dest)).to be false
+  #   end
+  # end
 
   after(:each) do
     dest_zip = File.join(package_zip_dir, zip_filename)
@@ -220,7 +225,7 @@ RSpec.describe 'M2MInitiateWorker' do # rubocop:disable Metrics/BlockLength
 
     FileUtils.remove_dir(temp_extracted_dir) if Dir.exist?(temp_extracted_dir)
 
-    p2 = File.join(sfs_root, depositor, collection, '_EM_test_depositor_test_collection.json')
+    p2 = File.join(sfs_root, depositor, collection, '_EM_eCommons_eCommons.json')
     File.delete(p2) if File.exist?(p2)
 
     zip_copy = File.join(resource_path, 'test_copy.zip')

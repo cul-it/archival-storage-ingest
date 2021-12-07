@@ -16,7 +16,8 @@ zip_filename = 'handle-1234.zip'
 test_zip = File.join(resource_path, zip_filename)
 package_zip_dir = File.join(resource_path, 'package_zip_dir')
 package_extract_dir = File.join(resource_path, 'package_extract_dir')
-package_extracted_dir = File.join(package_extract_dir, depositor, collection)
+package_extract_cleanup_dir = File.join(package_extract_dir, zip_filename)
+package_extracted_dir = File.join(package_extract_dir, zip_filename, depositor, collection)
 temp_dir = File.join(resource_path, 'temp')
 temp_extracted_dir = File.join(temp_dir, 'handle-1234')
 ingest_root = File.join(resource_path, 'ingest_root')
@@ -116,7 +117,7 @@ RSpec.describe 'M2MInitiateWorker' do # rubocop:disable Metrics/BlockLength
   context 'when preparing package' do
     it 'creates ingest env without merged collection manifest' do
       work_path = File.join(package_extract_dir, zip_filename)
-      FileUtils.remove_dir(path) unless Dir.exist?(work_path)
+      FileUtils.remove_dir(work_path) if Dir.exist?(work_path)
       extract_path = m2m_initiate_worker.prepare_package(msg: m2m_msg)
       expect(extract_path).to eq(File.join(package_extract_dir, zip_filename, depositor, collection))
     end
@@ -218,7 +219,7 @@ RSpec.describe 'M2MInitiateWorker' do # rubocop:disable Metrics/BlockLength
     dest_zip = File.join(package_zip_dir, zip_filename)
     File.delete(dest_zip) if File.exist?(dest_zip)
 
-    FileUtils.remove_dir(package_extracted_dir) if Dir.exist?(package_extracted_dir)
+    FileUtils.remove_dir(package_extract_cleanup_dir) if Dir.exist?(package_extract_cleanup_dir)
 
     temp_manifest_dir = File.join(ingest_root, zip_filename)
     FileUtils.remove_dir(temp_manifest_dir) if Dir.exist?(temp_manifest_dir)

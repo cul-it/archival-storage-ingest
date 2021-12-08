@@ -44,13 +44,13 @@ module WorkQueuer
 
     def send_notification(work_msg)
       work_msg.worker = worker_name
-      body = "New ingest\n" \
-             "Ingest Info\n#{work_msg.to_pretty_json}"
-      work_msg.log = body
-      @issue_logger.notify_status(ingest_msg: work_msg, status: body)
+      work_msg.log = work_notification_message(work_msg: work_msg)
+      @issue_logger.notify_status(ingest_msg: work_msg, status: work_msg.log)
     end
 
-    def work_notification_message(work_msg); end
+    def work_notification_message(work_msg:)
+      "New ingest\nIngest Info\n#{work_msg.to_pretty_json}"
+    end
 
     def put_work_message(ingest_config)
       msg = IngestMessage::SQSMessage.new(
@@ -153,7 +153,7 @@ module WorkQueuer
       [input_checker, true]
     end
 
-    def work_notification_message(work_msg); end
+    def work_notification_message(work_msg:); end
 
     def send_error_notification(errors)
       # do something!
@@ -182,7 +182,7 @@ module WorkQueuer
       FixityInputChecker.new
     end
 
-    def work_notification_message(work_msg)
+    def work_notification_message(work_msg:)
       "New periodic fixity check queued.\n" \
       "Fixity Check Info\n#{work_msg.to_pretty_json}"
     end

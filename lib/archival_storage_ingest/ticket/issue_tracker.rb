@@ -121,10 +121,10 @@ module TicketHandler
     def notify_worker_skipped(ingest_msg); end
   end
 
-  # This issue tracker leaves no message other than error
+  # This issue tracker leaves no message other than completed and error
+  # It is to be used by periodic fixity comparator
   # It will notify slack channel for error as well as normal notification
-  # Should it log start/end instead?
-  class PeriodicFixityTracker < LogTracker
+  class PeriodicFixityComparatorTracker < LogTracker
     attr_reader :slack_handler
 
     def initialize(queue:, worker:, slack_handler:)
@@ -133,8 +133,6 @@ module TicketHandler
     end
 
     def notify_worker_started(ingest_msg); end
-
-    def notify_worker_completed(ingest_msg); end
 
     def notify_worker_skipped(ingest_msg); end
 
@@ -149,5 +147,11 @@ module TicketHandler
       subject = "#{worker} service has terminated due to fatal error."
       slack_handler.update_issue_tracker(subject: subject, body: error_msg)
     end
+  end
+
+  # This issue tracker leaves not message other than error
+  # It is to be used by all other periodic fixity worker
+  class PeriodicFixityTracker < PeriodicFixityComparatorTracker
+    def notify_worker_completed(ingest_msg); end
   end
 end

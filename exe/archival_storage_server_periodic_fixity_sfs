@@ -42,12 +42,10 @@ ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLengt
 
   config.worker = FixityWorker::PeriodicFixitySFSGenerator.new
 
-  ticket_handler = TicketHandler::JiraHandler.new
-  config.ticket_handler = ticket_handler
   slack_handler = TicketHandler::SlackHandler.new(web_hook: ENV['asi_periodic_fixity_slack_web_hook'])
-  config.issue_tracker_helper = TicketHandler::PeriodicFixityTracker.new(worker_name: config.worker.name,
-                                                                         ticket_handler: ticket_handler,
-                                                                         slack_handler: slack_handler)
+  config.issue_logger = TicketHandler::PeriodicFixityTracker.new(worker: config.worker.name,
+                                                                 queue: config.log_queue,
+                                                                 slack_handler: slack_handler)
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

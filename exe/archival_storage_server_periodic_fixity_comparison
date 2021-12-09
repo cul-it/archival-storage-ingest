@@ -18,7 +18,7 @@ ArchivalStorageIngest.configure do |config| # rubocop: disable Metrics/BlockLeng
   config.log_path = ENV['asi_periodic_fixity_comparison_log_path'] ||
                     '/cul/app/archival_storage_ingest/logs/periodic_fixity_comparison.log'
   config.dry_run = ENV['asi_periodic_fixity_comparison_dry_run'] || false
-  config.polling_interval = ENV['asi_periodic_fixity_comparison_polling_interval'] if
+  config.polling_interval = ENV['asi_periodic_fixity_comparison_polling_interval'].to_i if
                             ENV['asi_periodic_fixity_comparison_polling_interval']
   config.inhibit_file = ENV['asi_periodic_fixity_comparison_inhibit_file'] ||
                         '/cul/app/archival_storage_ingest/control/periodic_fixity_comparison.inhibit'

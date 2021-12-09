@@ -36,7 +36,7 @@ module TicketHandler
 
     # This will create a new ticket.
     def notify_error(error_msg)
-      ingest_msg = IngestMessage::SQSMessage.new(log: error_msg, worker: worker)
+      ingest_msg = IngestMessage::SQSMessage.new(ingest_id: SecureRandom.uuid, log: error_msg, worker: worker)
       queue.send_message(ingest_msg)
     end
   end

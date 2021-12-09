@@ -51,14 +51,16 @@ module TicketHandler
     end
 
     def notify_status(ingest_msg:)
-      notify_error(ingest_msg) if ingest_msg.ticket_id.nil?
-
-      body = "#{Time.new}\n" \
+      if ingest_msg.ticket_id.nil?
+        notify_error(ingest_msg)
+      else
+        body = "#{Time.new}\n" \
              "#{ingest_msg.worker}\n" \
              "Depositor/Collection: #{ingest_msg.depositor}/#{ingest_msg.collection}\n" \
              "Ingest ID: #{ingest_msg.ingest_id}\n" \
              "Status: #{ingest_msg.log}"
-      ticket_handler.update_issue_tracker(subject: ingest_msg.ticket_id, body: body)
+        ticket_handler.update_issue_tracker(subject: ingest_msg.ticket_id, body: body)
+      end
     end
 
     def notify_error(ingest_msg)

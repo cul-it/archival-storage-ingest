@@ -205,6 +205,9 @@ module ArchivalStorageIngest
       status
     end
 
+    # Currently, when we detect wip message, we leave error message to the responsible jira ticket as well as
+    # create new jira ticket about the error.
+    # Do we need both? Can we remove the latter?
     def check_wip
       wip_msg = wip_q.retrieve_message
       return if wip_msg.nil?

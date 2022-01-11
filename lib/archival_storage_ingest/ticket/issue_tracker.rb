@@ -92,7 +92,7 @@ module TicketHandler
     attr_reader :slack_handler
 
     def initialize(slack_handler:)
-      super
+      super()
       @slack_handler = slack_handler
     end
 

@@ -34,7 +34,7 @@ ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLengt
     config.in_progress_queue_name = Queues::QUEUE_LOG_IN_PROGRESS
     config.dest_queue_names = []
     slack_handler = TicketHandler::SlackHandler.new(web_hook: ENV['asi_log_slack_web_hook'])
-    config.issue_logger = TicketHandler::SlackErrorTracker(slack_handler: slack_handler)
+    config.issue_logger = TicketHandler::SlackErrorTracker.new(slack_handler: slack_handler)
   end
 
   ticket_handler = TicketHandler::JiraHandler.new

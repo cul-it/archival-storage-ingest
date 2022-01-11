@@ -4,6 +4,7 @@
 require 'archival_storage_ingest'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
 require 'archival_storage_ingest/messages/queues'
+require 'archival_storage_ingest/ticket/issue_tracker'
 require 'archival_storage_ingest/ticket/ticket_handler'
 require 'archival_storage_ingest/workers/log_worker'
 

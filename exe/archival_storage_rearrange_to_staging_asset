@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'archival_storage_ingest/preingest/rearrange_assets'
+
+# depositor:, collection:, arrange_info_csv:, source_path:, staging_root:
+depositor = ARGV[0]
+collection = ARGV[1]
+arrange_info_csv = ARGV[2]
+source_path = ARGV[3]
+staging_root = ARGV[4]
+
+asset_arranger = Preingest::AssetRearranger.new
+asset_arranger.rearrange_data_structure(depositor: depositor,
+                                        collection: collection,
+                                        arrange_info_csv: arrange_info_csv,
+                                        source_path: source_path,
+                                        staging_root: staging_root)

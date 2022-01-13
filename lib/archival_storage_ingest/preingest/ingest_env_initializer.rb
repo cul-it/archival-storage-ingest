@@ -67,7 +67,7 @@ module Preingest
     end
 
     def _initialize_collection_manifest(im_path:, named_params:)
-      manifest = if named_params.fetch(:cmf).eql?(NO_COLLECTION_MANIFEST)
+      manifest = if named_params.fetch(:cmf) == NO_COLLECTION_MANIFEST
                    _def_create_collection_manifest(im_path: im_path, sfs_location: named_params.fetch(:sfs_location))
                  else
                    _merge_ingest_manifest_to_collection_manifest(imf: im_path, cmf: named_params.fetch(:cmf),

@@ -73,7 +73,7 @@ module CommandParser
         # Optional parameters, default values will be used if not specified
         opts.on('-n', '--notify_email [String]', 'Notify email') { |n| @notify_email = n }
         opts.on('-g', '--ingest_root [String]', 'Ingest root') { |g| @ingest_root = g }
-        opts.on('-s', '--sfs_root [String]', 'SFS root') { |r| @sfs_root = r }
+        opts.on('-r', '--sfs_root [String]', 'SFS root') { |r| @sfs_root = r }
         opts.on('-j', '--java_path [String]', 'Java path') { |j| @java_path = j }
         opts.on('-k', '--tika_path [String]', 'Tika path') { |k| @tika_path = k }
         opts.on('-h', '--storage_manifest_schema [String]', 'Storage manifest schema') { |h| @storage_manifest_schema = h }

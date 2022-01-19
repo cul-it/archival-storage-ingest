@@ -156,16 +156,22 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
     manifest_deployer.prepare_collection_manifest(manifest_parameters: manifest_parameters)
     manifest_definition = manifest_deployer.prepare_manifest_definition(manifest_parameters: manifest_parameters)
 
-    describe_deployment(manifest_deployer: manifest_deployer, manifest_definition: manifest_definition)
+    describe_and_confirm_deployment(manifest_deployer: manifest_deployer, manifest_definition: manifest_definition)
 
     manifest_deployer.deploy_collection_manifest(manifest_def: manifest_definition,
                                                  collection_manifest: manifest_parameters.storage_manifest_path)
     archive_size.deploy_asif_archive_size
   end
 
-  def describe_deployment(manifest_deployer:, manifest_definition:)
+  def describe_and_confirm_deployment(manifest_deployer:, manifest_definition:)
     puts 'Deployment Summary'
     puts "S3 bucket: #{manifest_deployer.s3_bucket}"
     manifest_deployer.describe_deployment(manifest_def: manifest_definition)
+
+    puts 'Proceed with deployment? (Y/N)'
+    unless 'y'.casecmp(gets.chomp).zero? # rubocop:disable Style/GuardClause
+      puts 'Deployment terminated by user input.'
+      exit(true)
+    end
   end
 end

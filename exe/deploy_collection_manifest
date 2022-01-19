@@ -3,7 +3,7 @@
 
 require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/manifests/deploy_collection_manifest'
-require 'exe/base_manifest_deployer'
+require 'archival_storage_ingest/manifests/base_manifest_deployer'
 require 'misc/archive_size'
 require 'archival_storage_ingest/s3/s3_manager'
 

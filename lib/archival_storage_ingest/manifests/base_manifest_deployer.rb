@@ -155,8 +155,17 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
     # This step will finalize storage manifest object and file pointed by the manifest parameters.
     manifest_deployer.prepare_collection_manifest(manifest_parameters: manifest_parameters)
     manifest_definition = manifest_deployer.prepare_manifest_definition(manifest_parameters: manifest_parameters)
+
+    describe_deployment(manifest_deployer: manifest_deployer, manifest_definition: manifest_definition)
+
     manifest_deployer.deploy_collection_manifest(manifest_def: manifest_definition,
                                                  collection_manifest: manifest_parameters.storage_manifest_path)
     archive_size.deploy_asif_archive_size
+  end
+
+  def describe_deployment(manifest_deployer:, manifest_definition:)
+    puts 'Deployment Summary'
+    puts "S3 bucket: #{manifest_deployer.s3_bucket}"
+    manifest_deployer.describe_deployment(manifest_def: manifest_definition)
   end
 end

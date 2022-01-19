@@ -28,9 +28,9 @@ manifest_parameters = Manifests::ManifestParameters.new(storage_manifest_path: n
                                                         ingest_manifest_path: ingest_manifest, sfs: sfs,
                                                         skip_data_addition: skip_data_addition)
 
-puts 'Deployment Summary'
-puts "S3 bucket: #{manifest_deployer.s3_bucket}"
-manifest_deployer.manifest_deployer.describe_deployment(manifest_def: manifest_definition)
+# puts 'Deployment Summary'
+# puts "S3 bucket: #{manifest_deployer.s3_bucket}"
+# manifest_deployer.manifest_deployer.describe_deployment(manifest_def: manifest_definition)
 puts 'Proceed with deployment? (Y/N)'
 unless 'y'.casecmp(gets.chomp).zero?
   puts 'Deployment terminated by user input.'

@@ -165,7 +165,7 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
 
   def describe_and_confirm_deployment(manifest_deployer:, manifest_definition:)
     puts 'Deployment Summary'
-    puts "S3 bucket: #{manifest_deployer.s3_bucket}"
+    puts "S3 bucket: #{s3_bucket}"
     manifest_deployer.describe_deployment(manifest_def: manifest_definition)
 
     puts 'Proceed with deployment? (Y/N)'

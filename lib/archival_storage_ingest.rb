@@ -75,7 +75,7 @@ module ArchivalStorageIngest
     end
 
     def issue_logger
-      @issue_logger ||= TicketHandler::LogTracker.new(queue: log_queue, worker: worker.name)
+      @issue_logger ||= TicketHandler::LogTracker.new(queue: log_queue, worker: worker.name, platform: @platform)
     end
 
     def platform

@@ -1,19 +1,31 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/workers/fixity_worker'
 
 module WorkQueuer
   class InputChecker
-    attr_accessor :ingest_manifest, :errors
+    attr_accessor :ingest_manifest, :errors, :valid_platforms
 
     def initialize
       @errors = []
+      @valid_platforms = {
+        IngestMessage::PLATFORM_SERVERFARM => true,
+        IngestMessage::PLATFORM_AWS => true,
+        IngestMessage::PLATFORM_AZURE => true,
+        IngestMessage::PLATFORM_S3 => true,
+        IngestMessage::PLATFORM_SFS => true,
+        IngestMessage::PLATFORM_WASABI => true
+      }
     end
 
     # Check whether path/files in ingest_config are actual path/files.
     # Override this method if additional checks are required.
     def check_input(ingest_config)
+      @errors << "Platform '#{ingest_config[:platform]}' is not valid!" unless
+        valid_platforms[ingest_config[:platform]]
+
       # if dest_path is blank, use empty string '' to avoid errors printing it
       dest_path = IngestUtils.if_empty(ingest_config[:dest_path], '')
       @errors << "dest_path '#{dest_path}' does not exist!" unless

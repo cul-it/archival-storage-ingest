@@ -1,43 +1,59 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
+require 'archival_storage_ingest/messages/ingest_message'
+
 module TicketHandler
   # This log tracker sends ingest message to log queue to be handled by LogWorker
   # Used by everyone except LogWorker
   class LogTracker
-    attr_reader :queue, :worker
+    attr_reader :queue, :worker, :platform
 
-    def initialize(queue:, worker:)
+    def initialize(queue:, worker:, platform:)
       @queue = queue
       @worker = worker
+      @platform = platform
     end
 
-    def notify_worker_started(ingest_msg)
-      notify_status(ingest_msg: ingest_msg, status: 'Started')
+    def notify_worker_started(ingest_msg:, params:)
+      params[:log_status] = 'Started'
+      notify_status(ingest_msg: ingest_msg, params: params)
     end
 
-    def notify_worker_completed(ingest_msg)
-      notify_status(ingest_msg: ingest_msg, status: 'Completed')
+    def notify_worker_completed(ingest_msg:, params:)
+      params[:log_status] = 'Completed'
+      notify_status(ingest_msg: ingest_msg, params: params)
     end
 
-    def notify_worker_skipped(ingest_msg)
-      notify_status(ingest_msg: ingest_msg, status: 'Skipped')
+    def notify_worker_skipped(ingest_msg:, params:)
+      params[:log_status] = 'Skipped'
+      notify_status(ingest_msg: ingest_msg, params: params)
     end
 
-    def notify_worker_error(ingest_msg:, error_msg:)
-      status = "Error\n\n#{error_msg}"
-      notify_status(ingest_msg: ingest_msg, status: status)
+    def notify_worker_error(ingest_msg:, params:)
+      params[:log_status] = 'Error'
+      # status = "Error\n\n#{error_msg}"
+      notify_status(ingest_msg: ingest_msg, params: params)
     end
 
-    def notify_status(ingest_msg:, status:)
-      ingest_msg.log = status
-      ingest_msg.worker = worker
-      queue.send_message(ingest_msg)
+    def notify_status(ingest_msg:, params:)
+      # ingest_msg.log = status
+      # ingest_msg.worker = worker
+      # log: params[:log], log_identifier: params[:log_identifier],
+      #       log_report_to_jira: params[:log_report_to_jira], log_status: params[:log_status],
+      #       log_timestamp: params[:log_timestamp],
+      # params = {log_status: status, }
+      params[:log_timestamp] = Time.now.utc.iso8601
+      log_msg = IngestMessage.log_message(ingest_msg, params)
+      queue.send_message(log_msg)
     end
 
     # This will create a new ticket.
     def notify_error(error_msg)
-      ingest_msg = IngestMessage::SQSMessage.new(ingest_id: SecureRandom.uuid, log: error_msg, worker: worker)
-      queue.send_message(ingest_msg)
+      ingest_msg = IngestMessage::SQSMessage.new(agent: IngestUtils.agent, ingest_id: SecureRandom.uuid,  worker: worker)
+      params = { log: error_msg, log_identifier: worker, log_report_to_jira: true, log_status: 'Error' }
+      # queue.send_message(ingest_msg)
+      notify_status(ingest_msg: ingest_msg, params: params)
     end
   end
 
@@ -129,8 +145,8 @@ module TicketHandler
   class PeriodicFixityComparatorTracker < LogTracker
     attr_reader :slack_handler
 
-    def initialize(queue:, worker:, slack_handler:)
-      super(queue: queue, worker: worker)
+    def initialize(queue:, worker:, platform:, slack_handler:)
+      super(queue: queue, worker: worker, platform: platform)
       @slack_handler = slack_handler
     end
 
@@ -144,8 +160,8 @@ module TicketHandler
       slack_handler.update_issue_tracker(subject: subject, body: error_msg)
     end
 
-    def notify_worker_error(ingest_msg:, error_msg:)
-      super(ingest_msg: ingest_msg, error_msg: error_msg)
+    def notify_worker_error(ingest_msg:, params:)
+      super(ingest_msg: ingest_msg, params: params)
       subject = "#{worker} service has terminated due to fatal error."
       slack_handler.update_issue_tracker(subject: subject, body: error_msg)
     end

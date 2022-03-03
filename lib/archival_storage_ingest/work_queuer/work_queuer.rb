@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
+require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/work_queuer/input_checker'
 
 module WorkQueuer
@@ -44,8 +46,15 @@ module WorkQueuer
 
     def send_notification(work_msg)
       work_msg.worker = worker_name
-      work_msg.log = work_notification_message(work_msg)
-      @issue_logger.notify_status(ingest_msg: work_msg, status: work_msg.log)
+      # # log: params[:log], log_identifier: params[:log_identifier],
+      #       #       log_report_to_jira: params[:log_report_to_jira], log_status: params[:log_status],
+      #       #       log_timestamp: params[:log_timestamp],
+      #       # params = {log_status: status, }
+      params = {
+        log: work_notification_message(work_msg), log_identifier: worker_name,
+        log_report_to_jira: true, log_status: 'Initiated'
+      }
+      @issue_logger.notify_status(ingest_msg: work_msg, params: params)
     end
 
     def work_notification_message(work_msg)
@@ -53,16 +62,21 @@ module WorkQueuer
     end
 
     def put_work_message(ingest_config)
-      msg = IngestMessage::SQSMessage.new(
-        type: work_type, ticket_id: ingest_config[:ticket_id],
+      msg = work_message(ingest_config)
+      q_name = ingest_config[:queue_name].nil? ? @queue_name : ingest_config[:queue_name]
+      @queuer.put_message(q_name, msg)
+      msg
+    end
+
+    def work_message(ingest_config)
+      IngestMessage::SQSMessage.new(
+        agent: IngestUtils.agent, type: work_type, platform: ingest_config[:platform],
+        ticket_id: ingest_config[:ticket_id],
         ingest_id: ingest_config[:ingest_id].nil? ? SecureRandom.uuid : ingest_config[:ingest_id],
         depositor: ingest_config[:depositor], collection: ingest_config[:collection],
         dest_path: ingest_config[:dest_path],
         ingest_manifest: ingest_config[:ingest_manifest]
       )
-      q_name = ingest_config[:queue_name].nil? ? @queue_name : ingest_config[:queue_name]
-      @queuer.put_message(q_name, msg)
-      msg
     end
 
     def work_type; end

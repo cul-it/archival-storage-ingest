@@ -58,7 +58,8 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable Metrics/BlockLength
   before(:each) do
     @s3_bucket = spy('s3_bucket')
     @s3_manager = spy('s3_manager')
-    @s3_worker = TransferWorker::S3Transferer.new(@s3_manager)
+    @issue_logger = spy('issue_logger')
+    @s3_worker = TransferWorker::S3Transferer.new(@s3_manager, @issue_logger)
 
     allow(@s3_manager).to receive(:upload_file)
       .with("#{depositor}/#{collection}/1/resource1.txt", anything) { true }
@@ -157,7 +158,8 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable Metrics/BlockLength
   before(:each) do
     @s3_bucket = spy('s3_bucket')
     @s3_manager = spy('s3_manager')
-    @sfs_worker = TransferWorker::SFSTransferer.new(@s3_manager)
+    @issue_logger = spy('issue_logger')
+    @sfs_worker = TransferWorker::SFSTransferer.new(@s3_manager, @issue_logger)
 
     allow(@s3_manager).to receive(:upload_file)
       .with(any_args)

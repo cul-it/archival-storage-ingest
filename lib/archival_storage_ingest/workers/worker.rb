@@ -7,12 +7,14 @@ module Workers
 
   # Base class for specific workers
   class Worker
-    attr_reader :name
+    attr_reader :name, :platform
 
     def initialize(worker_name)
       @name = worker_name
+      @platform = platform
     end
 
     def work(msg); end
+    def platform; end
   end
 end

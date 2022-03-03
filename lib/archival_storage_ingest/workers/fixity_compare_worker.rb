@@ -13,12 +13,13 @@ require 'yaml'
 
 module FixityCompareWorker
   class ManifestComparator < Workers::Worker
-    attr_reader :s3_manager
+    attr_reader :s3_manager, :platform
 
     # Pass s3_manager only for tests.
-    def initialize(s3_manager = nil)
+    def initialize(s3_manager = nil, platform = IngestMessage::PLATFORM_AWS)
       super(_name)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
+      @platform = platform || ArchivalStorageIngest.configuration.platform
     end
 
     def work(msg)
@@ -45,6 +46,10 @@ module FixityCompareWorker
 
     def _name
       'Manifest Comparator'
+    end
+
+    def platform
+      IngestMessage::PLATFORM_SERVERFARM
     end
 
     def retrieve_manifests(msg)
@@ -152,7 +157,8 @@ module FixityCompareWorker
       return if manifest_def.nil?
 
       cm = collection_manifest(manifest_def: manifest_def)
-      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
+      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root,
+                                                                    sfs_root: sfs_root, platform: platform)
       env_initializer.initialize_periodic_fixity_env(cmf: cm, sfs_location: manifest_def.sfs, ticket_id: msg.ticket_id,
                                                      relay_queue_name: @relay_queue_name)
       queuer = WorkQueuer::PeriodicFixityQueuer.new(confirm: false)

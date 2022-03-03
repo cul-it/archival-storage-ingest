@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/workers/worker'
 
 class IngestWorker < Workers::Worker
@@ -11,6 +12,10 @@ class IngestWorker < Workers::Worker
 
   def _name
     'Ingest Initiator'
+  end
+
+  def platform
+    IngestMessage::PLATFORM_SERVERFARM
   end
 
   def work(msg)

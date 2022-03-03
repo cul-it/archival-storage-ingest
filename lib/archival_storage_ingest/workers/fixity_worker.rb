@@ -2,6 +2,7 @@
 
 require 'archival_storage_ingest/workers/worker'
 require 'archival_storage_ingest/manifests/manifests'
+require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'find'
 require 'json'
@@ -113,6 +114,10 @@ module FixityWorker
       'S3 Fixity Generator'
     end
 
+    def platform
+      IngestMessage::PLATFORM_S3
+    end
+
     def worker_type
       Workers::TYPE_S3
     end
@@ -126,6 +131,10 @@ module FixityWorker
   class PeriodicFixityS3Generator < FixityGenerator
     def _name
       'Periodic S3 Fixity Generator'
+    end
+
+    def platform
+      IngestMessage::PLATFORM_S3
     end
 
     def worker_type
@@ -153,6 +162,10 @@ module FixityWorker
       'SFS Fixity Generator'
     end
 
+    def platform
+      IngestMessage::PLATFORM_SFS
+    end
+
     def worker_type
       Workers::TYPE_SFS
     end
@@ -168,6 +181,10 @@ module FixityWorker
 
     def _name
       'Periodic SFS Fixity Generator'
+    end
+
+    def platform
+      IngestMessage::PLATFORM_SFS
     end
 
     def worker_type

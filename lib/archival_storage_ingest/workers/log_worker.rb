@@ -12,6 +12,10 @@ class LogWorker < Workers::Worker
     'Logger'
   end
 
+  def platform
+    IngestMessage::PLATFORM_SERVERFARM
+  end
+
   def work(msg)
     @issue_tracker.notify_status(ingest_msg: msg)
 

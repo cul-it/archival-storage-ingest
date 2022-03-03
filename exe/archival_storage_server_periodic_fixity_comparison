@@ -3,6 +3,7 @@
 
 require 'archival_storage_ingest'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
+require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/preingest/ingest_env_initializer'
 require 'archival_storage_ingest/workers/fixity_compare_worker'
@@ -59,6 +60,7 @@ ArchivalStorageIngest.configure do |config| # rubocop: disable Metrics/BlockLeng
     sfs_root: sfs_root,
     relay_queue_name: relay_queue_name
   )
+  config.worker.platform = IngestMessage::PLATFORM_SERVERFARM
 
   slack_handler = TicketHandler::SlackHandler.new(web_hook: ENV['asi_periodic_fixity_slack_web_hook'])
   config.issue_logger = TicketHandler::PeriodicFixityComparatorTracker.new(worker: config.worker.name,

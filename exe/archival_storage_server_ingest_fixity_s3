@@ -3,10 +3,11 @@
 
 require 'archival_storage_ingest'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
+require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/workers/fixity_worker'
 
-ArchivalStorageIngest.configure do |config|
+ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLength
   config.log_path = ENV['asi_ingest_fixity_s3_log_path'] ||
                     '/cul/app/archival_storage_ingest/logs/ingest_fixity_s3.log'
   config.dry_run = ENV['asi_ingest_fixity_s3_dry_run'] || false
@@ -34,6 +35,7 @@ ArchivalStorageIngest.configure do |config|
   end
 
   config.worker = FixityWorker::IngestFixityS3Generator.new
+  config.worker.platform = IngestMessage::PLATFORM_S3
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

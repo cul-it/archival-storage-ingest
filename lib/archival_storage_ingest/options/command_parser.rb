@@ -55,7 +55,8 @@ module CommandParser
 
   class SetupIngestEnvCommandParser
     attr_reader :data_path, :depositor, :collection_id, :storage_manifest, :ingest_manifest,
-                :sfs_bucket, :ticket_id, :platform
+                :sfs_bucket, :ticket_id
+    attr_writer :platform
 
     def parse!(args) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
       OptionParser.new do |opts|

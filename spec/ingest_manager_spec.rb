@@ -111,7 +111,7 @@ RSpec.describe 'IngestManager' do
         it 'will log that the message was received' do
           @manager.do_work
 
-          expect(@logger).to have_received(:info).twice #.with("Received #{message.to_json}")
+          expect(@logger).to have_received(:info).twice # .with("Received #{message.to_json}")
         end
 
         it 'will send notification to ticket handler' do

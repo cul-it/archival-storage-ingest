@@ -38,7 +38,7 @@ module IngestMessage
   #   TYPE_M2M => Queues::QUEUE_ECOMMONS_INTEGRATION
   # }.freeze
 
-  def self.convert_sqs_response(sqs_message)
+  def self.convert_sqs_response(sqs_message) # rubocop:disable Metrics/AbcSize
     json = JSON.parse(sqs_message.body)
     SQSMessage.new(
       type: json['type'], ingest_id: json['ingest_id'], dest_path: json['dest_path'], depositor: json['depositor'],
@@ -48,7 +48,7 @@ module IngestMessage
       original_msg: sqs_message,
       log: json['log'], log_identifier: json['log_identifier'], log_report_to_jira: json['log_report_to_jira'],
       log_status: json['log_status'], log_timestamp: json['log_timestamp']
-      )
+    )
   end
 
   def self.log_message(ingest_msg, params)

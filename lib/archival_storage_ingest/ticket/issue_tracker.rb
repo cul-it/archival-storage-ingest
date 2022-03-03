@@ -50,7 +50,7 @@ module TicketHandler
 
     # This will create a new ticket.
     def notify_error(error_msg)
-      ingest_msg = IngestMessage::SQSMessage.new(agent: IngestUtils.agent, ingest_id: SecureRandom.uuid,  worker: worker)
+      ingest_msg = IngestMessage::SQSMessage.new(agent: IngestUtils.agent, ingest_id: SecureRandom.uuid, worker: worker)
       params = { log: error_msg, log_identifier: worker, log_report_to_jira: true, log_status: 'Error' }
       # queue.send_message(ingest_msg)
       notify_status(ingest_msg: ingest_msg, params: params)

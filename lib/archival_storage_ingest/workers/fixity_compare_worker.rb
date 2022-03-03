@@ -13,7 +13,8 @@ require 'yaml'
 
 module FixityCompareWorker
   class ManifestComparator < Workers::Worker
-    attr_reader :s3_manager, :platform
+    attr_reader :s3_manager
+    attr_writer :platform
 
     # Pass s3_manager only for tests.
     def initialize(s3_manager = nil, platform = IngestMessage::PLATFORM_AWS)

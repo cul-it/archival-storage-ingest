@@ -21,10 +21,10 @@ module ArchivalStorageIngest
 
   class Configuration
     attr_accessor :message_queue_name, :in_progress_queue_name, :log_path, :debug, :worker, :dest_queue_names, :develop,
-                  :inhibit_file, :global_inhibit_file, :platform
+                  :inhibit_file, :global_inhibit_file
     # Only set log_queue/issue_logger in test!
     attr_writer :msg_q, :dest_qs, :wip_q, :s3_bucket, :s3_manager, :dry_run, :polling_interval, :wip_removal_wait_time,
-                :logger, :queuer, :log_queue, :issue_logger
+                :logger, :queuer, :log_queue, :issue_logger, :platform
 
     def logger
       @logger ||= ArchivalStorageIngestLogger.get_file_logger(self)
@@ -168,7 +168,7 @@ module ArchivalStorageIngest
     #
     # logger.info appears to trigger ABC (Assignment Branch Condition) rubocop error.
     #
-    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
     def do_work
       # work is to get a message from msg_q,
       # process it, and pass it along to the next queue
@@ -200,7 +200,7 @@ module ArchivalStorageIngest
         notify_and_quit(e, msg)
       end
     end
-    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/AbcSize
 
     def _do_work_and_notify(msg)
       go_to_next_queue = worker.work(msg)
@@ -215,6 +215,7 @@ module ArchivalStorageIngest
         'Skipped'
       end
     end
+    # rubocop:enable Metrics/MethodLength
 
     # Currently, when we detect wip message, we leave error message to the responsible jira ticket as well as
     # create new jira ticket about the error.

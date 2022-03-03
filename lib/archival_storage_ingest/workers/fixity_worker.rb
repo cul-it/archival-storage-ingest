@@ -26,14 +26,15 @@ module FixityWorker
   FIXITY_MANIFEST_TEMPLATE_STR = JSON.generate(FIXITY_MANIFEST_TEMPLATE)
 
   class FixityGenerator < Workers::Worker
-    attr_reader :debug, :logger
+    attr_reader :debug, :logger, :issue_logger
 
-    # Pass s3_manager only for tests.
-    def initialize(s3_manager = nil)
+    # Pass s3_manager and issue_logger only for tests.
+    def initialize(s3_manager = nil, issue_logger = nil)
       super(_name)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
       @debug = ArchivalStorageIngest.configuration.debug
       @logger = ArchivalStorageIngest.configuration.logger
+      @issue_logger = issue_logger || ArchivalStorageIngest.configuration.issue_logger
     end
 
     def _name; end
@@ -59,22 +60,57 @@ module FixityWorker
       manifest = Manifests::Manifest.new(json_text: FIXITY_MANIFEST_TEMPLATE_STR)
       fixity_package = manifest.get_package(package_id: FIXITY_TEMPORARY_PACKAGE_ID)
       object_paths.each do |object_path|
-        logger.debug("Calculate checksum for #{object_path} started") if debug
+        notify_fixity_started(ingest_msg: msg, object_path: object_path)
         (sha, size, errors) = calculate_checksum(object_path, msg)
-        log_checksum_output(sha, size, errors) if debug
+        notify_fixity_completed(ingest_msg: msg, object_path: object_path, sha: sha, size: size, errors: errors)
         fixity_package.add_file_entry(filepath: object_path, sha1: sha, size: size)
       end
 
       manifest
     end
 
-    def log_checksum_output(sha, size, errors)
-      logger.debug("Checksum: #{sha}, #{size}")
-      return if errors.nil?
+    def notify_fixity_started(ingest_msg:, object_path:)
+      log_msg = "Calculate checksum for #{object_path} started"
+      logger.debug(log_msg) if debug
 
-      errors.each do |error|
-        logger.debug("Error: #{error}")
+      identifier = "#{ingest_msg.depositor}/#{ingest_msg.collection}/#{object_path}"
+      params = {
+        log: log_msg, log_identifier: identifier,
+        log_report_to_jira: false, log_status: 'Started', log_timestamp: IngestUtils.utc_time
+      }
+      issue_logger.notify_worker_started(ingest_msg: ingest_msg, params: params)
+    end
+
+    def notify_fixity_completed(ingest_msg:, object_path:, sha:, size:, errors:)
+      identifier = "#{ingest_msg.depositor}/#{ingest_msg.collection}/#{object_path}"
+      if errors.nil?
+        notify_fixity_success(ingest_msg: ingest_msg, identifier: identifier,
+                              sha: sha, size: size)
+      else
+        notify_fixity_error(ingest_msg: ingest_msg, identifier: identifier, errors: errors)
       end
+    end
+
+    def notify_fixity_success(ingest_msg:, identifier:, sha:, size:)
+      log_msg = "Checksum for '#{identifier}': #{sha}, #{size}"
+      logger.debug(log_msg) if debug
+
+      params = {
+        log: log_msg, log_identifier: identifier, log_report_to_jira: false,
+        log_status: 'Completed', log_timestamp: IngestUtils.utc_time
+      }
+      issue_logger.notify_worker_completed(ingest_msg: ingest_msg, params: params)
+    end
+
+    def notify_fixity_error(ingest_msg:, identifier:, errors:)
+      log_msg = "Errors for fixity on '#{identifier}': \n" + errors.join("\n")
+      logger.debug(log_msg) if debug
+
+      params = {
+        log: log_msg, log_identifier: identifier, log_report_to_jira: false,
+        log_status: 'Error', log_timestamp: IngestUtils.utc_time
+      }
+      issue_logger.notify_worker_error(ingest_msg: ingest_msg, params: params)
     end
 
     # This method must return a list of file paths same as what's in the manifest.

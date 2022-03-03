@@ -3,6 +3,7 @@
 
 require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/manifests/manifests'
+require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/options/command_parser'
 require 'archival_storage_ingest/preingest/base_env_initializer'
 require 'archival_storage_ingest/preingest/ingest_env_initializer'
@@ -24,7 +25,8 @@ manifest_validator = Manifests::ManifestValidator.new(storage_schema: options.st
 env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: options.ingest_root,
                                                       sfs_root: options.sfs_root,
                                                       file_identifier: file_identifier,
-                                                      manifest_validator: manifest_validator)
+                                                      manifest_validator: manifest_validator,
+                                                      platform: IngestMessage::PLATFORM_SERVERFARM)
 env_initializer.initialize_ingest_env(data: options.data_path,
                                       depositor: options.depositor, collection_id: options.collection_id,
                                       cmf: options.storage_manifest, imf: options.ingest_manifest,

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/exception/ingest_exception'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/manifests/manifest_merger'
 require 'archival_storage_ingest/manifests/manifest_missing_attribute_populator'
@@ -16,8 +17,8 @@ module Preingest
   class IngestEnvInitializer < BaseEnvInitializer
     attr_reader :file_identifier, :manifest_validator
 
-    def initialize(ingest_root:, sfs_root:, manifest_validator:, file_identifier:)
-      super(ingest_root: ingest_root, sfs_root: sfs_root)
+    def initialize(ingest_root:, sfs_root:, manifest_validator:, file_identifier:, platform:)
+      super(ingest_root: ingest_root, sfs_root: sfs_root, platform: platform)
 
       @file_identifier = file_identifier
       @manifest_validator = manifest_validator
@@ -117,7 +118,8 @@ module Preingest
     end
 
     def generate_config(ingest_manifest_path:, named_params:)
-      { type: work_type, depositor: depositor, collection: collection_id,
+      { agent: IngestUtils.agent, type: work_type, platform: platform,
+        depositor: depositor, collection: collection_id,
         dest_path: dest_path(sfs_location: named_params.fetch(:sfs_location)),
         ingest_manifest: ingest_manifest_path, ticket_id: named_params.fetch(:ticket_id) }
     end

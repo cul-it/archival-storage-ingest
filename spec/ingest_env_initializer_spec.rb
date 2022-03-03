@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/manifests/manifests'
+require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/preingest/ingest_env_initializer'
 
 require 'fileutils'
@@ -66,7 +67,8 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
     it 'creates ingest env' do # rubocop:disable Metrics/BlockLength
       env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root,
                                                             manifest_validator: manifest_validator,
-                                                            file_identifier: file_identifier)
+                                                            file_identifier: file_identifier,
+                                                            platform: IngestMessage::PLATFORM_SERVERFARM)
       env_initializer.initialize_ingest_env(data: data, cmf: collection_manifest, imf: ingest_manifest,
                                             sfs_location: sfs_location, ticket_id: ticket_id,
                                             depositor: depositor, collection_id: collection)
@@ -124,7 +126,8 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
     it 'creates ingest env without merged collection manifest' do
       env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root,
                                                             manifest_validator: manifest_validator,
-                                                            file_identifier: file_identifier)
+                                                            file_identifier: file_identifier,
+                                                            platform: IngestMessage::PLATFORM_AWS)
       env_initializer.initialize_ingest_env(data: data, cmf: 'none', imf: ingest_manifest,
                                             sfs_location: sfs_location, ticket_id: ticket_id,
                                             depositor: depositor, collection_id: collection)

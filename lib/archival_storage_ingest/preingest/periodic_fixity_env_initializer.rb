@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/preingest/base_env_initializer'
 require 'archival_storage_ingest/workers/fixity_worker'
@@ -7,8 +8,8 @@ require 'archival_storage_ingest/workers/fixity_worker'
 module Preingest
   # It expects COLLECTION MANIFEST for the passed ingest_manifest_path argument!
   class PeriodicFixityEnvInitializer < BaseEnvInitializer
-    def initialize(periodic_fixity_root:, sfs_root:)
-      super(ingest_root: periodic_fixity_root, sfs_root: sfs_root)
+    def initialize(periodic_fixity_root:, sfs_root:, platform:)
+      super(ingest_root: periodic_fixity_root, sfs_root: sfs_root, platform: platform)
     end
 
     # alias for initialize_ingest_env
@@ -30,7 +31,8 @@ module Preingest
 
     def generate_config(ingest_manifest_path:, named_params:)
       config = {
-        type: work_type, depositor: depositor, collection: collection_id,
+        agent: IngestUtils.agent, type: work_type, platform: platform,
+        depositor: depositor, collection: collection_id,
         dest_path: dest_path(sfs_location: named_params.fetch(:sfs_location)),
         ingest_manifest: ingest_manifest_path, ticket_id: named_params.fetch(:ticket_id)
       }

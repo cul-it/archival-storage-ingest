@@ -4,6 +4,7 @@ require 'rspec'
 require 'rspec/mocks'
 require 'spec_helper'
 require 'archival_storage_ingest'
+require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/messages/ingest_queue'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/work_queuer/input_checker'
@@ -46,14 +47,16 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable Metrics/BlockLength
       it 'should return errors' do
         input_checker = WorkQueuer::IngestInputChecker.new
         empty_dest_path = input_checker.check_input(ingest_id: 'test_id',
-                                                    ingest_manifest: 'bogus_path')
+                                                    ingest_manifest: 'bogus_path',
+                                                    platform: 'bogus_platform')
         expect(empty_dest_path).to eq(false)
-        expect(input_checker.errors.size).to eq(2)
+        expect(input_checker.errors.size).to eq(3)
 
         input_checker = WorkQueuer::IngestInputChecker.new
         invalid_dest_path = input_checker.check_input(ingest_id: 'test_id',
                                                       dest_path: 'bogus_path',
-                                                      ingest_manifest: 'bogus_path')
+                                                      ingest_manifest: 'bogus_path',
+                                                      platform: IngestMessage::PLATFORM_SERVERFARM)
         expect(invalid_dest_path).to eq(false)
         expect(input_checker.errors.size).to eq(2)
 
@@ -63,7 +66,8 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable Metrics/BlockLength
         input_checker = WorkQueuer::IngestInputChecker.new
         valid_output = input_checker.check_input(ingest_id: 'test_id',
                                                  dest_path: dir,
-                                                 ingest_manifest: file)
+                                                 ingest_manifest: file,
+                                                 platform: IngestMessage::PLATFORM_SFS)
         expect(valid_output).to eq(false)
         expect(input_checker.errors.size).to eq(2)
       end
@@ -74,7 +78,8 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable Metrics/BlockLength
         input_checker = WorkQueuer::IngestInputChecker.new
         bogus_im_path_output = input_checker.check_input(ingest_id: 'test_id',
                                                          dest_path: dir,
-                                                         ingest_manifest: 'bogus_path')
+                                                         ingest_manifest: 'bogus_path',
+                                                         platform: IngestMessage::PLATFORM_S3)
         expect(bogus_im_path_output).to eq(false)
         expect(input_checker.errors.size).to eq(1)
 
@@ -84,7 +89,8 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable Metrics/BlockLength
         input_checker = WorkQueuer::IngestInputChecker.new
         valid_output = input_checker.check_input(ingest_id: 'test_id',
                                                  dest_path: dir,
-                                                 ingest_manifest: file)
+                                                 ingest_manifest: file,
+                                                 platform: IngestMessage::PLATFORM_AWS)
         expect(valid_output).to eq(false)
         expect(input_checker.errors.size).to eq(2)
       end

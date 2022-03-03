@@ -10,11 +10,12 @@ module Preingest
 
   class BaseEnvInitializer
     attr_accessor :ingest_root, :sfs_root, :depositor, :collection_id, :collection_root,
-                  :data_root, :source_path, :total_size, :size_mismatch
+                  :data_root, :source_path, :total_size, :size_mismatch, :platform
 
-    def initialize(ingest_root:, sfs_root:)
+    def initialize(ingest_root:, sfs_root:, platform:)
       @ingest_root   = ingest_root
       @sfs_root      = sfs_root
+      @platform      = platform
       @depositor     = nil
       @collection_id = nil
       @data_root     = nil

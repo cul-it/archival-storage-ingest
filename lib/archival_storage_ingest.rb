@@ -21,7 +21,7 @@ module ArchivalStorageIngest
 
   class Configuration
     attr_accessor :message_queue_name, :in_progress_queue_name, :log_path, :debug, :worker, :dest_queue_names, :develop,
-                  :inhibit_file, :global_inhibit_file
+                  :inhibit_file, :global_inhibit_file, :platform
     # Only set log_queue/issue_logger in test!
     attr_writer :msg_q, :dest_qs, :wip_q, :s3_bucket, :s3_manager, :dry_run, :polling_interval, :wip_removal_wait_time,
                 :logger, :queuer, :log_queue, :issue_logger
@@ -76,6 +76,10 @@ module ArchivalStorageIngest
 
     def issue_logger
       @issue_logger ||= TicketHandler::LogTracker.new(queue: log_queue, worker: worker.name)
+    end
+
+    def platform
+      @platform ||= IngestMessage::PLATFORM_SERVERFARM
     end
   end
 
@@ -151,7 +155,8 @@ module ArchivalStorageIngest
       if ingest_msg.nil?
         notify_error(error_msg)
       else
-        notify_worker_error(ingest_msg: ingest_msg, error_msg: error_msg)
+        params = { log: error_msg, log_identifier: ingest_msg.type, log_report_to_jira: true }
+        notify_worker_error(ingest_msg: ingest_msg, params: params)
       end
 
       exit(0)
@@ -175,10 +180,16 @@ module ArchivalStorageIngest
         return if (msg = msg_q.retrieve_message).nil?
 
         logger.info("Received #{msg.to_json}")
+        msg.agent = IngestUtils.agent
+        msg.platform = worker.platform
 
         move_msg_to_wip(msg)
 
-        notify_worker_started(msg)
+        params = {
+          log: "#{msg.type} (#{msg.platform}) started", log_identifier: msg.type,
+          log_status: 'Started', log_report_to_jira: true
+        }
+        notify_worker_started(ingest_msg: msg, params: params)
 
         status = _do_work_and_notify(msg)
 
@@ -195,14 +206,14 @@ module ArchivalStorageIngest
       go_to_next_queue = worker.work(msg)
       if go_to_next_queue
         send_next_message(msg)
-        status = 'Completed'
-        notify_worker_completed(msg)
+        params = { log: "#{worker.name} completed", log_identifier: worker.name, log_report_to_jira: true }
+        notify_worker_completed(ingest_msg: msg, params: params)
+        'Completed'
       else
-        status = 'Skipped'
-        notify_worker_skipped(msg)
+        params = { log: "#{worker.name} skipped", log_identifier: worker.name, log_report_to_jira: true }
+        notify_worker_skipped(ingest_msg: msg, params: params)
+        'Skipped'
       end
-
-      status
     end
 
     # Currently, when we detect wip message, we leave error message to the responsible jira ticket as well as

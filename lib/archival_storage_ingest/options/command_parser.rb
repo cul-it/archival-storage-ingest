@@ -55,7 +55,7 @@ module CommandParser
 
   class SetupIngestEnvCommandParser
     attr_reader :data_path, :depositor, :collection_id, :storage_manifest, :ingest_manifest,
-                :sfs_bucket, :ticket_id
+                :sfs_bucket, :ticket_id, :platform
 
     def parse!(args) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
       OptionParser.new do |opts|
@@ -69,6 +69,7 @@ module CommandParser
         opts.on('-i', '--ingest_manifest [String]', 'Ingest manifest') { |i| @ingest_manifest = i }
         opts.on('-b', '--sfs_bucket [String]', 'SFS bucket') { |b| @sfs_bucket = b }
         opts.on('-t', '--ticket_id [String]', 'Jira ticket id') { |t| @ticket_id = t }
+        opts.on('-f', '--platform [String]', 'Platform') { |f| @platform = f }
 
         # Optional parameters, default values will be used if not specified
         opts.on('-n', '--notify_email [String]', 'Notify email') { |n| @notify_email = n }
@@ -111,6 +112,10 @@ module CommandParser
 
     def if_blank(param, if_blank)
       IngestUtils.blank?(param) ? if_blank : param
+    end
+
+    def platform
+      @platform || nil
     end
   end
 end

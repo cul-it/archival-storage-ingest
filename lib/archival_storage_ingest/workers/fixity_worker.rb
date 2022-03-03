@@ -26,15 +26,15 @@ module FixityWorker
   FIXITY_MANIFEST_TEMPLATE_STR = JSON.generate(FIXITY_MANIFEST_TEMPLATE)
 
   class FixityGenerator < Workers::Worker
-    attr_reader :debug, :logger, :issue_logger
+    attr_reader :debug, :issue_logger, :logger
 
     # Pass s3_manager and issue_logger only for tests.
-    def initialize(s3_manager = nil, issue_logger = nil)
+    def initialize(s3_manager = nil, issue_logger = nil, logger = nil)
       super(_name)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
       @debug = ArchivalStorageIngest.configuration.debug
-      @logger = ArchivalStorageIngest.configuration.logger
       @issue_logger = issue_logger || ArchivalStorageIngest.configuration.issue_logger
+      @logger = logger || ArchivalStorageIngest.configuration.logger
     end
 
     def _name; end

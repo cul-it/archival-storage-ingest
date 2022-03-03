@@ -150,10 +150,11 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
     s3m
   end
 
-  describe 'IngestS3FixityGenerator' do
+  describe 'IngestS3FixityGenerator' do # rubocop:disable Metrics/BlockLength
     before(:each) do
       @issue_logger = spy('issue_logger')
-      @worker = FixityWorker::IngestFixityS3Generator.new(s3_manager, @issue_logger)
+      @logger = spy('logger')
+      @worker = FixityWorker::IngestFixityS3Generator.new(s3_manager, @issue_logger, @logger)
     end
     # let(:worker) do
     #
@@ -183,7 +184,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
       it 'returns manifest for objects in s3 listing' do
         allow(s3_manager).to receive(:calculate_checksum)
           .with("#{depositor}/#{collection}/3/two.zip") { ['86c6167b8a8245a699a5735a3c56890421c28689', 168] }
-        periodic_worker = FixityWorker::PeriodicFixityS3Generator.new(s3_manager, @issue_logger)
+        periodic_worker = FixityWorker::PeriodicFixityS3Generator.new(s3_manager, @issue_logger, @logger)
         manifest = periodic_worker.generate_manifest(msg)
         expect(manifest.to_json_fixity).to eq(periodic_fixity_manifest_hash.to_json)
       end
@@ -193,7 +194,8 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
   describe 'IngestSFSFixityGenerator' do # rubocop:disable Metrics/BlockLength
     before(:each) do
       @issue_logger = spy('issue_logger')
-      @worker = FixityWorker::IngestFixitySFSGenerator.new(s3_manager, @issue_logger)
+      @logger = spy('logger')
+      @worker = FixityWorker::IngestFixitySFSGenerator.new(s3_manager, @issue_logger, @logger)
     end
     # let(:worker) do
     #   ArchivalStorageIngest.configure do |config|
@@ -228,7 +230,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
 
     context 'when generating periodic sfs manifest' do
       it 'returns manifest for all objects' do
-        periodic_worker = FixityWorker::PeriodicFixitySFSGenerator.new(s3_manager, @issue_logger)
+        periodic_worker = FixityWorker::PeriodicFixitySFSGenerator.new(s3_manager, @issue_logger, @logger)
         manifest = periodic_worker.generate_manifest(msg)
         expect(manifest.to_json_fixity).to eq(fixity_manifest_hash.to_json)
       end
@@ -244,7 +246,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
           depositor: depositor,
           collection: collection
         )
-        periodic_worker = FixityWorker::PeriodicFixitySFSGenerator.new(s3_manager, @issue_logger)
+        periodic_worker = FixityWorker::PeriodicFixitySFSGenerator.new(s3_manager, @issue_logger, @logger)
         manifest = periodic_worker.generate_manifest(periodic_msg)
         expect(manifest.to_json_fixity).to eq(periodic_fixity_manifest_hash.to_json)
       end

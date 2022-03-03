@@ -2,6 +2,8 @@
 
 require 'digest/sha1'
 require 'pathname'
+require 'etc'
+require 'time'
 
 module IngestUtils
   EXCLUDE_FILE_LIST = {
@@ -75,6 +77,16 @@ module IngestUtils
     return replacement if blank?(str)
 
     str
+  end
+
+  def self.agent
+    login = Etc.getlogin
+    effective_user = Etc.getpwuid(Process.euid).name
+    "#{login}/#{effective_user}"
+  end
+
+  def self.utc_time
+    Time.now.utc.iso8601
   end
 
   # deprecated, use process instead

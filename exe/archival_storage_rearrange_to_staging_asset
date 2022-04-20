@@ -9,8 +9,10 @@ collection = ARGV[1]
 arrange_info_csv = ARGV[2]
 source_path = ARGV[3]
 staging_root = ARGV[4]
+old_path_key = ARGV[5] || 'ClassicName'
+new_path_key = ARGV[6] || 'OverflowName'
 
-asset_arranger = Preingest::AssetRearranger.new
+asset_arranger = Preingest::AssetRearranger.new(old_path_key: old_path_key, new_path_key: new_path_key)
 asset_arranger.rearrange_data_structure(depositor: depositor,
                                         collection: collection,
                                         arrange_info_csv: arrange_info_csv,

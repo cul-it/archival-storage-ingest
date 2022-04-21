@@ -9,12 +9,17 @@ require 'archival_storage_ingest/workers/worker'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/work_queuer/work_queuer'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
+require 'archival_storage_ingest/logs/application_logger'
 
+application_logger = nil
 ArchivalStorageIngest.configure do |config|
   config.log_path = ENV['asi_ingest_queue_log_path'] ||
                     '/cul/app/archival_storage_ingest/logs/ingest_queue.log'
   config.dry_run = ENV['asi_ingest_queue_dry_run'] || false
   config.dest_queue_names = []
+  application_log_url = 'http://my-domain.us-east-1.opensearch.localhost.localstack.cloud:4566'
+  application_log_index_name = 'cular-ingest-index'
 
   if ENV['asi_develop'] || ENV['asi_queue_develop']
     config.s3_bucket = 's3-cular-dev'
@@ -22,6 +27,13 @@ ArchivalStorageIngest.configure do |config|
     config.develop = true
     config.message_queue_name = Queues::DEV_QUEUE_INGEST
     config.in_progress_queue_name = Queues::DEV_QUEUE_INGEST_IN_PROGRESS
+    application_log_index_name = 'cular-ingest-sandbox_index'
+  elsif ENV['asi_sandbox']
+    config.s3_bucket = 's3-cular-sandbox'
+    config.debug = ENV['asi_ingest_debug'] ? true : false
+    config.develop = false
+    config.message_queue_name = Queues::QUEUE_INGEST
+    config.in_progress_queue_name = Queues::QUEUE_INGEST_IN_PROGRESS
   else
     config.s3_bucket = 's3-cular'
     config.debug = ENV['asi_ingest_debug'] ? true : false
@@ -30,7 +42,8 @@ ArchivalStorageIngest.configure do |config|
     config.in_progress_queue_name = Queues::QUEUE_INGEST_IN_PROGRESS
   end
 
-  config.worker = Workers::Worker.new('Ingest Queuer')
+  application_logger = ApplicationLogger.new(opensearch_url: application_log_url, index_name: application_log_index_name)
+  config.worker = Workers::Worker.new(application_logger)
 end
 
 option_parser = CommandParser::IngestCommandParser.new
@@ -38,4 +51,15 @@ option_parser.parse!(ARGV)
 ingest_config = YAML.load_file(option_parser.ingest_config)
 
 ingest_queuer = WorkQueuer::IngestQueuer.new
-ingest_queuer.queue_ingest(ingest_config)
+work_msg = ingest_queuer.queue_ingest(ingest_config)
+
+agent = IngestUtils::Agent.new
+log_doc = {
+  ingest_id: work_msg.ingest_id,
+  login_user_id: agent.login_user_id,
+  effective_user_id: agent.effective_user_id,
+  originating_host: agent.hostname,
+  originating_ip: agent.host_ip,
+  log: "Ingest for #{work_msg.depositor}/#{work_msg.collection} has started."
+}
+application_logger.log(log_doc)

@@ -87,6 +87,25 @@ module Queues
   DEV_QUEUE_ECOMMONS_INTEGRATION = 'sqs-cular-ecommons-integration-dev'
   DEV_QUEUE_ECOMMONS_INTEGRATION_IN_PROGRESS = 'sqs-cular-ecommons-integration-dev-in-progress'
 
+  SANDBOX_QUEUE_INGEST = 'cular_sandbox_ingest'
+  SANDBOX_QUEUE_INGEST_IN_PROGRESS = 'cular_sandbox_ingest_in_progress'
+  SANDBOX_QUEUE_LOG = 'cular_sandbox_log'
+  SANDBOX_QUEUE_LOG_IN_PROGRESS = 'cular_sandbox_log_in_progress'
+  SANDBOX_QUEUE_JIRA = 'cular_sandbox_jira.fifo'
+  SANDBOX_QUEUE_JIRA_IN_PROGRESS = 'cular_sandbox_jira_in_progress.fifo'
+  SANDBOX_QUEUE_TRANSFER_S3 = 'cular_sandbox_transfer_s3'
+  SANDBOX_QUEUE_TRANSFER_S3_IN_PROGRESS = 'cular_sandbox_transfer_s3_in_progress'
+  SANDBOX_QUEUE_TRANSFER_SFS = 'cular_sandbox_transfer_sfs'
+  SANDBOX_QUEUE_TRANSFER_SFS_IN_PROGRESS = 'cular_sandbox_transfer_sfs_in_progress'
+  SANDBOX_QUEUE_INGEST_FIXITY_S3 = 'cular_sandbox_fixity_s3'
+  SANDBOX_QUEUE_INGEST_FIXITY_S3_IN_PROGRESS = 'cular_sandbox_fixity_s3_in_progress'
+  SANDBOX_QUEUE_INGEST_FIXITY_SFS = 'cular_sandbox_fixity_sfs'
+  SANDBOX_QUEUE_INGEST_FIXITY_SFS_IN_PROGRESS = 'cular_sandbox_fixity_sfs_in_progress'
+  SANDBOX_QUEUE_INGEST_FIXITY_COMPARISON = 'cular_sandbox_comparison'
+  SANDBOX_QUEUE_INGEST_FIXITY_COMPARISON_IN_PROGRESS = 'cular_sandbox_comparison_in_progress'
+  SANDBOX_QUEUE_ERROR = 'cular_sandbox_error'
+  SANDBOX_QUEUE_COMPLETE = 'cular_sandbox_done'
+
   def self.valid_queue_name?(queue_name)
     const = Queues.constants.find { |q_symbol| Queues.const_get(q_symbol).eql?(queue_name) }
     !const.nil?

@@ -32,8 +32,8 @@ ArchivalStorageIngest.configure do |config|
     config.s3_bucket = 's3-cular-sandbox'
     config.debug = ENV['asi_ingest_debug'] ? true : false
     config.develop = false
-    config.message_queue_name = Queues::QUEUE_INGEST
-    config.in_progress_queue_name = Queues::QUEUE_INGEST_IN_PROGRESS
+    config.message_queue_name = Queues::SANDBOX_QUEUE_INGEST
+    config.in_progress_queue_name = Queues::SANDBOX_QUEUE_INGEST_IN_PROGRESS
   else
     config.s3_bucket = 's3-cular'
     config.debug = ENV['asi_ingest_debug'] ? true : false

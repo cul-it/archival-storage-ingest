@@ -17,6 +17,7 @@ class S3Manager # rubocop:disable Metrics/ClassLength
   MAX_DELETE_SIZE = 1000 # set by AWS
 
   attr_writer :s3
+  attr_reader :s3_bucket
 
   def s3
     @s3 ||= Aws::S3::Resource.new

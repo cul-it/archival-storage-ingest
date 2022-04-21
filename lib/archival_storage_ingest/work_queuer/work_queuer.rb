@@ -46,6 +46,8 @@ module WorkQueuer
       work_msg.worker = worker_name
       work_msg.log = work_notification_message(work_msg)
       @issue_logger.notify_status(ingest_msg: work_msg, status: work_msg.log)
+
+      work_msg
     end
 
     def work_notification_message(work_msg)

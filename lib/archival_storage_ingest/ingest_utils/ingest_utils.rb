@@ -2,6 +2,9 @@
 
 require 'digest/sha1'
 require 'pathname'
+require 'etc'
+require 'socket'
+require 'time'
 
 module IngestUtils
   EXCLUDE_FILE_LIST = {
@@ -77,6 +80,10 @@ module IngestUtils
     str
   end
 
+  def self.utc_time
+    Time.now.utc.iso8601
+  end
+
   # deprecated, use process instead
   class DirectoryWalker
     def process_immediate_children(dir)
@@ -102,6 +109,17 @@ module IngestUtils
 
         yield(path)
       end
+    end
+  end
+
+  class Agent
+    attr_accessor :login_user_id, :effective_user_id, :hostname, :host_ip
+
+    def initialize
+      @login_user_id = Etc.getlogin
+      @effective_user_id = Etc.getpwuid(Process.euid).name
+      @hostname = Socket.gethostname
+      @host_ip = Socket.ip_address_list.find { |ai| ai.ipv4? && !ai.ipv4_loopback? }.ip_address
     end
   end
 end

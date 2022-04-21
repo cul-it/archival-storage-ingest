@@ -28,20 +28,18 @@ module FixityWorker
     attr_reader :debug, :logger
 
     # Pass s3_manager only for tests.
-    def initialize(s3_manager = nil)
-      super(_name)
+    def initialize(application_logger, s3_manager = nil)
+      super(application_logger)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
       @debug = ArchivalStorageIngest.configuration.debug
       @logger = ArchivalStorageIngest.configuration.logger
     end
 
-    def _name; end
-
     def worker_type
       raise NotImplementedError
     end
 
-    def work(msg)
+    def _work(msg)
       manifest = generate_manifest(msg)
 
       manifest_s3_key = @s3_manager.manifest_key(msg.ingest_id, worker_type)
@@ -58,21 +56,36 @@ module FixityWorker
       manifest = Manifests::Manifest.new(json_text: FIXITY_MANIFEST_TEMPLATE_STR)
       fixity_package = manifest.get_package(package_id: FIXITY_TEMPORARY_PACKAGE_ID)
       object_paths.each do |object_path|
-        logger.debug("Calculate checksum for #{object_path} started") if debug
+        log_checksum_start(msg, object_path)
         (sha, size, errors) = calculate_checksum(object_path, msg)
-        log_checksum_output(sha, size, errors) if debug
+        log_checksum_output(msg: msg, object_path: object_path, sha: sha, size: size, errors: errors)
         fixity_package.add_file_entry(filepath: object_path, sha1: sha, size: size)
       end
 
       manifest
     end
 
-    def log_checksum_output(sha, size, errors)
-      logger.debug("Checksum: #{sha}, #{size}")
+    def log_checksum_start(msg, object_path)
+      log_msg = "Calculate checksum for #{object_path_for_log(object_path)} has started."
+      logger.debug(log_msg) if debug
+
+      @application_logger.log({ ingest_id: msg.ingest_id, log: log_msg })
+    end
+
+    def object_path_for_log(object_path)
+      object_path
+    end
+
+    def log_checksum_output(msg:, object_path:, sha:, size:, errors:)
+      log_msg = "Completed calculating checksum for #{object_path_for_log(object_path)}: #{sha}, #{size}"
+      logger.debug(log_msg) if debug
+
+      @application_logger.log({ ingest_id: msg.ingest_id, log: log_msg })
       return if errors.nil?
 
       errors.each do |error|
-        logger.debug("Error: #{error}")
+        logger.info("Error: #{error}")
+        @application_logger.log({ ingest_id: msg.ingest_id, log: "#{name} encountered error: #{error}" })
       end
     end
 
@@ -121,6 +134,10 @@ module FixityWorker
       s3_key = "#{msg.collection_s3_prefix}/#{object_path}"
       @s3_manager.calculate_checksum(s3_key)
     end
+
+    def object_path_for_log(object_path)
+      "s3://#{@s3_manager.s3_bucket}/#{object_path}"
+    end
   end
 
   class PeriodicFixityS3Generator < FixityGenerator
@@ -145,6 +162,10 @@ module FixityWorker
       logger.debug("Object keys: #{ops}") if debug
 
       ops
+    end
+
+    def object_path_for_log(object_path)
+      "s3://#{@s3_manager.s3_bucket}/#{object_path}"
     end
   end
 

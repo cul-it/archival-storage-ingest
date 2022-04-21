@@ -16,15 +16,27 @@ module FixityCompareWorker
     attr_reader :s3_manager
 
     # Pass s3_manager only for tests.
-    def initialize(s3_manager = nil)
-      super(_name)
+    def initialize(application_logger, s3_manager = nil)
+      super(application_logger)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
     end
 
-    def work(msg)
+    def _work(msg)
+      # ignore collection manifest as itself is not part of the manifest
+      compare_fixity_report(msg)
+
+      @application_logger.log({ ingest_id: msg.ingest_id,
+                                log: "Fixity comparison for #{msg.depositor}/#{msg.collection} is successful." })
+      true
+    rescue Aws::S3::Errors::NoSuchKey
+      @application_logger.log({ ingest_id: msg.ingest_id,
+                                log: "Fixity comparison for #{msg.depositor}/#{msg.collection} is skipped." })
+      false
+    end
+
+    def compare_fixity_report(msg)
       ingest_manifest, sfs_manifest, s3_manifest = retrieve_manifests(msg)
 
-      # ignore collection manifest as itself is not part of the manifest
       cm_filename = Manifests.collection_manifest_filename(depositor: msg.depositor, collection: msg.collection)
       comparator = Manifests::ManifestComparator.new(cm_filename: cm_filename)
       sfs_status, sfs_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: sfs_manifest)
@@ -35,8 +47,6 @@ module FixityCompareWorker
       raise IngestException, "Ingest and S3 manifests do not match: #{s3_diff}" unless s3_status
 
       true
-    rescue Aws::S3::Errors::NoSuchKey
-      false
     end
 
     def periodic?
@@ -90,7 +100,7 @@ module FixityCompareWorker
     # relay_queue_name is the destination queue for next collection check.
     # It should be (DEV) QUEUE_PERIODIC_FIXITY.
     def initialize(named_params)
-      super(named_params.fetch(:s3_manager, nil))
+      super(named_params.fetch(:application_logger), named_params.fetch(:s3_manager, nil))
       @manifest_dir = named_params.fetch(:manifest_dir)
       @manifest_of_manifests = named_params.fetch(:man_of_mans)
       @periodic_fixity_root = named_params.fetch(:periodic_fixity_root)
@@ -106,10 +116,15 @@ module FixityCompareWorker
       'Periodic Manifest Comparator'
     end
 
-    def work(msg)
+    def _work(msg)
       return false unless super(msg)
 
-      queue_next_collection(msg)
+      next_work_msg = queue_next_collection(msg)
+      log_doc = {
+        ingest_id: next_work_msg.ingest_id,
+        log: "Periodic fixity for #{next_work_msg.depositor}/#{next_work_msg.collection} has started."
+      }
+      @application_logger.log(log_doc)
 
       remove_collection_manifest_in_temp(ingest_id: msg.ingest_id)
 

@@ -8,8 +8,9 @@ require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/workers/fixity_compare_worker'
 
 RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
-  subject(:worker) { FixityCompareWorker::ManifestComparator.new(s3_manager) }
+  subject(:worker) { FixityCompareWorker::ManifestComparator.new(application_logger, s3_manager) }
 
+  let(:application_logger) { spy('application_logger') }
   let(:s3_manager) do
     s3 = S3Manager.new('bogus_bucket')
     allow(s3).to receive(:manifest_key).and_call_original
@@ -145,6 +146,7 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
     allow(s3).to receive(:manifest_key).and_call_original
     s3
   end
+  let(:application_logger) { spy('application_logger') }
   let(:worker) do
     issue_logger = spy('issue_logger')
     ArchivalStorageIngest.configure do |config|
@@ -163,6 +165,7 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
     periodic_fixity_root = resource('root')
     sfs_root = File.join(File.dirname(__FILE__), %w[resources preingest])
     FixityCompareWorker::PeriodicFixityComparator.new(
+      application_logger: application_logger,
       s3_manager: s3_manager,
       manifest_dir: manifest_dir,
       man_of_mans: man_of_mans,

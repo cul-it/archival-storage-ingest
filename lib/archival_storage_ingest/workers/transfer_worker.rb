@@ -12,14 +12,12 @@ module TransferWorker
     attr_reader :s3_manager
 
     # Pass s3_manager only for tests.
-    def initialize(s3_manager = nil)
-      super(_name)
+    def initialize(application_logger, s3_manager = nil)
+      super(application_logger)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
     end
 
-    def _name; end
-
-    def work(msg)
+    def _work(msg)
       ingest_manifest = fetch_ingest_manifest(msg)
       ingest_manifest.walk_packages do |package|
         process_package(package: package, msg: msg)
@@ -39,7 +37,9 @@ module TransferWorker
       package.walk_files do |file|
         source = source(source_path: source_path, file: file)
         target = target(msg: msg, file: file)
+        @application_logger.log(process_file_start_msg(msg: msg, target: target))
         process_file(source: source, target: target)
+        @application_logger.log(process_file_complete_msg(msg: msg, target: target))
       end
     end
 
@@ -49,7 +49,26 @@ module TransferWorker
 
     def target(msg:, file:); end
 
+    # default behavior works for SFS transfer
+    def target_for_log(target)
+      target
+    end
+
     def process_file(source:, target:); end
+
+    def process_file_start_msg(msg:, target:)
+      {
+        ingest_id: msg.ingest_id,
+        log: "Transfer of #{target_for_log(target)} has started."
+      }
+    end
+
+    def process_file_complete_msg(msg:, target:)
+      {
+        ingest_id: msg.ingest_id,
+        log: "Transfer of #{target_for_log(target)} has completed."
+      }
+    end
   end
 
   class S3Transferer < TransferWorker
@@ -61,6 +80,10 @@ module TransferWorker
     # target is s3_key
     def process_file(source:, target:)
       s3_manager.upload_file(target, source)
+    end
+
+    def target_for_log(target)
+      "s3://#{@s3_manager.s3_bucket}/#{target}"
     end
 
     # needs to be updated when we adopt OCFL

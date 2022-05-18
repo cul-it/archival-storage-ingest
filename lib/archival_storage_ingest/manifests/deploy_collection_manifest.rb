@@ -113,6 +113,37 @@ module Manifests
     end
   end
 
+  class MigrationCollectionManifestDeployer < CollectionManifestDeployer
+    # We want to preserve ingest date from ingest manifest
+    def populate_manifest_data(manifest_parameters:)
+      add_ingest_date(storage_manifest: manifest_parameters.storage_manifest,
+                      ingest_manifest: manifest_parameters.ingest_manifest)
+    end
+
+    def add_ingest_date(storage_manifest:, ingest_manifest:)
+      ingest_manifest.walk_packages do |package|
+        cm_package = storage_manifest.get_package(package_id: package.package_id)
+        package.walk_files do |file|
+          cm_file = cm_package.find_file(filepath: file.filepath)
+          cm_file.ingest_date = file.ingest_date
+        end
+      end
+
+      storage_manifest
+    end
+
+    def deploy_collection_manifest(manifest_def:, collection_manifest:, dest: nil, dry_run: false)
+      if dry_run
+        File.foreach(collection_manifest) { |each_line| puts each_line }
+      else
+        deploy_sfs(cm_path: collection_manifest, manifest_def: manifest_def)
+        deploy_s3(cm_path: collection_manifest, manifest_def: manifest_def)
+        deploy_asif(cm_path: collection_manifest, manifest_def: manifest_def)
+        deploy_manifest_definition(dest: dest)
+      end
+    end
+  end
+
   # storage_manifest_path:, ingest_manifest_path:, sfs: nil, ingest_date: nil,
   # skip_data_addition: false
   class ManifestParameters

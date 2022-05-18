@@ -28,10 +28,10 @@ module Manifests
   def self.diff_hash(flattened_a, flattened_b)
     left = flattened_a.to_a
     right = flattened_b.to_a
-    {
-      ingest: (left - right).to_h,
-      other: (right - left).to_h
-    }.compact
+    IngestUtils.compact_blank({
+                                ingest: (left - right).to_h,
+                                other: (right - left).to_h
+                              })
   end
 
   def self.collection_manifest_filename(depositor:, collection:)
@@ -130,12 +130,12 @@ module Manifests
     end
 
     def to_json_ingest_hash
-      {
-        depositor: depositor, collection_id: collection_id,
-        steward: steward, documentation: documentation,
-        number_packages: number_packages,
-        packages: packages.map(&:to_json_ingest)
-      }.compact
+      IngestUtils.compact_blank({
+                                  depositor: depositor, collection_id: collection_id,
+                                  steward: steward, documentation: documentation,
+                                  number_packages: number_packages,
+                                  packages: packages.map(&:to_json_ingest)
+                                })
     end
 
     def to_json_ingest
@@ -143,12 +143,12 @@ module Manifests
     end
 
     def to_json_storage_hash
-      {
-        depositor: depositor, collection_id: collection_id,
-        steward: steward, documentation: documentation,
-        locations: locations, number_packages: number_packages,
-        packages: packages.map(&:to_json_hash_storage)
-      }.compact
+      IngestUtils.compact_blank({
+                                  depositor: depositor, collection_id: collection_id,
+                                  steward: steward, documentation: documentation,
+                                  locations: locations, number_packages: number_packages,
+                                  packages: packages.map(&:to_json_hash_storage)
+                                })
     end
 
     def to_json_storage
@@ -275,24 +275,24 @@ module Manifests
     end
 
     def to_json_hash_storage
-      {
-        package_id: package_id,
-        bibid: bibid,
-        local_id: local_id,
-        number_files: number_files,
-        files: files.map(&:to_json_hash_storage)
-      }.compact
+      IngestUtils.compact_blank({
+                                  package_id: package_id,
+                                  bibid: bibid,
+                                  local_id: local_id,
+                                  number_files: number_files,
+                                  files: files.map(&:to_json_hash_storage)
+                                })
     end
 
     def to_json_ingest
-      {
-        package_id: package_id,
-        source_path: source_path,
-        bibid: bibid,
-        local_id: local_id,
-        number_files: number_files,
-        files: files.map(&:to_json_hash)
-      }.compact
+      IngestUtils.compact_blank({
+                                  package_id: package_id,
+                                  source_path: source_path,
+                                  bibid: bibid,
+                                  local_id: local_id,
+                                  number_files: number_files,
+                                  files: files.map(&:to_json_hash)
+                                })
     end
 
     def to_json_fixity
@@ -328,10 +328,10 @@ module Manifests
     end
 
     def list_checksum_info
-      {
-        sha1: sha1,
-        md5: md5
-      }.compact
+      IngestUtils.compact_blank({
+                                  sha1: sha1,
+                                  md5: md5
+                                })
     end
 
     # All assets in archival storage must have SHA1 checksum.
@@ -366,34 +366,34 @@ module Manifests
     end
 
     def to_json_hash_storage
-      {
-        filepath: filepath,
-        sha1: sha1,
-        md5: md5,
-        size: size,
-        ingest_date: ingest_date,
-        tool_version: tool_version,
-        media_type: media_type
-      }.compact
+      IngestUtils.compact_blank({
+                                  filepath: filepath,
+                                  sha1: sha1,
+                                  md5: md5,
+                                  size: size,
+                                  ingest_date: ingest_date,
+                                  tool_version: tool_version,
+                                  media_type: media_type
+                                })
     end
 
     def to_json_hash
-      {
-        filepath: filepath,
-        sha1: sha1,
-        md5: md5,
-        size: size,
-        tool_version: tool_version,
-        media_type: media_type
-      }.compact
+      IngestUtils.compact_blank({
+                                  filepath: filepath,
+                                  sha1: sha1,
+                                  md5: md5,
+                                  size: size,
+                                  tool_version: tool_version,
+                                  media_type: media_type
+                                })
     end
 
     def to_fixity_json_hash
-      {
-        filepath: filepath,
-        sha1: sha1,
-        size: size
-      }.compact
+      IngestUtils.compact_blank({
+                                  filepath: filepath,
+                                  sha1: sha1,
+                                  size: size
+                                })
     end
   end
 

@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'archival_storage_ingest/manifests/manifests'
+require 'archival_storage_ingest/manifests/deploy_collection_manifest'
+require 'archival_storage_ingest/manifests/base_manifest_deployer'
+require 'misc/archive_size'
+require 'archival_storage_ingest/s3/s3_manager'
+
+class MigrationStorageManifestDeployer < BaseManifestDeployer
+  def _manifest_deployer
+    Manifests::MigrationCollectionManifestDeployer.new(manifests_path: manifest_of_manifests, s3_manager: s3_manager,
+                                                       sfs_prefix: sfs_prefix, manifest_validator: manifest_validator,
+                                                       file_identifier: file_identifier)
+  end
+
+  def deploy_manifest(manifest_parameters:, dry_run: false)
+    # This step will finalize storage manifest object and file pointed by the manifest parameters.
+    manifest_deployer.prepare_collection_manifest(manifest_parameters: manifest_parameters)
+    manifest_definition = manifest_deployer.prepare_manifest_definition(manifest_parameters: manifest_parameters)
+
+    puts "Dry run? #{dry_run}"
+    describe_and_confirm_deployment(manifest_deployer: manifest_deployer, manifest_definition: manifest_definition)
+
+    manifest_deployer.deploy_collection_manifest(manifest_def: manifest_definition,
+                                                 collection_manifest: manifest_parameters.storage_manifest_path,
+                                                 dry_run: dry_run)
+    archive_size.deploy_asif_archive_size unless dry_run
+  end
+end
+
+# These MUST be shifted so that gets will get user input properly!
+# https://www.ruby-forum.com/t/argv-stdin-and-gets/166427/3
+new_collection_manifest = ARGV.shift
+ingest_manifest = ARGV.shift
+sfs = ARGV.shift
+dry_run = ARGV.shift
+manifest_deployer = MigrationStorageManifestDeployer.new
+manifest_parameters = Manifests::ManifestParameters.new(storage_manifest_path: new_collection_manifest,
+                                                        ingest_manifest_path: ingest_manifest, sfs: sfs)
+
+# puts 'Deployment Summary'
+# puts "S3 bucket: #{manifest_deployer.s3_bucket}"
+# manifest_deployer.manifest_deployer.describe_deployment(manifest_def: manifest_definition)
+# puts 'Proceed with deployment? (Y/N)'
+# unless 'y'.casecmp(gets.chomp).zero?
+#   puts 'Deployment terminated by user input.'
+#   exit(true)
+# end
+
+manifest_deployer.deploy_manifest(manifest_parameters: manifest_parameters, dry_run: dry_run)

@@ -119,7 +119,7 @@ module Manifests
       add_ingest_date(storage_manifest: manifest_parameters.storage_manifest,
                       ingest_manifest: manifest_parameters.ingest_manifest)
     end
-    
+
     def add_ingest_date(storage_manifest:, ingest_manifest:)
       ingest_manifest.walk_packages do |package|
         cm_package = storage_manifest.get_package(package_id: package.package_id)

@@ -34,7 +34,7 @@ end
 new_collection_manifest = ARGV.shift
 ingest_manifest = ARGV.shift
 sfs = ARGV.shift
-dry_run = ARGV.shift
+dry_run = ARGV.shift ? true : false
 manifest_deployer = MigrationStorageManifestDeployer.new
 manifest_parameters = Manifests::ManifestParameters.new(storage_manifest_path: new_collection_manifest,
                                                         ingest_manifest_path: ingest_manifest, sfs: sfs)

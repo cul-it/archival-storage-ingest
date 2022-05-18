@@ -71,6 +71,10 @@ module IngestUtils
     str.to_s.strip.empty?
   end
 
+  def self.compact_blank(hash)
+    hash.reject { |_, v| blank?(v) }
+  end
+
   def self.if_empty(str, replacement)
     return replacement if blank?(str)
 

@@ -25,11 +25,11 @@ module FixityCompareWorker
       # ignore collection manifest as itself is not part of the manifest
       compare_fixity_report(msg)
 
-      @application_logger.log({ ingest_id: msg.ingest_id,
+      @application_logger.log({ job_id: msg.job_id,
                                 log: "Fixity comparison for #{msg.depositor}/#{msg.collection} is successful." })
       true
     rescue Aws::S3::Errors::NoSuchKey
-      @application_logger.log({ ingest_id: msg.ingest_id,
+      @application_logger.log({ job_id: msg.job_id,
                                 log: "Fixity comparison for #{msg.depositor}/#{msg.collection} is skipped." })
       false
     end
@@ -65,7 +65,7 @@ module FixityCompareWorker
     end
 
     def retrieve_manifest(msg, suffix)
-      manifest_name = s3_manager.manifest_key(msg.ingest_id, suffix)
+      manifest_name = s3_manager.manifest_key(msg.job_id, suffix)
       manifest_file = s3_manager.retrieve_file(manifest_name)
       Manifests.read_manifest_io(json_io: manifest_file)
     end
@@ -81,8 +81,8 @@ module FixityCompareWorker
       month = now.strftime('%m')
       day = now.strftime('%d')
       upload_date = "#{now.year}#{month}#{day}"
-      s3_key = ".m2m/ingest_manifest/#{msg.depositor}/#{msg.collection}/#{upload_date}/#{msg.ingest_id}"
-      s3_manager.upload_string(s3_key, msg.ingest_id)
+      s3_key = ".m2m/ingest_manifest/#{msg.depositor}/#{msg.collection}/#{upload_date}/#{msg.job_id}"
+      s3_manager.upload_string(s3_key, msg.job_id)
     end
   end
 
@@ -121,24 +121,24 @@ module FixityCompareWorker
 
       next_work_msg = queue_next_collection(msg)
       log_doc = {
-        ingest_id: next_work_msg.ingest_id,
+        job_id: next_work_msg.job_id,
         log: "Periodic fixity for #{next_work_msg.depositor}/#{next_work_msg.collection} has started."
       }
       @application_logger.log(log_doc)
 
-      remove_collection_manifest_in_temp(ingest_id: msg.ingest_id)
+      remove_collection_manifest_in_temp(job_id: msg.job_id)
 
       true
     end
 
     def retrieve_manifest(msg, suffix)
-      manifest_name = s3_manager.manifest_key(msg.ingest_id, suffix)
+      manifest_name = s3_manager.manifest_key(msg.job_id, suffix)
       manifest_file = s3_manager.retrieve_file(manifest_name)
       Manifests.read_manifest_io(json_io: manifest_file)
     end
 
     def cm_file_entry(msg:, filepath:)
-      im_key = s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_INGEST)
+      im_key = s3_manager.manifest_key(msg.job_id, Workers::TYPE_INGEST)
       (sha1, size) = s3_manager.calculate_checksum(im_key)
       Manifests::FileEntry.new(file: { filepath: filepath, sha1: sha1, size: size })
     end
@@ -147,11 +147,11 @@ module FixityCompareWorker
     # When this happens, it ends up queueing next collection twice as comparison worker will pick up both messages
     # and both manifests will be available both times.
     #
-    # Collection manifests are stored in temporary space in s3 as s3://bucket/.manifest/INGEST_ID_ingest_manifest.json
+    # Collection manifests are stored in temporary space in s3 as s3://bucket/.manifest/job_id_ingest_manifest.json
     # Delete it when the fixity comparison is successful.
     # Doing so will make the second run not be able to find the collection manifest and skip.
-    def remove_collection_manifest_in_temp(ingest_id:)
-      manifest_name = s3_manager.manifest_key(ingest_id, Workers::TYPE_INGEST)
+    def remove_collection_manifest_in_temp(job_id:)
+      manifest_name = s3_manager.manifest_key(job_id, Workers::TYPE_INGEST)
       s3_manager.delete_object(s3_key: manifest_name)
     end
 

@@ -67,7 +67,7 @@ RSpec.describe 'IngestManager' do
     context 'when receiving a message' do
       let(:message) do
         IngestMessage::SQSMessage.new(
-          ingest_id: 'test_id',
+          job_id: 'test_id',
           depositor: 'TestDepositor',
           collection: 'TestCollection'
         )
@@ -170,7 +170,7 @@ end
 RSpec.describe 'IngestManager' do
   let(:message) do
     IngestMessage::SQSMessage.new(
-      ingest_id: 'test_id',
+      job_id: 'test_id',
       depositor: 'TestDepositor',
       collection: 'TestCollection'
     )

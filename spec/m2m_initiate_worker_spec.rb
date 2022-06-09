@@ -23,7 +23,7 @@ ingest_root = File.join(resource_path, 'ingest_root')
 sfs_root = File.join(resource_path, 'sfs_root')
 params = {
   type: IngestMessage::TYPE_M2M,
-  ingest_id: 'TEST1234', original_msg: nil, dest_path: '',
+  job_id: 'TEST1234', original_msg: nil, dest_path: '',
   depositor: depositor, collection: collection, ingest_manifest: '',
   ticket_id: 'BOGUS-1234',
   package: 'handle-1234.zip'
@@ -55,7 +55,7 @@ RSpec.describe 'M2MInitiateWorker' do # rubocop:disable Metrics/BlockLength
   # let(:m2m_msg) do
   #   IngestMessage.new({
   #                       type: IngestMessage::TYPE_M2M,
-  #                       ingest_id: 'TEST1234', original_msg: nil, dest_path: '',
+  #                       job_id: 'TEST1234', original_msg: nil, dest_path: '',
   #                       depositor: depositor, collection: collection, ingest_manifest: '',
   #                       ticket_id: 'BOGUS-1234',
   #                       package: 'test.zip'
@@ -87,7 +87,7 @@ RSpec.describe 'M2MInitiateWorker' do # rubocop:disable Metrics/BlockLength
       FileUtils.copy(test_zip, dest_zip)
     end
     # allow(@s3_manager).to receive(:manifest_key)
-    #   .with(ingest_id, Workers::TYPE_INGEST) { ingest_manifest_s3_key }
+    #   .with(job_id, Workers::TYPE_INGEST) { ingest_manifest_s3_key }
     # WorkQueuer::M2MIngestQueuer.new(confirm: false)
     queuer = spy('queuer')
     allow(queuer).to receive(:queue_ingest).with(any_args) { true }

@@ -14,7 +14,7 @@ class IngestWorker < Workers::Worker
   end
 
   def _work(msg)
-    s3_key = @s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_INGEST)
+    s3_key = @s3_manager.manifest_key(msg.job_id, Workers::TYPE_INGEST)
     @s3_manager.upload_file(s3_key, msg.ingest_manifest)
     @application_logger.log(log_msg(msg, s3_key))
 
@@ -23,7 +23,7 @@ class IngestWorker < Workers::Worker
 
   def log_msg(msg, s3_key)
     {
-      ingest_id: msg.ingest_id,
+      job_id: msg.job_id,
       log: "#{name} has deployed ingest manifest to S3 at '#{s3_key}'"
     }
   end

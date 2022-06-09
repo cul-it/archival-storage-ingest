@@ -11,13 +11,13 @@ require 'archival_storage_ingest/workers/worker'
 # TODO: Refactor tests so that variables are defined locally to their use as much as possible.
 RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
   let(:manifest_dir) { File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'manifest') }
-  let(:ingest_id) { 'test_1234' }
+  let(:job_id) { 'test_1234' }
   let(:depositor) { 'RMC/RMA' }
   let(:collection) { 'RMA0123' }
   let(:dest_path) { File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'sfs', 'archival01', depositor, collection) }
   let(:msg) do
     IngestMessage::SQSMessage.new(
-      ingest_id: ingest_id,
+      job_id: job_id,
       dest_path: dest_path.to_s,
       depositor: depositor,
       collection: collection
@@ -112,12 +112,12 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
     s3m = S3Manager.new('bogus_bucket')
 
     allow(s3m).to receive(:upload_string)
-      .with(".manifest/#{ingest_id}_s3.json", fixity_manifest_hash.to_json) { true }
-    # .with(".manifest/#{ingest_id}_s3.json", expected_hash.to_json) { true }
+      .with(".manifest/#{job_id}_s3.json", fixity_manifest_hash.to_json) { true }
+    # .with(".manifest/#{job_id}_s3.json", expected_hash.to_json) { true }
 
     allow(s3m).to receive(:upload_string)
-      .with(".manifest/#{ingest_id}_sfs.json", fixity_manifest_hash.to_json) { true }
-    # .with(".manifest/#{ingest_id}_sfs.json", expected_hash.to_json) { true }
+      .with(".manifest/#{job_id}_sfs.json", fixity_manifest_hash.to_json) { true }
+    # .with(".manifest/#{job_id}_sfs.json", expected_hash.to_json) { true }
 
     allow(s3m).to receive(:upload_file)
       .with(any_args)
@@ -142,7 +142,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
       .with("#{depositor}/#{collection}/2/two.zip") { ['86c6167b8a8245a699a5735a3c56890421c28689', 168] }
 
     allow(s3m).to receive(:manifest_key).with(any_args).and_call_original
-    ingest_manifest_s3_key = s3m.manifest_key(ingest_id, Workers::TYPE_INGEST)
+    ingest_manifest_s3_key = s3m.manifest_key(job_id, Workers::TYPE_INGEST)
     ingest_manifest = StringIO.new(ingest_manifest_hash.to_json)
     allow(s3m).to receive(:retrieve_file)
       .with(ingest_manifest_s3_key) { ingest_manifest }
@@ -232,7 +232,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
         second_dest_path = File.join(File.dirname(__FILE__), 'resources',
                                      'fixity_workers', 'sfs', 'archival02', depositor, collection)
         periodic_msg = IngestMessage::SQSMessage.new(
-          ingest_id: ingest_id,
+          job_id: job_id,
           dest_path: "#{dest_path},#{second_dest_path}",
           depositor: depositor,
           collection: collection

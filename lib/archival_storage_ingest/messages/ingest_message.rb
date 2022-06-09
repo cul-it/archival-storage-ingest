@@ -26,14 +26,14 @@ module IngestMessage
     TYPE_PERIODIC_FIXITY => Queues::QUEUE_PERIODIC_FIXITY,
     TYPE_PERIODIC_FIXITY_S3 => Queues::QUEUE_PERIODIC_FIXITY_S3,
     TYPE_PERIODIC_FIXITY_SFS => Queues::QUEUE_PERIODIC_FIXITY_SFS,
-    TYPE_PERIODIC_FIXITY_COMPARISON => Queues::QUEUE_PERIODIC_FIXITY_COMPARISON,
-    TYPE_M2M => Queues::QUEUE_ECOMMONS_INTEGRATION
+    TYPE_PERIODIC_FIXITY_COMPARISON => Queues::QUEUE_PERIODIC_FIXITY_COMPARISON
+    # TYPE_M2M => Queues::QUEUE_ECOMMONS_INTEGRATION
   }.freeze
 
   def self.convert_sqs_response(sqs_message)
     json = JSON.parse(sqs_message.body)
     SQSMessage.new(
-      type: json['type'], ingest_id: json['ingest_id'], dest_path: json['dest_path'], depositor: json['depositor'],
+      type: json['type'], job_id: json['job_id'], dest_path: json['dest_path'], depositor: json['depositor'],
       collection: json['collection'], ingest_manifest: json['ingest_manifest'], ticket_id: json['ticket_id'],
       package: json['package'], steward: json['steward'], extract_dir: json['extract_dir'],
       log: json['log'], worker: json['worker'], original_msg: sqs_message
@@ -48,14 +48,14 @@ module IngestMessage
   # original_msg is the message returned by the AWS SQS client
   # data_path is removed
   class SQSMessage
-    attr_reader :type, :ingest_id, :original_msg, :depositor, :collection, :ticket_id,
+    attr_reader :type, :job_id, :original_msg, :depositor, :collection, :ticket_id,
                 :package, :steward
     attr_accessor :log, :dest_path, :ingest_manifest, :extract_dir, :worker
 
     # non optional parameters are required unless the process crashed and work in progress was detected.
     def initialize(params)
       @type = params[:type]
-      @ingest_id = params[:ingest_id]
+      @job_id = params[:job_id]
       @original_msg = params[:original_msg]
       @dest_path = params[:dest_path]
       @depositor = params[:depositor]
@@ -79,7 +79,7 @@ module IngestMessage
 
     def to_hash
       {
-        type: type, ingest_id: ingest_id,
+        type: type, job_id: job_id,
         dest_path: dest_path, depositor: depositor,
         collection: collection, ingest_manifest: ingest_manifest,
         ticket_id: ticket_id, package: package, steward: steward,

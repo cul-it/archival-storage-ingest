@@ -10,7 +10,7 @@ RSpec.shared_examples 'transfer_worker_shared_examples' do # rubocop:disable Met
   let(:dest_path) do
     File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'sfs', 'archival01', 'RMC', 'RMA', 'RMA0001234')
   end
-  let(:ingest_id) { 'test_1234' }
+  let(:job_id) { 'test_1234' }
   let(:depositor) { 'RMC/RMA' }
   let(:collection) { 'RMA0001234' }
   let(:success_dir) do
@@ -21,7 +21,7 @@ RSpec.shared_examples 'transfer_worker_shared_examples' do # rubocop:disable Met
   end
   let(:success_msg) do
     IngestMessage::SQSMessage.new(
-      ingest_id: ingest_id,
+      job_id: job_id,
       dest_path: dest_path.to_s,
       depositor: depositor,
       collection: collection,
@@ -29,7 +29,7 @@ RSpec.shared_examples 'transfer_worker_shared_examples' do # rubocop:disable Met
     )
   end
   let(:expected_s3_key) { 'RMC/RMA/RMA0001234/1/resource1.txt' }
-  let(:ingest_manifest_s3_key) { ".manifest/#{ingest_id}_#{Workers::TYPE_INGEST}.json" }
+  let(:ingest_manifest_s3_key) { ".manifest/#{job_id}_#{Workers::TYPE_INGEST}.json" }
 
   let(:fail_dir) do
     File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'fail', 'RMC', 'RMA', collection)
@@ -74,7 +74,7 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable Metrics/BlockLength
       .with(any_args)
       .and_raise(IngestException, 'upload_string must not be called in this test!')
     allow(@s3_manager).to receive(:manifest_key)
-      .with(ingest_id, Workers::TYPE_INGEST) { ingest_manifest_s3_key }
+      .with(job_id, Workers::TYPE_INGEST) { ingest_manifest_s3_key }
   end
 
   context 'when generating target' do
@@ -113,7 +113,7 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable Metrics/BlockLength
   context 'when doing failing work' do
     it 'raises error' do
       fail_msg = IngestMessage::SQSMessage.new(
-        ingest_id: ingest_id,
+        job_id: job_id,
         dest_path: dest_path.to_s,
         depositor: depositor,
         collection: collection,
@@ -141,7 +141,7 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable Metrics/BlockLength
         .with(ingest_manifest_s3_key) { ingest_manifest }
 
       symlink_msg = IngestMessage::SQSMessage.new(
-        ingest_id: 'test_1234',
+        job_id: 'test_1234',
         depositor: depositor,
         collection: collection,
         ingest_manifest: symlink_ingest_manifest
@@ -168,7 +168,7 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable Metrics/BlockLength
       .with(any_args)
       .and_raise(IngestException, 'upload_string must not be called in this test!')
     allow(@s3_manager).to receive(:manifest_key)
-      .with(ingest_id, Workers::TYPE_INGEST) { ingest_manifest_s3_key }
+      .with(job_id, Workers::TYPE_INGEST) { ingest_manifest_s3_key }
 
     allow(FileUtils).to receive(:mkdir_p).with("#{dest_path}/1") { nil }
     allow(FileUtils).to receive(:mkdir_p).with("#{dest_path}/2") { nil }
@@ -202,7 +202,7 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable Metrics/BlockLength
         .with(ingest_manifest_s3_key) { ingest_manifest }
 
       symlink_msg = IngestMessage::SQSMessage.new(
-        ingest_id: 'test_1234',
+        job_id: 'test_1234',
         dest_path: dest_path.to_s,
         depositor: depositor,
         collection: collection,

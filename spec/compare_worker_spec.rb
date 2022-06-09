@@ -31,7 +31,7 @@ RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
 
   let(:msg) do
     IngestMessage::SQSMessage.new(
-      ingest_id: 'test_1234',
+      job_id: 'test_1234',
       depositor: 'MATH',
       collection: 'LecturesEvents'
     )
@@ -147,14 +147,27 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
     s3
   end
   let(:application_logger) { spy('application_logger') }
+  let(:queue_periodic_fixity) do
+    Queues.resolve_queue_name(queue: Queues::QUEUE_PERIODIC_FIXITY, stage: ArchivalStorageIngest::STAGE_PROD)
+  end
+  let(:queue_periodic_fixity_comparison) do
+    Queues.resolve_queue_name(queue: Queues::QUEUE_PERIODIC_FIXITY_COMPARISON, stage: ArchivalStorageIngest::STAGE_PROD)
+  end
+  let(:queue_periodic_fixity_comparison_in_progress) do
+    Queues.resolve_in_progress_queue_name(queue: Queues::QUEUE_PERIODIC_FIXITY_COMPARISON,
+                                          stage: ArchivalStorageIngest::STAGE_PROD)
+  end
+  let(:queue_complete) do
+    Queues.resolve_queue_name(queue: Queues::QUEUE_COMPLETE, stage: ArchivalStorageIngest::STAGE_PROD)
+  end
   let(:worker) do
     issue_logger = spy('issue_logger')
     ArchivalStorageIngest.configure do |config|
       config.queuer = queuer
       config.s3_manager = s3_manager
-      config.message_queue_name = Queues::QUEUE_PERIODIC_FIXITY_COMPARISON
-      config.in_progress_queue_name = Queues::QUEUE_PERIODIC_FIXITY_COMPARISON_IN_PROGRESS
-      config.dest_queue_names = [Queues::QUEUE_COMPLETE]
+      config.message_queue_name = queue_periodic_fixity_comparison
+      config.in_progress_queue_name = queue_periodic_fixity_comparison_in_progress
+      config.dest_queue_names = [queue_complete]
       config.s3_bucket = s3_bucket
       config.debug = true
       config.develop = true
@@ -171,7 +184,7 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
       man_of_mans: man_of_mans,
       periodic_fixity_root: periodic_fixity_root,
       sfs_root: sfs_root,
-      relay_queue_name: Queues::QUEUE_PERIODIC_FIXITY
+      relay_queue_name: queue_periodic_fixity
     )
   end
   let(:s3_col_man_key) { '.manifest/test_1234_s3.json' }
@@ -182,7 +195,7 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
 
   let(:msg) do
     IngestMessage::SQSMessage.new(
-      ingest_id: 'test_1234',
+      job_id: 'test_1234',
       depositor: 'test_depositor',
       collection: 'test_collection'
     )

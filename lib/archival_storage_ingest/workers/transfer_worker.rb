@@ -27,7 +27,7 @@ module TransferWorker
     end
 
     def fetch_ingest_manifest(msg)
-      manifest_s3_key = s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_INGEST)
+      manifest_s3_key = s3_manager.manifest_key(msg.job_id, Workers::TYPE_INGEST)
       ingest_manifest = s3_manager.retrieve_file(manifest_s3_key)
       Manifests::Manifest.new(json_text: ingest_manifest.string)
     end
@@ -58,14 +58,14 @@ module TransferWorker
 
     def process_file_start_msg(msg:, target:)
       {
-        ingest_id: msg.ingest_id,
+        job_id: msg.job_id,
         log: "Transfer of #{target_for_log(target)} has started."
       }
     end
 
     def process_file_complete_msg(msg:, target:)
       {
-        ingest_id: msg.ingest_id,
+        job_id: msg.job_id,
         log: "Transfer of #{target_for_log(target)} has completed."
       }
     end

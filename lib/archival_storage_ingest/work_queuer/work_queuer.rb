@@ -57,7 +57,7 @@ module WorkQueuer
     def put_work_message(ingest_config)
       msg = IngestMessage::SQSMessage.new(
         type: work_type, ticket_id: ingest_config[:ticket_id],
-        ingest_id: ingest_config[:ingest_id].nil? ? SecureRandom.uuid : ingest_config[:ingest_id],
+        job_id: ingest_config[:job_id].nil? ? SecureRandom.uuid : ingest_config[:job_id],
         depositor: ingest_config[:depositor], collection: ingest_config[:collection],
         dest_path: ingest_config[:dest_path],
         ingest_manifest: ingest_config[:ingest_manifest]

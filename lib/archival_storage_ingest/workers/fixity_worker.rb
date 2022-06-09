@@ -42,7 +42,7 @@ module FixityWorker
     def _work(msg)
       manifest = generate_manifest(msg)
 
-      manifest_s3_key = @s3_manager.manifest_key(msg.ingest_id, worker_type)
+      manifest_s3_key = @s3_manager.manifest_key(msg.job_id, worker_type)
       # data = manifest.manifest_hash.to_json
       @s3_manager.upload_string(manifest_s3_key, manifest.to_json(json_type: Manifests::MANIFEST_TYPE_FIXITY))
 
@@ -69,7 +69,7 @@ module FixityWorker
       log_msg = "Calculate checksum for #{object_path_for_log(object_path)} has started."
       logger.debug(log_msg) if debug
 
-      @application_logger.log({ ingest_id: msg.ingest_id, log: log_msg })
+      @application_logger.log({ job_id: msg.job_id, log: log_msg })
     end
 
     def object_path_for_log(object_path)
@@ -80,12 +80,12 @@ module FixityWorker
       log_msg = "Completed calculating checksum for #{object_path_for_log(object_path)}: #{sha}, #{size}"
       logger.debug(log_msg) if debug
 
-      @application_logger.log({ ingest_id: msg.ingest_id, log: log_msg })
+      @application_logger.log({ job_id: msg.job_id, log: log_msg })
       return if errors.nil?
 
       errors.each do |error|
         logger.info("Error: #{error}")
-        @application_logger.log({ ingest_id: msg.ingest_id, log: "#{name} encountered error: #{error}" })
+        @application_logger.log({ job_id: msg.job_id, log: "#{name} encountered error: #{error}" })
       end
     end
 
@@ -115,7 +115,7 @@ module FixityWorker
     end
 
     def fetch_ingest_manifest(msg)
-      manifest_s3_key = @s3_manager.manifest_key(msg.ingest_id, Workers::TYPE_INGEST)
+      manifest_s3_key = @s3_manager.manifest_key(msg.job_id, Workers::TYPE_INGEST)
       ingest_manifest = @s3_manager.retrieve_file(manifest_s3_key)
       Manifests::Manifest.new(json_text: ingest_manifest.string)
     end

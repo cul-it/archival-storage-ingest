@@ -118,8 +118,8 @@ class S3Manager # rubocop:disable Metrics/ClassLength
     [dig, size]
   end
 
-  def manifest_key(ingest_id, type)
-    ".manifest/#{ingest_id}_#{type}.json"
+  def manifest_key(job_id, type)
+    ".manifest/#{job_id}_#{type}.json"
   end
 
   def retrieve_file(s3_key)

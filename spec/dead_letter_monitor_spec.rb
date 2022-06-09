@@ -11,7 +11,7 @@ RSpec.describe 'DeadLetterMonitor' do # rubocop:disable Metrics/BlockLength
   let(:dead_letter_queue_name) { %w[dlq1 dlq2] }
   let(:dead_letter_message_hash) do
     {
-      ingest_id: '21daed0d-f687-4fd1-94e2-0bc68c3c1f19',
+      job_id: '21daed0d-f687-4fd1-94e2-0bc68c3c1f19',
       dest_path: '/cul/app/archival_storage_ingest/data/target',
       depositor: 'test_depositor', "collection": 'test_collection',
       ingest_manifest: '/cul/app/archival_storage_ingest/ingest/test/manifest/ingest_manifest/test.json',
@@ -37,7 +37,7 @@ RSpec.describe 'DeadLetterMonitor' do # rubocop:disable Metrics/BlockLength
       dead_letter_monitor = DeadLetterMonitor.new(dead_letter_queues: dead_letter_queue_name)
 
       dead_letter_message = dead_letter_monitor.check_dead_letter_queue(dead_letter_queue_name[0])
-      expect(dead_letter_message.ingest_id).to eq(dead_letter_message_hash[:ingest_id])
+      expect(dead_letter_message.job_id).to eq(dead_letter_message_hash[:job_id])
 
       dead_letter_message = dead_letter_monitor.check_dead_letter_queue(dead_letter_queue_name[1])
       expect(dead_letter_message).to be_an_nil

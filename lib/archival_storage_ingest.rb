@@ -18,10 +18,16 @@ require 'time'
 module ArchivalStorageIngest
   DEFAULT_POLLING_INTERVAL = 60
   WIP_REMOVAL_WAIT_TIME = 10
+  STAGE_PROD = 'prod'
+  STAGE_DEV = 'dev'
+  STAGE_SANDBOX = 'sandbox'
+  def self.valid_stage?(stage)
+    [STAGE_PROD, STAGE_DEV, STAGE_SANDBOX].include?(stage)
+  end
 
   class Configuration
     attr_accessor :message_queue_name, :in_progress_queue_name, :log_path, :debug, :worker, :dest_queue_names, :develop,
-                  :inhibit_file, :global_inhibit_file
+                  :inhibit_file, :global_inhibit_file, :stage
     # Only set log_queue/issue_logger in test!
     attr_writer :msg_q, :dest_qs, :wip_q, :s3_bucket, :s3_manager, :dry_run, :polling_interval, :wip_removal_wait_time,
                 :logger, :queuer, :log_queue, :issue_logger
@@ -67,11 +73,7 @@ module ArchivalStorageIngest
     end
 
     def log_queue
-      @log_queue ||= if develop
-                       IngestQueue::SQSQueue.new(Queues::DEV_QUEUE_LOG, queuer)
-                     else
-                       IngestQueue::SQSQueue.new(Queues::QUEUE_LOG, queuer)
-                     end
+      @log_queue ||= IngestQueue::SQSQueue.new(Queues.resolve_fifo_queue_name(queue: Queues::QUEUE_JIRA, stage: stage), queuer)
     end
 
     def issue_logger
@@ -184,7 +186,7 @@ module ArchivalStorageIngest
 
         remove_wip_msg
 
-        logger.info("#{status} #{msg.ingest_id}")
+        logger.info("#{status} #{msg.job_id}")
       rescue IngestException => e
         notify_and_quit(e, msg)
       end
@@ -213,7 +215,7 @@ module ArchivalStorageIngest
       return if wip_msg.nil?
 
       notify_worker_error(ingest_msg: wip_msg, error_msg: 'Incomplete work in progress detected.')
-      raise IngestException, "Incomplete work in progress for ingest #{wip_msg.ingest_id} detected."
+      raise IngestException, "Incomplete work in progress for ingest #{wip_msg.job_id} detected."
     end
 
     def move_msg_to_wip(msg)

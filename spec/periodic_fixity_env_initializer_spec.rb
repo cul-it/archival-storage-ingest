@@ -95,13 +95,15 @@ RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable Metrics/Block
 
   context 'when given relay_queue_name' do
     it 'adds queue_name to the output config' do
+      dev_queue_periodic_fixity = Queues.resolve_queue_name(queue: Queues::QUEUE_PERIODIC_FIXITY,
+                                                            stage: ArchivalStorageIngest::STAGE_DEV)
       env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
-      env_initializer.initialize_periodic_fixity_env(cmf: collection_manifest, relay_queue_name: Queues::DEV_QUEUE_PERIODIC_FIXITY,
+      env_initializer.initialize_periodic_fixity_env(cmf: collection_manifest, relay_queue_name: dev_queue_periodic_fixity,
                                                      sfs_location: sfs_location, ticket_id: ticket_id)
       got_path = File.join(periodic_fixity_root, depositor, collection)
       got_yaml_path = File.join(got_path, 'config', 'periodic_fixity_config.yaml')
       got_yaml = YAML.load_file(got_yaml_path)
-      expect(got_yaml[:queue_name]).to eq(Queues::DEV_QUEUE_PERIODIC_FIXITY)
+      expect(got_yaml[:queue_name]).to eq(dev_queue_periodic_fixity)
     end
   end
 end

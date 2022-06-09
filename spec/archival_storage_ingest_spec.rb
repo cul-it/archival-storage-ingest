@@ -18,24 +18,27 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable Metrics/BlockLength
   let(:queuer) { spy('queuer') }
   let(:dir) { File.join(File.dirname(__FILE__), %w[resources manifests]) }
   let(:file) { File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'success', 'manifest.json') }
+  let(:queue_ingest) do
+    Queues.resolve_queue_name(queue: Queues::QUEUE_INGEST, stage: ArchivalStorageIngest::STAGE_PROD)
+  end
 
   describe 'IngestQueuer' do # rubocop:disable Metrics/BlockLength
     context 'when queuing message' do
       it 'should send message to ingest queue' do
         allow(queuer).to receive(:put_message)
-          .with(Queues::QUEUE_INGEST, anything).and_return(1) # doesn't matter what we return as we don't use it
+          .with(queue_ingest, anything).and_return(1) # doesn't matter what we return as we don't use it
         input_checker = WorkQueuer::IngestInputChecker.new
         input_checker.ingest_manifest = Manifests.read_manifest(filename: file)
         issue_logger = spy('issue_logger')
         ArchivalStorageIngest.configure do |config|
           config.queuer = queuer
-          config.message_queue_name = Queues::QUEUE_INGEST
+          config.message_queue_name = queue_ingest
           config.issue_logger = issue_logger
         end
         ingest_queuer = WorkQueuer::IngestQueuer.new
         allow(ingest_queuer).to receive(:confirm_work) { true }
         allow(ingest_queuer).to receive(:input_checker_impl) { WorkQueuer::YesManInputChecker.new }
-        ingest_queuer.queue_work(type: IngestMessage::TYPE_INGEST, ingest_id: 'test_id',
+        ingest_queuer.queue_work(type: IngestMessage::TYPE_INGEST, job_id: 'test_id',
                                  dest_path: dir, ingest_manifest: file)
         expect(queuer).to have_received(:put_message).exactly(1).times
         expect(issue_logger).to have_received(:notify_status).exactly(1).times
@@ -45,13 +48,13 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable Metrics/BlockLength
     context 'when not supplying required fields' do
       it 'should return errors' do
         input_checker = WorkQueuer::IngestInputChecker.new
-        empty_dest_path = input_checker.check_input(ingest_id: 'test_id',
+        empty_dest_path = input_checker.check_input(job_id: 'test_id',
                                                     ingest_manifest: 'bogus_path')
         expect(empty_dest_path).to eq(false)
         expect(input_checker.errors.size).to eq(2)
 
         input_checker = WorkQueuer::IngestInputChecker.new
-        invalid_dest_path = input_checker.check_input(ingest_id: 'test_id',
+        invalid_dest_path = input_checker.check_input(job_id: 'test_id',
                                                       dest_path: 'bogus_path',
                                                       ingest_manifest: 'bogus_path')
         expect(invalid_dest_path).to eq(false)
@@ -61,7 +64,7 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable Metrics/BlockLength
         # I don't know how to efficiently test the success case as the test ingest manifest FILE
         # must have valid source_path attributes, unlike the transfer worker tests.
         input_checker = WorkQueuer::IngestInputChecker.new
-        valid_output = input_checker.check_input(ingest_id: 'test_id',
+        valid_output = input_checker.check_input(job_id: 'test_id',
                                                  dest_path: dir,
                                                  ingest_manifest: file)
         expect(valid_output).to eq(false)
@@ -72,7 +75,7 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable Metrics/BlockLength
     context 'when invalid ingest manifest path is given' do
       it 'should return errors' do
         input_checker = WorkQueuer::IngestInputChecker.new
-        bogus_im_path_output = input_checker.check_input(ingest_id: 'test_id',
+        bogus_im_path_output = input_checker.check_input(job_id: 'test_id',
                                                          dest_path: dir,
                                                          ingest_manifest: 'bogus_path')
         expect(bogus_im_path_output).to eq(false)
@@ -82,7 +85,7 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable Metrics/BlockLength
         # I don't know how to efficiently test the success case as the test ingest manifest FILE
         # must have valid source_path attributes, unlike the transfer worker tests.
         input_checker = WorkQueuer::IngestInputChecker.new
-        valid_output = input_checker.check_input(ingest_id: 'test_id',
+        valid_output = input_checker.check_input(job_id: 'test_id',
                                                  dest_path: dir,
                                                  ingest_manifest: file)
         expect(valid_output).to eq(false)
@@ -101,20 +104,26 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable Metrics/BlockLength
 
     let(:message_response) do
       resp = spy('body')
-      allow(resp).to receive(:body) { { ingest_id: 'test' }.to_json }
+      allow(resp).to receive(:body) { { job_id: 'test' }.to_json }
       resp
     end
 
+    let(:queue_ingest_fixity_s3) do
+      Queues.resolve_queue_name(queue: Queues::QUEUE_INGEST_FIXITY_S3, stage: ArchivalStorageIngest::STAGE_PROD)
+    end
+    let(:queue_ingest_fixity_s3_in_progress) do
+      Queues.resolve_in_progress_queue_name(queue: Queues::QUEUE_INGEST_FIXITY_S3, stage: ArchivalStorageIngest::STAGE_PROD)
+    end
     context 'when moving message' do
       it 'should remove from source queue and add to target queue' do
         allow(queuer).to receive(:retrieve_single_message)
-          .with(Queues::QUEUE_INGEST_FIXITY_S3_IN_PROGRESS).and_return(message_response)
+          .with(queue_ingest_fixity_s3_in_progress).and_return(message_response)
         allow(queuer).to receive(:delete_message)
-          .with(anything, Queues::QUEUE_INGEST_FIXITY_S3_IN_PROGRESS).and_return(1)
+          .with(anything, queue_ingest_fixity_s3_in_progress).and_return(1)
         allow(queuer).to receive(:put_message)
-          .with(Queues::QUEUE_INGEST_FIXITY_S3, anything).and_return(1)
-        message_mover.move_message(source: Queues::QUEUE_INGEST_FIXITY_S3_IN_PROGRESS,
-                                   target: Queues::QUEUE_INGEST_FIXITY_S3)
+          .with(queue_ingest_fixity_s3, anything).and_return(1)
+        message_mover.move_message(source: queue_ingest_fixity_s3_in_progress,
+                                   target: queue_ingest_fixity_s3)
         expect(queuer).to have_received(:retrieve_single_message).exactly(1).times
         expect(queuer).to have_received(:delete_message).exactly(1).times
         expect(queuer).to have_received(:put_message).exactly(1).times

@@ -20,8 +20,8 @@ module IngestQueue
         queue_url: queue_url,
         message_body: msg.to_json,
         message_attributes: {
-          ingest_id: {
-            string_value: msg.ingest_id,
+          job_id: {
+            string_value: msg.job_id,
             data_type: 'String'
           }
         }

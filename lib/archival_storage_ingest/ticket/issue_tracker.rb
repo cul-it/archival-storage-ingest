@@ -36,7 +36,7 @@ module TicketHandler
 
     # This will create a new ticket.
     def notify_error(error_msg)
-      ingest_msg = IngestMessage::SQSMessage.new(ingest_id: SecureRandom.uuid, log: error_msg, worker: worker)
+      ingest_msg = IngestMessage::SQSMessage.new(job_id: SecureRandom.uuid, log: error_msg, worker: worker)
       queue.send_message(ingest_msg)
     end
   end
@@ -57,7 +57,7 @@ module TicketHandler
         body = "#{Time.new}\n" \
              "#{ingest_msg.worker}\n" \
              "Depositor/Collection: #{ingest_msg.depositor}/#{ingest_msg.collection}\n" \
-             "Ingest ID: #{ingest_msg.ingest_id}\n" \
+             "Ingest ID: #{ingest_msg.job_id}\n" \
              "Status: #{ingest_msg.log}"
         ticket_handler.update_issue_tracker(subject: ingest_msg.ticket_id, body: body)
       end

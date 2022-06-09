@@ -160,7 +160,7 @@ There are environment variables for periodic fixity services but we currently do
 
 ```json
 {
-  "ingest_id": "ee4b25f4-d67a-4110-9a8d-2dcf5497fd7a",
+  "job_id": "ee4b25f4-d67a-4110-9a8d-2dcf5497fd7a",
   "depositor": "RMC/RMA",
   "collection": "RMA1234",
   "dest_path": "/cul/data/archival02/RCM/RMA/RMA1234",
@@ -169,7 +169,7 @@ There are environment variables for periodic fixity services but we currently do
 }
 ```
 
-ingest_id is generated when a new ingest is queued by a user and persists through all of the steps for that ingest.
+job_id is generated when a new ingest is queued by a user and persists through all of the steps for that ingest.
 
 ingest_manifest is used by the workers down in the pipeline.
 
@@ -182,7 +182,7 @@ New ingest queued at 2019-03-28 15:29:39 -0400.
 Depositor/Collection: test_depositor/test_collection
 Ingest Info
 
-{ "ingest_id": "ee4b25f4-d67a-4110-9a8d-2dcf5497fd7a", "dest_path": "/cul/app/archival_storage_ingest/data/target/test_depositor/test_collection", "depositor": "test_depositor", "collection": "test_collection", "ingest_manifest": "/cul/app/archival_storage_ingest/ingest/test/manifest/ingest_manifest/test.json", "ticket_id": "CULAR-1937" }
+{ "job_id": "ee4b25f4-d67a-4110-9a8d-2dcf5497fd7a", "dest_path": "/cul/app/archival_storage_ingest/data/target/test_depositor/test_collection", "depositor": "test_depositor", "collection": "test_collection", "ingest_manifest": "/cul/app/archival_storage_ingest/ingest/test/manifest/ingest_manifest/test.json", "ticket_id": "CULAR-1937" }
 ```
 
 For each services, it will add comment to the ticket with its progress with timestamp, worker name, depositor/collection and the status such as the following.
@@ -217,7 +217,7 @@ Status: Started
 4. The message is put to "in progress" queue of the same work type.
 5. The original message is deleted from the work queue.
 6. The service completes work task.
-7. Send message for next work. E.g. Upon completing transfer s3 task, send new message to fixity check s3 queue with same ingest_id.
+7. Send message for next work. E.g. Upon completing transfer s3 task, send new message to fixity check s3 queue with same job_id.
 8. The message put to in progress queue earlier in this process is deleted.
 
 - If a message is received from in progress queue, it means the service did not complete the job. It will notify admins and exit normally which would make the systemd to not start the service again.

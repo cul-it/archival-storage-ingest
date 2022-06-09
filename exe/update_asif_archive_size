@@ -11,14 +11,21 @@ asif_archive_size_bucket = ENV['asi_develop'] || ENV['asi_deploy_manifest_develo
 # rubocop:enable Metrics/LineLength
 s3_manager = S3Manager.new(s3_bucket, asif_bucket, asif_archive_size_bucket)
 
-archives = [
-  { archive: '/cul/data/archival01' },
-  { archive: '/cul/data/archival02' },
-  { archive: '/cul/data/archival03' },
-  { archive: '/cul/data/archival04' },
-  { archive: '/cul/data/archival05' },
-  { archive: '/cul/data/archival06' }
-]
+archives = []
+archives_list = ARGV[0] || 'archival01,archival02,archival03,archival04,archival05,archival06,archival07'
+archives_list.split(',').each do |bucket|
+  archives.append({ archive: "/cul/data/#{bucket}" })
+end
+
+# archives = [
+#   { archive: '/cul/data/archival01' },
+#   { archive: '/cul/data/archival02' },
+#   { archive: '/cul/data/archival03' },
+#   { archive: '/cul/data/archival04' },
+#   { archive: '/cul/data/archival05' },
+#   { archive: '/cul/data/archival06' },
+#   { archive: '/cul/data/archival07' }
+# ]
 
 archive_size = ArchiveSize::ArchiveSize.new(archives: archives, s3_manager: s3_manager)
 

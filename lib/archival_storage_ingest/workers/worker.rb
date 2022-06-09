@@ -27,7 +27,7 @@ module Workers
 
     def log_error(msg, exception)
       log_doc = {
-        ingest_id: msg.ingest_id,
+        job_id: msg.job_id,
         log: "#{name} encountered unrecoverable error: #{exception.message}"
       }
       @application_logger.log(log_doc)

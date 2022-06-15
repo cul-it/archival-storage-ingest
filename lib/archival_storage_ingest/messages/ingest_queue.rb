@@ -13,25 +13,24 @@ module IngestQueue
       @sqs = Aws::SQS::Client.new
     end
 
-    # rubocop: disable Metrics/MethodLength
     def put_message(queue_name, msg)
-      queue_url = get_queue_url(queue_name)
-      send_message_result = @sqs.send_message(
-        queue_url: queue_url,
-        message_body: msg.to_json,
-        message_attributes: {
-          job_id: {
-            string_value: msg.job_id,
-            data_type: 'String'
-          }
-        }
-      )
+      queue_params = prepare_send_queue_params(queue_name, msg)
+      send_message_result = @sqs.send_message(queue_params)
       @logger.debug("Queuer successfully sent message to SQS with message id #{send_message_result.message_id}")
 
       send_message_result
     end
 
-    # rubocop: enable Metrics/MethodLength
+    def prepare_send_queue_params(queue_name, msg)
+      queue_url = get_queue_url(queue_name)
+      queue_params = { queue_url: queue_url, message_body: msg.to_json,
+                       message_attributes: {
+                         job_id: { string_value: msg.job_id, data_type: 'String' }
+                       } }
+      queue_params[:message_group_id] = msg.job_id if queue_name.end_with?('fifo')
+
+      queue_params
+    end
 
     def retrieve_single_message(queue_name)
       queue_url = get_queue_url(queue_name)

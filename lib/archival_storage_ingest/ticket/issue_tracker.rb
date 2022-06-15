@@ -57,7 +57,7 @@ module TicketHandler
         body = "#{Time.new}\n" \
              "#{ingest_msg.worker}\n" \
              "Depositor/Collection: #{ingest_msg.depositor}/#{ingest_msg.collection}\n" \
-             "Ingest ID: #{ingest_msg.job_id}\n" \
+             "Job ID: #{ingest_msg.job_id}\n" \
              "Status: #{ingest_msg.log}"
         ticket_handler.update_issue_tracker(subject: ingest_msg.ticket_id, body: body)
       end

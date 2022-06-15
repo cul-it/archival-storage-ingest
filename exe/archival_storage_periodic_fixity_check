@@ -9,31 +9,46 @@ require 'archival_storage_ingest/workers/worker'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/work_queuer/work_queuer'
+require 'archival_storage_ingest/ingest_utils/configure_helper'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
+require 'archival_storage_ingest/logs/application_logger'
 
+application_logger = nil
 ArchivalStorageIngest.configure do |config|
   config.log_path = ENV['asi_ingest_queue_log_path'] ||
                     '/cul/app/archival_storage_ingest/logs/ingest_queue.log'
   config.dry_run = ENV['asi_ingest_queue_dry_run'] || false
-  config.dest_queue_names = []
 
-  if ENV['asi_develop'] || ENV['asi_periodic_queue_develop']
-    config.s3_bucket = 's3-cular-dev'
-    config.debug = true
-    config.develop = true
-    config.message_queue_name = Queues::DEV_QUEUE_PERIODIC_FIXITY
-  else
-    config.s3_bucket = 's3-cular'
-    config.debug = ENV['asi_periodic_fixity_debug'] ? true : false
-    config.develop = false
-    config.message_queue_name = Queues::QUEUE_PERIODIC_FIXITY
-  end
+  config_params = {
+    queue_name: Queues::QUEUE_PERIODIC_FIXITY,
+    dest_queue_names: [],
+    asi_develop: ENV['asi_develop'] || ENV['asi_queue_develop'],
+    asi_sandbox: ENV['asi_sandbox'] || ENV['asi_queue_sandbox']
+  }
+  configure_helper = IngestUtils::ConfigureHelper.new(config_params)
+  configure_helper.configure(config)
 
-  config.worker = Workers::Worker.new('Periodic Fixity Queuer')
+  index_type = ArchivalStorageIngestLogger::INDEX_TYPE_PERIODIC_FIXITY
+  application_logger = ArchivalStorageIngestLogger::ApplicationLogger.new(stage: config.stage, type: index_type)
+  config.worker = Workers::Worker.new(application_logger)
 end
 
 option_parser = CommandParser::IngestCommandParser.new
 option_parser.parse!(ARGV)
-ingest_config = YAML.load_file(option_parser.ingest_config)
+periodic_fixity_config = YAML.load_file(option_parser.ingest_config)
 
-ingest_queuer = WorkQueuer::PeriodicFixityQueuer.new
-ingest_queuer.queue_periodic_fixity_check(ingest_config)
+periodic_fixity_queuer = WorkQueuer::PeriodicFixityQueuer.new
+work_msg = periodic_fixity_queuer.queue_periodic_fixity_check(periodic_fixity_config)
+
+if work_msg
+  agent = IngestUtils::Agent.new
+  log_doc = {
+    job_id: work_msg.job_id,
+    login_user_id: agent.login_user_id,
+    effective_user_id: agent.effective_user_id,
+    originating_host: agent.hostname,
+    originating_ip: agent.host_ip,
+    log: "Periodic fixity check for #{work_msg.depositor}/#{work_msg.collection} has started."
+  }
+  application_logger.log(log_doc)
+end

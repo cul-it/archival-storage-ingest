@@ -18,23 +18,20 @@ ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLengt
   config.global_inhibit_file = ENV['asi_global_inhibit_file'] ||
                                '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
 
-  if ENV['asi_develop'] || ENV['asi_logger_develop']
-    config.s3_bucket = 's3-cular-dev'
-    config.debug = true
-    config.develop = false # we want the dev log server to keep running!
-    config.message_queue_name = Queues::DEV_QUEUE_LOG
-    config.in_progress_queue_name = Queues::DEV_QUEUE_LOG_IN_PROGRESS
-    config.dest_queue_names = []
-    config.issue_logger = TicketHandler::NoopIssueTracker.new
-  else
-    config.s3_bucket = 's3-cular'
-    config.debug = ENV['asi_logger_debug'] ? true : false
-    config.develop = false
-    config.message_queue_name = Queues::QUEUE_LOG
-    config.in_progress_queue_name = Queues::QUEUE_LOG_IN_PROGRESS
-    config.dest_queue_names = []
+  stage = ArchivalStorageIngest::STAGE_PROD
+  stage = ArchivalStorageIngest::STAGE_DEV if ENV['asi_develop'] || ENV['asi_logger_develop']
+  stage = ArchivalStorageIngest::STAGE_SANDBOX if ENV['asi_sandbox'] || ENV['asi_logger_sandbox']
+  config.message_queue_name = Queues.resolve_fifo_queue_name(stage: stage, queue: Queues::QUEUE_JIRA)
+  config.in_progress_queue_name = Queues.resolve_fifo_in_progress_queue_name(stage: stage, queue: Queues::QUEUE_JIRA)
+  config.dest_queue_names = []
+  config.develop = false
+  config.debug = stage != ArchivalStorageIngest::STAGE_PROD
+  config.s3_bucket = stage == ArchivalStorageIngest::STAGE_PROD ? 's3-cular' : "s3-cular-#{stage}"
+  if stage == ArchivalStorageIngest::STAGE_PROD
     slack_handler = TicketHandler::SlackHandler.new(web_hook: ENV['asi_log_slack_web_hook'])
     config.issue_logger = TicketHandler::SlackErrorTracker.new(slack_handler: slack_handler)
+  else
+    config.issue_logger = TicketHandler::NoopIssueTracker.new
   end
 
   ticket_handler = TicketHandler::JiraHandler.new

@@ -8,6 +8,7 @@ require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/workers/fixity_worker'
 require 'archival_storage_ingest/ticket/ticket_handler'
 require 'archival_storage_ingest/ticket/issue_tracker'
+require 'archival_storage_ingest/logs/application_logger'
 
 if ENV['asi_periodic_fixity_slack_web_hook'].nil?
   puts 'asi_periodic_fixity_slack_web_hook env variable is required'
@@ -27,33 +28,13 @@ ArchivalStorageIngest.configure do |config|
 
   config_params = {
     queue_name: Queues::QUEUE_PERIODIC_FIXITY_SFS,
-    dest_queue_names: [QUEUE_PERIODIC_FIXITY_COMPARISON],
+    dest_queue_names: [Queues::QUEUE_PERIODIC_FIXITY_COMPARISON],
     asi_develop: ENV['asi_develop'] || ENV['asi_periodic_fixity_sfs_develop'],
     asi_sandbox: ENV['asi_sandbox'] || ENV['asi_periodic_fixity_sfs_sandbox']
   }
-  configure_helper = IngestUtils::ConfigureHelper.new
-  config = configure_helper.configure(config: config, params: config_params)
+  configure_helper = IngestUtils::ConfigureHelper.new(config_params)
+  config = configure_helper.configure(config)
 
-  # stage = ArchivalStorageIngest::STAGE_PROD
-  # config.s3_bucket = 's3-cular'
-  # config.debug = ENV['asi_ingest_debug'] ? true : false
-  # config.develop = false
-  # if ENV['asi_develop'] || ENV['asi_periodic_fixity_sfs_develop']
-  #   config.s3_bucket = 's3-cular-dev'
-  #   config.debug = true
-  #   config.develop = true
-  #   stage = ArchivalStorageIngest::STAGE_DEV
-  # elsif ENV['asi_sandbox'] || ENV['asi_periodic_fixity_sfs_sandbox']
-  #   config.s3_bucket = 's3-cular-sandbox'
-  #   config.debug = true
-  #   config.develop = true
-  #   stage = ArchivalStorageIngest::STAGE_SANDBOX
-  # end
-  #
-  # config.stage = stage
-  # config.message_queue_name = Queues.resolve_queue_name(queue: Queues::QUEUE_PERIODIC_FIXITY_SFS, stage: stage)
-  # config.in_progress_queue_name = Queues.resolve_in_progress_queue_name(queue: Queues::QUEUE_PERIODIC_FIXITY_SFS, stage: stage)
-  # config.dest_queue_names = [Queues.resolve_queue_name(queue: Queues::QUEUE_PERIODIC_FIXITY_COMPARISON, stage: stage)]
   index_type = ArchivalStorageIngestLogger::INDEX_TYPE_PERIODIC_FIXITY
   application_logger = ArchivalStorageIngestLogger::ApplicationLogger.new(stage: config.stage, type: index_type)
   config.worker = FixityWorker::PeriodicFixitySFSGenerator.new(application_logger)

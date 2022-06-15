@@ -120,11 +120,11 @@ module FixityCompareWorker
       return false unless super(msg)
 
       next_work_msg = queue_next_collection(msg)
-      log_doc = {
-        job_id: next_work_msg.job_id,
-        log: "Periodic fixity for #{next_work_msg.depositor}/#{next_work_msg.collection} has started."
-      }
-      @application_logger.log(log_doc)
+      if next_work_msg
+        log_doc = { job_id: next_work_msg.job_id,
+                    log: "Periodic fixity for #{next_work_msg.depositor}/#{next_work_msg.collection} has started." }
+        @application_logger.log(log_doc)
+      end
 
       remove_collection_manifest_in_temp(job_id: msg.job_id)
 

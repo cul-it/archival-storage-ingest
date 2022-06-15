@@ -113,4 +113,31 @@ module CommandParser
       IngestUtils.blank?(param) ? if_blank : param
     end
   end
+
+  class SetupPeriodicFixityEnvCommandParser
+    attr_reader :storage_manifest, :ticket_id, :sfs_bucket
+
+    def parse!(args)
+      OptionParser.new do |opts|
+        opts.banner = 'Usage: setup_ingest_env -s -f -t -p -b'
+
+        # Required parameters
+        opts.on('-s', '--storage_manifest [String]', 'Storage manifest') { |s| @storage_manifest = s }
+        opts.on('-t', '--ticket_id [String]', 'Ticket ID') { |t| @ticket_id = t }
+        opts.on('-b', '--sfs_bucket [String]', 'SFS bucket') { |b| @sfs_bucket = b }
+
+        # Optional parameters, default values will be used if not specified
+        opts.on('-f', '--sfs_root [String]', 'SFS root') { |f| @sfs_root = f }
+        opts.on('-p', '--periodic_fixity_root [String]', 'Periodic fixity root') { |p| @periodic_fixity_root = p }
+      end.parse!(args)
+    end
+
+    def periodic_fixity_root
+      @periodic_fixity_root ||= Preingest::DEFAULT_FIXITY_ROOT
+    end
+
+    def sfs_root
+      @sfs_root ||= Preingest::DEFAULT_SFS_ROOT
+    end
+  end
 end

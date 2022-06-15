@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'aws-sdk-ssm'
 require 'opensearch'
 require 'time'
 
@@ -21,15 +22,14 @@ module ArchivalStorageIngestLogger
                                            with_decryption: true)
 
       @client = OpenSearch::Client.new(
-        host: opensearch_url,
-        user: opensearch_main_user,
-        password: opensearch_main_password
+        host: opensearch_url, user: opensearch_main_user, password: opensearch_main_password,
+        port: '443', scheme: 'https'
       )
       @index_name = "cular_#{stage}_#{type}-log"
     end
 
     def ssm_param(param, with_decryption: false)
-      @ssm_client.get_parameter({ name: param, with_decryption: with_decryption })
+      ssm_client.get_parameter({ name: param, with_decryption: with_decryption }).parameter.value
     end
 
     def log(log_document)

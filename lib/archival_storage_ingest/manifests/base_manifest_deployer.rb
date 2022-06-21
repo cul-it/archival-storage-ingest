@@ -7,6 +7,10 @@ require 'misc/archive_size'
 require 'archival_storage_ingest/s3/s3_manager'
 
 class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
+  attr_writer :storage_schema, :java_path, :tika_path, :file_identifier, :manifest_of_manifests,
+              :s3_bucket, :asif_bucket, :asif_archive_size_bucket, :s3_manager, :sfs_prefix,
+              :manifest_validator, :skip_data_addition, :manifest_deployer, :archives, :archive_size
+
   def storage_schema
     @storage_schema ||= _storage_schema
   end
@@ -139,7 +143,8 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
       { archive: '/cul/data/archival03' },
       { archive: '/cul/data/archival04' },
       { archive: '/cul/data/archival05' },
-      { archive: '/cul/data/archival06' }
+      { archive: '/cul/data/archival06' },
+      { archive: '/cul/data/archival07' }
     ]
   end
 

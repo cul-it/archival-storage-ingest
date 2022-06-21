@@ -20,10 +20,17 @@ end
 new_collection_manifest = ARGV.shift
 ingest_manifest = ARGV.shift
 sfs = ARGV.shift
+archives = []
+archives_list = ARGV[0] || 'archival01,archival02,archival03,archival04,archival05,archival06,archival07'
+archives_list.split(',').each do |bucket|
+  archives.append({ archive: "/cul/data/#{bucket}" })
+end
+
 skip_data_addition = ARGV.shift
 skip_data_addition = skip_data_addition.nil? || skip_data_addition != 'true' ? false : true
 
 manifest_deployer = StorageManifestDeployer.new
+manifest_deployer.archives = archives_list
 manifest_parameters = Manifests::ManifestParameters.new(storage_manifest_path: new_collection_manifest,
                                                         ingest_manifest_path: ingest_manifest, sfs: sfs,
                                                         skip_data_addition: skip_data_addition)

@@ -13,6 +13,7 @@ require 'archival_storage_ingest/ingest_utils/configure_helper'
 require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/logs/application_logger'
 
+# We assume the periodic fixity is initiated from server farm VM.
 application_logger = nil
 ArchivalStorageIngest.configure do |config|
   config.log_path = ENV['asi_ingest_queue_log_path'] ||
@@ -29,7 +30,8 @@ ArchivalStorageIngest.configure do |config|
   configure_helper.configure(config)
 
   index_type = ArchivalStorageIngestLogger::INDEX_TYPE_PERIODIC_FIXITY
-  application_logger = ArchivalStorageIngestLogger::ApplicationLogger.new(stage: config.stage, type: index_type)
+  application_logger = ArchivalStorageIngestLogger.get_application_logger(stage: config.stage, index_type: index_type,
+                                                                          use_lambda_logger: true)
   config.worker = Workers::Worker.new(application_logger)
 end
 

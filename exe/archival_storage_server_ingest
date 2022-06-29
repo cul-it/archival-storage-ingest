@@ -25,7 +25,8 @@ ArchivalStorageIngest.configure do |config|
   configure_helper.configure(config)
 
   index_type = ArchivalStorageIngestLogger::INDEX_TYPE_INGEST
-  application_logger = ArchivalStorageIngestLogger::ApplicationLogger.new(stage: config.stage, type: index_type)
+  application_logger = ArchivalStorageIngestLogger.get_application_logger(stage: config.stage, index_type: index_type,
+                                                                          use_lambda_logger: ENV['use_lambda_logger'])
   config.worker = IngestWorker.new(application_logger)
 end
 

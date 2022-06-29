@@ -36,7 +36,8 @@ ArchivalStorageIngest.configure do |config|
   config = configure_helper.configure(config)
 
   index_type = ArchivalStorageIngestLogger::INDEX_TYPE_PERIODIC_FIXITY
-  application_logger = ArchivalStorageIngestLogger::ApplicationLogger.new(stage: config.stage, type: index_type)
+  application_logger = ArchivalStorageIngestLogger.get_application_logger(stage: config.stage, index_type: index_type,
+                                                                          use_lambda_logger: ENV['use_lambda_logger'])
   config.worker = FixityWorker::PeriodicFixitySFSGenerator.new(application_logger)
 
   slack_handler = TicketHandler::SlackHandler.new(web_hook: ENV['asi_periodic_fixity_slack_web_hook'])

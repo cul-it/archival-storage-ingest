@@ -5,7 +5,7 @@
 # export asi_ingest_polling_interval=60
 # export asi_ingest_develop=true
 # export asi_develop=true
-
+export use_lambda_logger=true
 export PATH="$PATH:/cul/app/archival_storage_ingest/rvm"
 source /cul/app/archival_storage_ingest/rvm/scripts/rvm
 rvm gemset use archival_storage_ingest

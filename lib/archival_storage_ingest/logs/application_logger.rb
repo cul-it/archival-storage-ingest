@@ -65,7 +65,7 @@ module ArchivalStorageIngestLogger
     def initialize(stage:, type:)
       super(stage: stage, type: type)
       @os_lambda_url = URI.parse(ssm_param("/cular/archivalstorage/#{stage}/opensearch/#{type}_lambda_url"))
-      @os_lambda_https = Net::HTTP.new(url.host, url.port)
+      @os_lambda_https = Net::HTTP.new(@os_lambda_url.host, @os_lambda_url.port)
       @os_lambda_https.use_ssl = true
     end
 

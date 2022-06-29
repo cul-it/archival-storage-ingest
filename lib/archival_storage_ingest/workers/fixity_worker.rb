@@ -66,7 +66,7 @@ module FixityWorker
     end
 
     def log_checksum_start(msg, object_path)
-      log_msg = "Calculate checksum for #{object_path_for_log(object_path)} has started."
+      log_msg = "Calculate #{worker_type} checksum for #{object_path_for_log(object_path)} has started."
       logger.debug(log_msg) if debug
 
       @application_logger.log({ job_id: msg.job_id, log: log_msg })
@@ -77,7 +77,7 @@ module FixityWorker
     end
 
     def log_checksum_output(msg:, object_path:, sha:, size:, errors:)
-      log_msg = "Completed calculating checksum for #{object_path_for_log(object_path)}: #{sha}, #{size}"
+      log_msg = "Completed calculating #{worker_type} checksum for #{object_path_for_log(object_path)}: #{sha}, #{size}"
       logger.debug(log_msg) if debug
 
       @application_logger.log({ job_id: msg.job_id, log: log_msg })

@@ -55,8 +55,7 @@ module ArchivalStorageIngestLogger
       log_document[:timestamp] = Time.now.utc.iso8601(3)
       @client.index(
         index: @index_name,
-        body: log_document,
-        refresh: true
+        body: log_document
       )
     end
   end

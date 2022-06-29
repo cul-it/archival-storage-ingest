@@ -13,7 +13,7 @@ module ArchivalStorageIngestLogger
     if use_lambda_logger
       ArchivalStorageIngestLogger::LambdaLogger.new(stage: stage, type: index_type)
     else
-      ArchivalStorageIngestLogger::ApplicationLogger.new(stage: stage, type: index_type)
+      ArchivalStorageIngestLogger::OpenSearchLogger.new(stage: stage, type: index_type)
     end
   end
 

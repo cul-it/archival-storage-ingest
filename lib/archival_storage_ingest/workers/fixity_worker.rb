@@ -66,18 +66,18 @@ module FixityWorker
     end
 
     def log_checksum_start(msg, object_path)
-      log_msg = "Calculate #{worker_type} checksum for #{object_path_for_log(object_path)} has started."
+      log_msg = "Calculate #{worker_type} checksum for #{object_path_for_log(object_path, msg)} has started."
       logger.debug(log_msg) if debug
 
       @application_logger.log({ job_id: msg.job_id, log: log_msg })
     end
 
-    def object_path_for_log(object_path)
-      object_path
+    def object_path_for_log(object_path, msg)
+      "#{msg.collection_s3_prefix}/#{object_path}"
     end
 
     def log_checksum_output(msg:, object_path:, sha:, size:, errors:)
-      log_msg = "Completed calculating #{worker_type} checksum for #{object_path_for_log(object_path)}: #{sha}, #{size}"
+      log_msg = "Completed calculating #{worker_type} checksum for #{object_path_for_log(object_path, msg)}: #{sha}, #{size}"
       logger.debug(log_msg) if debug
 
       @application_logger.log({ job_id: msg.job_id, log: log_msg })
@@ -135,8 +135,8 @@ module FixityWorker
       @s3_manager.calculate_checksum(s3_key)
     end
 
-    def object_path_for_log(object_path)
-      "s3://#{@s3_manager.s3_bucket}/#{object_path}"
+    def object_path_for_log(object_path, msg)
+      "s3://#{@s3_manager.s3_bucket}/#{msg.collection_s3_prefix}/#{object_path}"
     end
   end
 
@@ -164,8 +164,8 @@ module FixityWorker
       ops
     end
 
-    def object_path_for_log(object_path)
-      "s3://#{@s3_manager.s3_bucket}/#{object_path}"
+    def object_path_for_log(object_path, msg)
+      "s3://#{@s3_manager.s3_bucket}/#{msg.collection_s3_prefix}/#{object_path}"
     end
   end
 

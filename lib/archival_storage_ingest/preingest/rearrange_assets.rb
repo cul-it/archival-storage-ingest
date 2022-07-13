@@ -16,20 +16,20 @@ module Preingest
       staging_path = File.join(staging_root, depositor, collection)
       arrange_info = populate_arrange_info(arrange_info_csv: arrange_info_csv)
 
-      arrange_info.each_pair do |key, value|
-        rearrange_asset(source_path: File.join(source_path, key),
-                        staging_path: File.join(staging_path, value))
+      arrange_info.each_pair do |new_path, old_path|
+        rearrange_asset(source_path: File.join(source_path, old_path),
+                        staging_path: File.join(staging_path, new_path))
       end
     end
 
     def populate_arrange_info(arrange_info_csv:)
       arrange_info = {}
       CSV.foreach(arrange_info_csv, headers: true) do |row|
-        arrange_info[row[old_path_key]] = if row[new_path_key] == 'SAME'
-                                            row[old_path_key]
-                                          else
-                                            row[new_path_key]
-                                          end
+        old_path = row[old_path_key]
+        new_path = row[new_path_key]
+        new_path = old_path if new_path == 'SAME'
+
+        arrange_info[new_path] = old_path
       end
 
       arrange_info

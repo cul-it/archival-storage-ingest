@@ -8,6 +8,7 @@ require 'time'
 module ArchivalStorageIngestLogger
   INDEX_TYPE_INGEST = 'ingest'
   INDEX_TYPE_PERIODIC_FIXITY = 'periodic_fixity'
+  MAX_RETRY = 3
 
   def self.get_application_logger(stage:, index_type:, use_lambda_logger: false)
     if use_lambda_logger
@@ -32,7 +33,18 @@ module ArchivalStorageIngestLogger
       ssm_client.get_parameter({ name: param, with_decryption: with_decryption }).parameter.value
     end
 
-    def log(_log_document); end
+    def log(log_document)
+      retry_count = 0
+      MAX_RETRY.times do
+        return _log(log_document)
+
+      rescue StandardError
+        retry_count += 1
+        raise if retry_count > 2
+      end
+    end
+
+    def _log(_log_document); end
   end
 
   class OpenSearchLogger < ApplicationLogger
@@ -49,7 +61,7 @@ module ArchivalStorageIngestLogger
       )
     end
 
-    def log(log_document)
+    def _log(log_document)
       return if log_document.nil?
 
       log_document[:timestamp] = Time.now.utc.iso8601(3)
@@ -68,7 +80,7 @@ module ArchivalStorageIngestLogger
       @os_lambda_https.use_ssl = true
     end
 
-    def log(log_document)
+    def _log(log_document)
       return if log_document.nil?
 
       request = Net::HTTP::Post.new(@os_lambda_url.path)

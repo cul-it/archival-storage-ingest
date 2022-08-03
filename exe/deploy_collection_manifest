@@ -32,7 +32,7 @@ skip_data_addition = ARGV.shift
 skip_data_addition = skip_data_addition.nil? || skip_data_addition != 'true' ? false : true
 
 manifest_deployer = StorageManifestDeployer.new
-manifest_deployer.archives = archives_list
+manifest_deployer.archives = archives
 manifest_parameters = Manifests::ManifestParameters.new(storage_manifest_path: new_collection_manifest,
                                                         ingest_manifest_path: ingest_manifest, sfs: sfs,
                                                         skip_data_addition: skip_data_addition)

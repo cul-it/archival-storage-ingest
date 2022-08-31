@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'archival_storage_ingest'
+require 'archival_storage_ingest/ingest_utils/configure_helper'
+require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
+require 'archival_storage_ingest/messages/queues'
+require 'archival_storage_ingest/workers/transfer_worker'
+require 'archival_storage_ingest/logs/application_logger'
+
+ArchivalStorageIngest.configure do |config|
+  config.log_path = ENV['asi_transfer_wasabi_log_path'] ||
+                    '/cul/app/archival_storage_ingest/logs/transfer_wasabi.log'
+  config.dry_run = ENV['asi_transfer_wasabi_dry_run'] || false
+  config.polling_interval = ENV['asi_transfer_wasabi_polling_interval'].to_i if
+                            ENV['asi_transfer_wasabi_polling_interval']
+
+  config.inhibit_file = ENV['asi_transfer_wasabi_inhibit_file'] ||
+                        '/cul/app/archival_storage_ingest/control/transfer_wasabi.inhibit'
+  config.global_inhibit_file = ENV['asi_global_inhibit_file'] ||
+                               '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
+
+  config_params = {
+    queue_name: Queues::QUEUE_TRANSFER_WASABI,
+    dest_queue_names: [Queues::QUEUE_INGEST_FIXITY_WASABI],
+    asi_develop: ENV['asi_develop'] || ENV['asi_ingest_transfer_wasabi_develop'],
+    asi_sandbox: ENV['asi_sandbox'] || ENV['asi_ingest_transfer_wasabi_sandbox']
+  }
+  configure_helper = IngestUtils::ConfigureHelper.new(config_params)
+  config = configure_helper.configure(config)
+
+  index_type = ArchivalStorageIngestLogger::INDEX_TYPE_INGEST
+  application_logger = ArchivalStorageIngestLogger.get_application_logger(stage: config.stage, index_type: index_type,
+                                                                          use_lambda_logger: ENV['use_lambda_logger'])
+  wasabi_manager = configure_helper.configure_wasabi_manager(config.stage)
+  config.worker = TransferWorker::WasabiTransferer.new(application_logger, wasabi_manager)
+end
+
+ingest_manager = ArchivalStorageIngest::IngestManager.new
+ingest_manager.start_server

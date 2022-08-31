@@ -140,6 +140,25 @@ module FixityWorker
     end
   end
 
+  class IngestFixityWasabiGenerator < IngestFixityS3Generator
+    attr_reader :wasabi_manager
+
+    # Pass s3_manager only for tests.
+    def initialize(application_logger, wasabi_manager, s3_manager = nil)
+      super(application_logger, s3_manager)
+      @wasabi_manager = wasabi_manager
+    end
+
+    def worker_type
+      Workers::TYPE_WASABI
+    end
+
+    def calculate_checksum(object_path, msg)
+      s3_key = "#{msg.collection_s3_prefix}/#{object_path}"
+      @wasabi_manager.calculate_checksum(s3_key)
+    end
+  end
+
   class PeriodicFixityS3Generator < FixityGenerator
     def _name
       'Periodic S3 Fixity Generator'
@@ -166,6 +185,29 @@ module FixityWorker
 
     def object_path_for_log(object_path, msg)
       "s3://#{@s3_manager.s3_bucket}/#{msg.collection_s3_prefix}/#{object_path}"
+    end
+  end
+
+  class PeriodicFixityWasabiGenerator < PeriodicFixityS3Generator
+    attr_reader :wasabi_manager
+
+    # Pass s3_manager only for tests.
+    def initialize(application_logger, wasabi_manager, s3_manager = nil)
+      super(application_logger, s3_manager)
+      @wasabi_manager = wasabi_manager
+    end
+
+    def _name
+      'Periodic Wasabi Fixity Generator'
+    end
+
+    def worker_type
+      Workers::TYPE_WASABI
+    end
+
+    def calculate_checksum(object_path, msg)
+      s3_key = "#{msg.collection_s3_prefix}/#{object_path}"
+      @wasabi_manager.calculate_checksum(s3_key)
     end
   end
 

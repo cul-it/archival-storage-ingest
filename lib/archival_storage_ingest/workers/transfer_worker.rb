@@ -92,6 +92,26 @@ module TransferWorker
     end
   end
 
+  class WasabiTransferer < S3Transferer
+    attr_reader :wasabi_manager
+
+    # Pass s3_manager only for tests.
+    def initialize(application_logger, wasabi_manager, s3_manager = nil)
+      super(application_logger, s3_manager)
+      @wasabi_manager = wasabi_manager
+    end
+
+    def _name
+      'Wasabi Transferer'
+    end
+
+    # source is absolute file path of the asset
+    # target is s3_key
+    def process_file(source:, target:)
+      wasabi_manager.upload_file(target, source)
+    end
+  end
+
   class SFSTransferer < TransferWorker
     def _name
       'SFS Transferer'

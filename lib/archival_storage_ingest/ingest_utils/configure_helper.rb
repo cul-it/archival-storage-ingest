@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest'
+require 'archival_storage_ingest/s3/s3_manager'
+require 'aws-sdk-core/shared_credentials'
+require 'aws-sdk-s3'
+require 'aws-sdk-ssm'
 
 module IngestUtils
   class ConfigureHelper
@@ -37,6 +41,39 @@ module IngestUtils
       config.s3_bucket = s3_bucket
 
       config
+    end
+
+    def configure_wasabi_manager(stage)
+      wasabi_cred = wasabi_credentials(stage)
+      wasabi_client = Aws::S3::Client.new(credentials: wasabi_cred)
+      wasabi_resource = Aws::S3::Resource.new(client: wasabi_client)
+      wasabi_bucket = wasabi_bucket(stage)
+      wasabi_manager = S3Manager.new(wasabi_bucket)
+      wasabi_manager.s3 = wasabi_resource
+      wasabi_manager
+    end
+
+    # Correct wasabi credentials must be used in SSM parameter store when we get them
+    def wasabi_credentials(stage)
+      ssm_client ||= Aws::SSM::Client.new
+      wasabi_aki = ssm_param(ssm_client, "/cular/ingest/#{stage}/wasabi/access_key_id")
+      wasabi_sak = ssm_param(ssm_client, "/cular/ingest/#{stage}/wasabi/secret_access_key")
+      Aws::Credentials.new(wasabi_aki, wasabi_sak)
+    end
+
+    # Correct wasabi bucket names must be used when we get them
+    def wasabi_bucket(stage)
+      if stage == ArchivalStorageIngest::STAGE_PROD
+        'wasabi?'
+      elsif stage == ArchivalStorageIngest::STAGE_DEV
+        'wasabi-dev?'
+      elsif stage == ArchivalStorageIngest::STAGE_SANDBOX
+        'wasabi-sandbox?'
+      end
+    end
+
+    def ssm_param(ssm_client, param, with_decryption: true)
+      ssm_client.get_parameter({ name: param, with_decryption: with_decryption }).parameter.value
     end
   end
 end

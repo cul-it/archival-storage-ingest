@@ -64,9 +64,9 @@ module IngestUtils
     # Correct wasabi bucket names must be used when we get them
     def wasabi_bucket(stage)
       if stage == ArchivalStorageIngest::STAGE_PROD
-        'wasabi?'
+        'wasabi-cular'
       elsif stage == ArchivalStorageIngest::STAGE_DEV
-        'wasabi-dev?'
+        'wasabi-cular-dev'
       elsif stage == ArchivalStorageIngest::STAGE_SANDBOX
         'wasabi-sandbox?'
       end

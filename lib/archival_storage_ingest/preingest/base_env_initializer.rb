@@ -25,7 +25,8 @@ module Preingest
 
     # :imf, :cmf, :data, :sfs_location, :ticket_id are used
     #
-    # This way of coding does make RUBOCOP happy but it is hard to track down
+    # This way of coding (i.e., passing a params object rather than named params)
+    # does make RUBOCOP happy but it is hard to track down
     # which parameters are used where...
     # Is there a better way to deal with this situation?
     def initialize_env(named_params)

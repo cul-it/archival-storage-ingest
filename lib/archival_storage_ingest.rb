@@ -85,6 +85,7 @@ module ArchivalStorageIngest
     attr_writer :configuration
   end
 
+  # Class methods for ArchivalStorageIngest module
   def self.configure
     yield(configuration)
   end

@@ -17,6 +17,7 @@ module CommandParser
       OptionParser.new do |opts|
         opts.banner = 'Usage: archival_storage_ingest -i [ingest_config_path]'
 
+        # ingest_config is an ingest YAML config file set up by running setup_ingest_env.
         opts.on('-i INGEST_CONFIG', '--ingest_config INGEST_CONFIG', 'Ingest config file') do |i|
           options[:ingest_config] = i
         end

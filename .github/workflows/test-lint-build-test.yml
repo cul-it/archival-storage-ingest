@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - dev-*
-  paths:
-      - 'lib/**'
-      - 'exe/**'
-      - 'spec/**'
+    paths:
+        - 'lib/**'
+        - 'exe/**'
+        - 'spec/**'
 
 jobs:
   build-test:

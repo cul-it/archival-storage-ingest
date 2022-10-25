@@ -45,16 +45,8 @@ option_parser = CommandParser::IngestCommandParser.new
 option_parser.parse!(ARGV)
 ingest_config = YAML.load_file(option_parser.ingest_config)
 
-puts "Configuration: #{ArchivalStorageIngest.configuration.inspect}"
-puts "ingest_cnofig, #{ingest_config}"
-exit(0)
-
 ingest_queuer = WorkQueuer::IngestQueuer.new
 work_msg = ingest_queuer.queue_ingest(ingest_config)
-
-
-
-
 
 if work_msg
   agent = IngestUtils::Agent.new

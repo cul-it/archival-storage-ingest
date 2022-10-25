@@ -23,7 +23,7 @@ new_collection_manifest = ARGV.shift
 ingest_manifest = ARGV.shift
 sfs = ARGV.shift
 archives = []
-archives_list = ARGV[0] || 'archival01,archival02,archival03,archival04,archival05,archival06,archival07'
+archives_list = ARGV.shift || 'archival01,archival02,archival03,archival04,archival05,archival06,archival07'
 archives_list.split(',').each do |bucket|
   archives.append({ archive: "/cul/data/#{bucket}" })
 end

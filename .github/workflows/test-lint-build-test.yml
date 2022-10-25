@@ -1,0 +1,40 @@
+name: Test Lint, Build, and Test
+
+on:
+  push:
+    branches:
+      - dev-*
+  paths:
+      - 'lib/**'
+      - 'exe/**'
+      - 'spec/**'
+
+jobs:
+  build-test:
+    if: "!contains(github.event.head_commit.message, '[SKIP GA]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@359bebbc29cbe6c87da6bc9ea3bc930432750108
+        with:
+          ruby-version: '2.6'
+          bundler-cache: true
+      - name: Install dependencies
+        run: bundle install
+      - name: Rubocop
+        run: bundle exec rubocop
+      - name: Run tests
+        run: bundle exec rspec
+  pull-request:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[SKIP PR]')"
+    needs: build-test
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create pull request to main
+        run: |
+          gh pr create -B dev -H ${CURRENT_BRANCH} -t "Merge ${CURRENT_BRANCH} into main" -b "${{ github.event.head_commit.message }}"
+        env:
+          CURRENT_BRANCH: ${{ github.ref_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

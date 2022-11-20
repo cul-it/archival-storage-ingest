@@ -17,7 +17,7 @@ ArchivalStorageIngest.configure do |config|
 
   config_params = {
     queue_name: Queues::QUEUE_INGEST,
-    dest_queue_names: [Queues::QUEUE_TRANSFER_S3, Queues::QUEUE_TRANSFER_SFS],
+    dest_queue_names: [Queues::QUEUE_TRANSFER_S3, Queues::QUEUE_TRANSFER_SFS, Queues::QUEUE_TRANSFER_WASABI],
     asi_develop: ENV['asi_develop'] || ENV['asi_ingest_develop'],
     asi_sandbox: ENV['asi_sandbox'] || ENV['asi_ingest_sandbox']
   }

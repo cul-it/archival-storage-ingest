@@ -1,5 +1,6 @@
-Metrics/LineLength:
-  Max: 132
+Layout:
+  Metrics/LineLength:
+    Max: 132
 
 AllCops:
   TargetRubyVersion: 2.6

@@ -22,7 +22,8 @@ ArchivalStorageIngest.configure do |config|
 
   config_params = {
     queue_name: Queues::QUEUE_TRANSFER_WASABI,
-    dest_queue_names: [Queues::QUEUE_INGEST_FIXITY_WASABI],
+    # TODO: update dest queue to QUEUE_INGEST_FIXITY_WASABI
+    dest_queue_names: [Queues::QUEUE_COMPLETE],
     asi_develop: ENV['asi_develop'] || ENV['asi_ingest_transfer_wasabi_develop'],
     asi_sandbox: ENV['asi_sandbox'] || ENV['asi_ingest_transfer_wasabi_sandbox']
   }

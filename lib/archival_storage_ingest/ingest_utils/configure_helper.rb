@@ -45,7 +45,7 @@ module IngestUtils
 
     def configure_wasabi_manager(stage)
       wasabi_cred = wasabi_credentials(stage)
-      wasabi_client = Aws::S3::Client.new(credentials: wasabi_cred)
+      wasabi_client = Aws::S3::Client.new(credentials: wasabi_cred, region: 'us-east-1' , endpoint: 'https://s3.wasabisys.com')
       wasabi_resource = Aws::S3::Resource.new(client: wasabi_client)
       wasabi_bucket = wasabi_bucket(stage)
       wasabi_manager = S3Manager.new(wasabi_bucket)
@@ -56,8 +56,8 @@ module IngestUtils
     # Correct wasabi credentials must be used in SSM parameter store when we get them
     def wasabi_credentials(stage)
       ssm_client ||= Aws::SSM::Client.new
-      wasabi_aki = ssm_param(ssm_client, "/cular/ingest/#{stage}/wasabi/access_key_id")
-      wasabi_sak = ssm_param(ssm_client, "/cular/ingest/#{stage}/wasabi/secret_access_key")
+      wasabi_aki = ssm_param(ssm_client, "/cular/archivalstorage/#{stage}/ingest/wasabi/access_key_id")
+      wasabi_sak = ssm_param(ssm_client, "/cular/archivalstorage/#{stage}/ingest/wasabi/secret_access_key")
       Aws::Credentials.new(wasabi_aki, wasabi_sak)
     end
 

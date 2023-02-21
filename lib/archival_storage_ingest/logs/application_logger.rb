@@ -50,9 +50,9 @@ module ArchivalStorageIngestLogger
   class OpenSearchLogger < ApplicationLogger
     def initialize(stage:, type:)
       super(stage: stage, type: type)
-      opensearch_url = ssm_param("/cular/archivalstorage/#{stage}/opensearch/opensearch_url")
-      opensearch_main_user = ssm_param("/cular/archivalstorage/#{stage}/opensearch/opensearch_main_user")
-      opensearch_main_password = ssm_param("/cular/archivalstorage/#{stage}/opensearch/opensearch_main_password",
+      opensearch_url = ssm_param("/cular/archivalstorage/#{stage}/application_logger/opensearch/opensearch_url")
+      opensearch_main_user = ssm_param("/cular/archivalstorage/#{stage}/application_logger/opensearch/opensearch_main_user")
+      opensearch_main_password = ssm_param("/cular/archivalstorage/#{stage}/application_logger/opensearch/opensearch_main_password",
                                            with_decryption: true)
 
       @client = OpenSearch::Client.new(

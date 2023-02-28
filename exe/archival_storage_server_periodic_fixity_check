@@ -27,7 +27,7 @@ ArchivalStorageIngest.configure do |config|
 
   config_params = {
     queue_name: Queues::QUEUE_PERIODIC_FIXITY,
-    dest_queue_names: [Queues::QUEUE_PERIODIC_FIXITY_S3, Queues::QUEUE_PERIODIC_FIXITY_SFS],
+    dest_queue_names: [Queues::QUEUE_PERIODIC_FIXITY_SFS],
     asi_develop: ENV['asi_develop'] || ENV['asi_periodic_fixity_check_develop'],
     asi_sandbox: ENV['asi_sandbox'] || ENV['asi_periodic_fixity_check_sandbox']
   }

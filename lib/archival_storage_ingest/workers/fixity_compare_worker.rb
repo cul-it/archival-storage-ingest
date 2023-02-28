@@ -131,6 +131,27 @@ module FixityCompareWorker
       true
     end
 
+    def retrieve_manifests(msg)
+      sfs_manifest = retrieve_manifest(msg, Workers::TYPE_SFS)
+      ingest_manifest = retrieve_manifest(msg, Workers::TYPE_INGEST)
+      [ingest_manifest, sfs_manifest]
+    end
+
+    def compare_fixity_report(msg)
+      ingest_manifest, sfs_manifest = retrieve_manifests(msg)
+
+      cm_filename = Manifests.collection_manifest_filename(depositor: msg.depositor, collection: msg.collection)
+      comparator = Manifests::ManifestComparator.new(cm_filename: cm_filename)
+      sfs_status, sfs_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: sfs_manifest)
+      # s3_status, s3_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: s3_manifest)
+
+      raise IngestException, "Ingest and SFS manifests do not match: #{sfs_diff}" unless sfs_status
+
+      # raise IngestException, "Ingest and S3 manifests do not match: #{s3_diff}" unless s3_status
+
+      true
+    end
+
     def retrieve_manifest(msg, suffix)
       manifest_name = s3_manager.manifest_key(msg.job_id, suffix)
       manifest_file = s3_manager.retrieve_file(manifest_name)

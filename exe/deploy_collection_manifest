@@ -12,7 +12,8 @@ require 'archival_storage_ingest/logs/application_logger'
 class StorageManifestDeployer < BaseManifestDeployer
   def _manifest_deployer
     Manifests::CollectionManifestDeployer.new(manifests_path: manifest_of_manifests, s3_manager: s3_manager,
-                                              sfs_prefix: sfs_prefix, manifest_validator: manifest_validator,
+                                              wasabi_manager: wasabi_manager, sfs_prefix: sfs_prefix, 
+                                              manifest_validator: manifest_validator,
                                               file_identifier: file_identifier)
   end
 end

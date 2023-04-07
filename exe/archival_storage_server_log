@@ -10,7 +10,7 @@ require 'archival_storage_ingest/workers/log_worker'
 
 ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLength
   config.log_path = ENV['asi_ingest_logger_log_path'] ||
-                    '/cul/app/archival_storage_ingest/logs/logger.log'
+                    "#{ENV['default_cular_log_path']}/logger.log"
   config.dry_run = ENV['asi_ingest_logger_dry_run'] || false
   config.polling_interval = ENV['asi_ingest_logger_polling_interval'].to_i if ENV['asi_ingest_logger_polling_interval']
   config.inhibit_file = ENV['asi_ingest_logger_inhibit_file'] ||

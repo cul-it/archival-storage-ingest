@@ -4,7 +4,11 @@ require 'logger'
 
 # Archival storage ingest loggers
 module ArchivalStorageIngestLogger
-  DEFAULT_LOG_PATH = '/cul/app/archival_storage_ingest/logs/default.log'
+  DEFAULT_LOG_PATH = if ENV['default_cular_log_path']
+                       "#{ENV['default_cular_log_path']}/default.log"
+                     else
+                       '/cul/app/archival_storage_ingest/logs/default.log'
+                     end
 
   def self.get_file_logger(config)
     log_path = config.log_path.nil? ? DEFAULT_LOG_PATH : config.log_path

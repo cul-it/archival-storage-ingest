@@ -9,12 +9,13 @@ require 'pathname'
 
 module TransferWorker
   class TransferWorker < Workers::Worker
-    attr_reader :s3_manager
+    attr_reader :s3_manager, :wasabi_manager
 
-    # Pass s3_manager only for tests.
-    def initialize(application_logger, s3_manager = nil)
+    # Pass s3_manager or wasabi_manager only for tests.
+    def initialize(application_logger, s3_manager = nil, wasabi_manager = nil)
       super(application_logger)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
+      @wasabi_manager = wasabi_manager || ArchivalStorageIngest.configuration.wasabi_manager
     end
 
     def _work(msg)
@@ -93,14 +94,6 @@ module TransferWorker
   end
 
   class WasabiTransferer < S3Transferer
-    attr_reader :wasabi_manager
-
-    # Pass s3_manager only for tests.
-    def initialize(application_logger, wasabi_manager, s3_manager = nil)
-      super(application_logger, s3_manager)
-      @wasabi_manager = wasabi_manager
-    end
-
     def _name
       'Wasabi Transferer'
     end
@@ -109,6 +102,10 @@ module TransferWorker
     # target is s3_key
     def process_file(source:, target:)
       wasabi_manager.upload_file(target, source)
+    end
+
+    def target_for_log(target)
+      "s3://#{@wasabi_manager.s3_bucket}/#{target}"
     end
   end
 

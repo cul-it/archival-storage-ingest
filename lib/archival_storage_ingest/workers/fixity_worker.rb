@@ -27,10 +27,11 @@ module FixityWorker
   class FixityGenerator < Workers::Worker
     attr_reader :debug, :logger
 
-    # Pass s3_manager only for tests.
-    def initialize(application_logger, s3_manager = nil)
+    # Pass s3_manager or wasabi_manager only for tests.
+    def initialize(application_logger, s3_manager = nil, wasabi_manager = nil)
       super(application_logger)
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
+      @wasabi_manager = wasabi_manager || ArchivalStorageIngest.configuration.wasabi_manager
       @debug = ArchivalStorageIngest.configuration.debug
       @logger = ArchivalStorageIngest.configuration.logger
     end
@@ -141,12 +142,8 @@ module FixityWorker
   end
 
   class IngestFixityWasabiGenerator < IngestFixityS3Generator
-    attr_reader :wasabi_manager
-
-    # Pass s3_manager only for tests.
-    def initialize(application_logger, wasabi_manager, s3_manager = nil)
-      super(application_logger, s3_manager)
-      @wasabi_manager = wasabi_manager
+    def _name
+      'Wasabi Fixity Generator'
     end
 
     def worker_type
@@ -189,14 +186,6 @@ module FixityWorker
   end
 
   class PeriodicFixityWasabiGenerator < PeriodicFixityS3Generator
-    attr_reader :wasabi_manager
-
-    # Pass s3_manager only for tests.
-    def initialize(application_logger, wasabi_manager, s3_manager = nil)
-      super(application_logger, s3_manager)
-      @wasabi_manager = wasabi_manager
-    end
-
     def _name
       'Periodic Wasabi Fixity Generator'
     end

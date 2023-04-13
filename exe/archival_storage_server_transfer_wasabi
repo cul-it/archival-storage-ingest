@@ -10,7 +10,7 @@ require 'archival_storage_ingest/logs/application_logger'
 
 ArchivalStorageIngest.configure do |config|
   config.log_path = ENV['asi_transfer_wasabi_log_path'] ||
-                    '/cul/app/archival_storage_ingest/logs/transfer_wasabi.log'
+                    "#{ENV['default_cular_log_path']}/transfer_wasabi.log"
   config.dry_run = ENV['asi_transfer_wasabi_dry_run'] || false
   config.polling_interval = ENV['asi_transfer_wasabi_polling_interval'].to_i if
                             ENV['asi_transfer_wasabi_polling_interval']
@@ -33,8 +33,8 @@ ArchivalStorageIngest.configure do |config|
   index_type = ArchivalStorageIngestLogger::INDEX_TYPE_INGEST
   application_logger = ArchivalStorageIngestLogger.get_application_logger(stage: config.stage, index_type: index_type,
                                                                           use_lambda_logger: ENV['use_lambda_logger'])
-  wasabi_manager = configure_helper.configure_wasabi_manager(config.stage)
-  config.worker = TransferWorker::WasabiTransferer.new(application_logger, wasabi_manager)
+  # wasabi_manager = configure_helper.configure_wasabi_manager(config.stage)
+  config.worker = TransferWorker::WasabiTransferer.new(application_logger)
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

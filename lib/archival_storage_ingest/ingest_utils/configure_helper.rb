@@ -53,7 +53,6 @@ module IngestUtils
       wasabi_manager
     end
 
-    # Correct wasabi credentials must be used in SSM parameter store when we get them
     def wasabi_credentials(stage)
       ssm_client ||= Aws::SSM::Client.new
       wasabi_aki = ssm_param(ssm_client, "/cular/archivalstorage/#{stage}/ingest/wasabi/access_key_id")
@@ -61,7 +60,6 @@ module IngestUtils
       Aws::Credentials.new(wasabi_aki, wasabi_sak)
     end
 
-    # Correct wasabi bucket names must be used when we get them
     def wasabi_bucket(stage)
       case stage
       when ArchivalStorageIngest::STAGE_PROD

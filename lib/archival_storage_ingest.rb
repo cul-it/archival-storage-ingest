@@ -30,7 +30,7 @@ module ArchivalStorageIngest
                   :inhibit_file, :global_inhibit_file, :stage
     # Only set log_queue/issue_logger in test!
     attr_writer :msg_q, :dest_qs, :wip_q, :s3_bucket, :s3_manager, :dry_run, :polling_interval, :wip_removal_wait_time,
-                :logger, :queuer, :log_queue, :issue_logger
+                :logger, :queuer, :log_queue, :issue_logger, :wasabi_bucket, :wasabi_manager
 
     def logger
       @logger ||= ArchivalStorageIngestLogger.get_file_logger(self)
@@ -58,6 +58,14 @@ module ArchivalStorageIngest
 
     def s3_manager
       @s3_manager ||= S3Manager.new(s3_bucket)
+    end
+
+    def wasabi_bucket
+      @wasabi_bucket ||= 'wasabi-cular'
+    end
+
+    def wasabi_manager
+      @wasabi_manager = WasabiManager.new(wasabi_bucket)
     end
 
     def dry_run
@@ -130,6 +138,7 @@ module ArchivalStorageIngest
 
     def run_dev_server
       puts "S3 bucket: #{@configuration.s3_bucket}"
+      puts "Wasabi bucket: #{@configuration.wasabi_bucket}"
       puts "Message Queue Name: #{@configuration.message_queue_name}"
       puts "In Progress Queue Name: #{@configuration.in_progress_queue_name}"
       puts "Destination Queue Names: #{@configuration.dest_queue_names}"

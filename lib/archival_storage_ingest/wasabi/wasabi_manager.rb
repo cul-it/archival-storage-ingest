@@ -4,6 +4,18 @@ require 'archival_storage_ingest/s3/s3_manager'
 require 'aws-sdk-s3'
 require 'aws-sdk-ssm'
 
+##
+# Subclasses S3Manager to create a similar interface for Wasabi.
+#
+# Since Wasabi uses the same API as S3, operations on the remote cloud objects are essentially the same.
+# Of course, the actual S3 client has to be defined using different parameters.
+#
+# params:
+# * +s3_bucket+ [String] name of bucket to use on Wasabi
+# * +asif_s3_bucket+ [String] [optional]
+# * +asif_archive_size_s3_bucket+ [String] [optional]
+# * +m2m_bucket+ [String] [optional]
+# * +max_retry+ [Int] [optional]
 class WasabiManager < S3Manager
   def s3
     return @s3 unless @s3.nil?

@@ -3,6 +3,7 @@
 module Workers
   TYPE_S3 = 's3'
   TYPE_SFS = 'sfs'
+  TYPE_WASABI = 'wasabi'
   TYPE_INGEST = 'ingest_manifest'
 
   # Base class for specific workers

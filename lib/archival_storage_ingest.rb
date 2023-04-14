@@ -9,6 +9,7 @@ require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/messages/ingest_queue'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/s3/s3_manager'
+require 'archival_storage_ingest/wasabi/wasabi_manager'
 require 'archival_storage_ingest/ticket/ticket_handler'
 require 'archival_storage_ingest/ticket/issue_tracker'
 require 'forwardable'
@@ -30,7 +31,7 @@ module ArchivalStorageIngest
                   :inhibit_file, :global_inhibit_file, :stage
     # Only set log_queue/issue_logger in test!
     attr_writer :msg_q, :dest_qs, :wip_q, :s3_bucket, :s3_manager, :dry_run, :polling_interval, :wip_removal_wait_time,
-                :logger, :queuer, :log_queue, :issue_logger
+                :logger, :queuer, :log_queue, :issue_logger, :wasabi_bucket, :wasabi_manager
 
     def logger
       @logger ||= ArchivalStorageIngestLogger.get_file_logger(self)
@@ -60,6 +61,14 @@ module ArchivalStorageIngest
       @s3_manager ||= S3Manager.new(s3_bucket)
     end
 
+    def wasabi_bucket
+      @wasabi_bucket ||= 'wasabi-cular'
+    end
+
+    def wasabi_manager
+      @wasabi_manager = WasabiManager.new(wasabi_bucket)
+    end
+
     def dry_run
       @dry_run ||= false
     end
@@ -85,6 +94,7 @@ module ArchivalStorageIngest
     attr_writer :configuration
   end
 
+  # Class methods for ArchivalStorageIngest module
   def self.configure
     yield(configuration)
   end
@@ -129,6 +139,7 @@ module ArchivalStorageIngest
 
     def run_dev_server
       puts "S3 bucket: #{@configuration.s3_bucket}"
+      puts "Wasabi bucket: #{@configuration.wasabi_bucket}"
       puts "Message Queue Name: #{@configuration.message_queue_name}"
       puts "In Progress Queue Name: #{@configuration.in_progress_queue_name}"
       puts "Destination Queue Names: #{@configuration.dest_queue_names}"

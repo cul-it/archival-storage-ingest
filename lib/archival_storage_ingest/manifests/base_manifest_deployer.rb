@@ -5,9 +5,10 @@ require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/manifests/manifest_of_manifests'
 require 'misc/archive_size'
 require 'archival_storage_ingest/s3/s3_manager'
+require 'archival_storage_ingest/wasabi/wasabi_manager'
 
 class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
-  attr_writer :storage_schema, :java_path, :tika_path, :file_identifier, :manifest_of_manifests,
+  attr_writer :storage_schema, :ingest_schema, :java_path, :tika_path, :file_identifier, :manifest_of_manifests,
               :s3_bucket, :asif_bucket, :asif_archive_size_bucket, :s3_manager, :sfs_prefix,
               :manifest_validator, :skip_data_addition, :manifest_deployer, :archives, :archive_size
 
@@ -17,6 +18,14 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
 
   def _storage_schema
     ENV['asi_storage_schema'] || Manifests::ManifestValidator::DEFAULT_STORAGE_SCHEMA
+  end
+
+  def ingest_schema
+    @ingest_schema ||= _ingest_schema
+  end
+
+  def _ingest_schema
+    ENV['asi_ingest_schema'] || Manifests::ManifestValidator::DEFAULT_INGEST_SCHEMA
   end
 
   def java_path
@@ -61,6 +70,14 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
     ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-dev' : 's3-cular'
   end
 
+  def wasabi_bucket
+    @wasabi_bucket ||= _wasabi_bucket
+  end
+
+  def _wasabi_bucket
+    ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 'wasabi-cular-dev' : 'wasabi-cular'
+  end
+
   def asif_bucket
     @asif_bucket ||= _asif_bucket
   end
@@ -93,6 +110,14 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
     S3Manager.new(s3_bucket, asif_bucket, asif_archive_size_bucket)
   end
 
+  def wasabi_manager
+    @wasabi_manager ||= _wasabi_manager
+  end
+
+  def _wasabi_manager
+    WasabiManager.new(wasabi_bucket)
+  end
+
   def sfs_prefix
     @sfs_prefix ||= _sfs_prefix
   end
@@ -110,7 +135,7 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
   end
 
   def _manifest_validator
-    Manifests::ManifestValidator.new(storage_schema: storage_schema)
+    Manifests::ManifestValidator.new(storage_schema: storage_schema, ingest_schema: ingest_schema)
   end
 
   def skip_data_addition

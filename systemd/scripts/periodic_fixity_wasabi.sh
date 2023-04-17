@@ -11,4 +11,4 @@ export default_cular_log_path=/cul/app/archival_storage_ingest/logs
 export PATH="$PATH:/cul/app/archival_storage_ingest/rvm"
 source /cul/app/archival_storage_ingest/rvm/scripts/rvm
 rvm gemset use archival_storage_ingest
-archival_storage_server_periodic_fixity_s3
+archival_storage_server_periodic_fixity_wasabi

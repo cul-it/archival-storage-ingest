@@ -22,7 +22,8 @@ polling_interval = ENV['asi_periodic_fixity_comparison_polling_interval'].to_i i
   ENV['asi_periodic_fixity_comparison_polling_interval']
 inhibit_file = ENV['asi_periodic_fixity_comparison_inhibit_file'] ||
                '/cul/app/archival_storage_ingest/control/periodic_fixity_comparison.inhibit'
-global_inhibit_file = ENV['asi_global_inhibit_file'] || '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
+global_inhibit_file = ENV['asi_global_inhibit_file'] ||
+                      '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
 
 manifest_dir = ENV['asi_periodic_fixity_comparison_manifest_dir'] ||
                '/cul/app/archival_storage_ingest/manifest_storage'
@@ -62,6 +63,5 @@ ArchivalStorageIngest.configure do |config|
                                                                            queue: config.log_queue,
                                                                            slack_handler: slack_handler)
 end
-
 ingest_manager = ArchivalStorageIngest::IngestManager.new
 ingest_manager.start_server

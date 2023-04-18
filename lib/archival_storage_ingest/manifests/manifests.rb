@@ -40,11 +40,11 @@ module Manifests
     "_EM_#{dep}_#{col}.json"
   end
 
-  class Manifest
+  class Manifest # rubocop:disable Metrics/ClassLength
     attr_accessor :collection_id, :depositor, :steward, :locations, :packages, :documentation
 
     # initialize from the json string
-    def initialize(json_text: BLANK_JSON_TEXT)
+    def initialize(json_text: BLANK_JSON_TEXT) # rubocop:disable Metrics/MethodLength
       json_hash = JSON.parse(json_text, symbolize_names: true)
       @collection_id = json_hash[:collection_id]
       @depositor = json_hash[:depositor]
@@ -52,12 +52,21 @@ module Manifests
       @steward = json_hash[:steward]
       @locations = json_hash[:locations]
       @locations = [] if @locations.nil?
-      @packages = json_hash[:packages] ? json_hash[:packages].map { |package| Manifests::Package.new(package: package) } : []
+      @packages = if json_hash[:packages]
+                    json_hash[:packages].map do |package|
+                      Manifests::Package.new(package: package)
+                    end
+                  else
+                    []
+                  end
     end
 
     def add_package(package:)
       package_id = package.package_id
-      raise IngestException, "Package id #{package_id} already exists and can't be added." if get_package(package_id: package_id)
+      if get_package(package_id: package_id)
+        raise IngestException,
+              "Package id #{package_id} already exists and can't be added."
+      end
 
       packages << package
     end
@@ -413,7 +422,7 @@ module Manifests
 
       json_data_hash = JSON.parse(json)
       errors = schema.validate(json_data_hash).to_a
-      raise IngestException, "Failed to validate manifest: #{errors}" unless errors.size.zero?
+      raise IngestException, "Failed to validate manifest: #{errors}" unless errors.empty?
 
       true
     end

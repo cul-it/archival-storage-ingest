@@ -112,7 +112,8 @@ RSpec.describe ArchivalStorageIngest do # rubocop:disable Metrics/BlockLength
       Queues.resolve_queue_name(queue: Queues::QUEUE_INGEST_FIXITY_S3, stage: ArchivalStorageIngest::STAGE_PROD)
     end
     let(:queue_ingest_fixity_s3_in_progress) do
-      Queues.resolve_in_progress_queue_name(queue: Queues::QUEUE_INGEST_FIXITY_S3, stage: ArchivalStorageIngest::STAGE_PROD)
+      Queues.resolve_in_progress_queue_name(queue: Queues::QUEUE_INGEST_FIXITY_S3,
+                                            stage: ArchivalStorageIngest::STAGE_PROD)
     end
     context 'when moving message' do
       it 'should remove from source queue and add to target queue' do

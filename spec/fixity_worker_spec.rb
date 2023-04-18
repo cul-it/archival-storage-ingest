@@ -14,7 +14,9 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
   let(:job_id) { 'test_1234' }
   let(:depositor) { 'RMC/RMA' }
   let(:collection) { 'RMA0123' }
-  let(:dest_path) { File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'sfs', 'archival01', depositor, collection) }
+  let(:dest_path) do
+    File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'sfs', 'archival01', depositor, collection)
+  end
   let(:msg) do
     IngestMessage::SQSMessage.new(
       job_id: job_id,

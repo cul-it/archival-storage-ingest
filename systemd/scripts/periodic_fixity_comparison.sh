@@ -6,6 +6,8 @@
 # export asi_periodic_fixity_comparison_bucket=s3-cular-dev
 # export asi_periodic_fixity_comparison_polling_interval=60
 # export asi_periodic_fixity_comparison_inhibit_file='/cul/app/archival_storage_ingest/control/ingest_fixity_comparison.inhibit'
+
+export default_cular_log_path=/cul/app/archival_storage_ingest/logs
 export use_lambda_logger=true
 export PATH="$PATH:/cul/app/archival_storage_ingest/rvm"
 source /cul/app/archival_storage_ingest/rvm/scripts/rvm

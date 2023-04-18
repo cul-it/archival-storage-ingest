@@ -68,7 +68,8 @@ module ConvertManifest
 
     def convert_manifest(filename:, csv:, data_root:, depth: 1)
       manifest_hash = convert_manifest_to_new_hash(filename: filename, depth: depth)
-      manifest_hash[:packages] = add_additional_metadata(packages: manifest_hash[:packages], data_root: data_root, csv: csv)
+      manifest_hash[:packages] =
+        add_additional_metadata(packages: manifest_hash[:packages], data_root: data_root, csv: csv)
       JSON.pretty_generate(manifest_hash)
     end
 

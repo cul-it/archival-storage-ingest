@@ -45,7 +45,8 @@ RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable Metrics/Block
 
   context 'when initializing periodic fixity env' do # rubocop:disable Metrics/BlockLength
     it 'creates periodic fixity env' do
-      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
+      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root,
+                                                                    sfs_root: sfs_root)
       env_initializer.initialize_periodic_fixity_env(cmf: collection_manifest,
                                                      sfs_location: sfs_location, ticket_id: ticket_id)
       got_path = File.join(periodic_fixity_root, depositor, collection)
@@ -78,7 +79,8 @@ RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable Metrics/Block
   context 'when initializing periodic fixity env with multiple dest path' do
     it 'creates periodic fixity env with dest path joined by comma' do
       multiple_sfs_locations = "archival01#{FixityWorker::PeriodicFixitySFSGenerator::DEST_PATH_DELIMITER}archival02"
-      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
+      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root,
+                                                                    sfs_root: sfs_root)
       env_initializer.initialize_periodic_fixity_env(cmf: collection_manifest,
                                                      sfs_location: multiple_sfs_locations, ticket_id: ticket_id)
       got_path = File.join(periodic_fixity_root, depositor, collection)
@@ -97,9 +99,10 @@ RSpec.describe 'PeriodicFixityEnvInitializer' do # rubocop:disable Metrics/Block
     it 'adds queue_name to the output config' do
       dev_queue_periodic_fixity = Queues.resolve_queue_name(queue: Queues::QUEUE_PERIODIC_FIXITY,
                                                             stage: ArchivalStorageIngest::STAGE_DEV)
-      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
-      env_initializer.initialize_periodic_fixity_env(cmf: collection_manifest, relay_queue_name: dev_queue_periodic_fixity,
-                                                     sfs_location: sfs_location, ticket_id: ticket_id)
+      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root,
+                                                                    sfs_root: sfs_root)
+      env_initializer.initialize_periodic_fixity_env(cmf: collection_manifest, sfs_location: sfs_location,
+                                                     relay_queue_name: dev_queue_periodic_fixity, ticket_id: ticket_id)
       got_path = File.join(periodic_fixity_root, depositor, collection)
       got_yaml_path = File.join(got_path, 'config', 'periodic_fixity_config.yaml')
       got_yaml = YAML.load_file(got_yaml_path)

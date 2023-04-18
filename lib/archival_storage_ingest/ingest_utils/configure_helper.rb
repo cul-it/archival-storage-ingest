@@ -8,7 +8,8 @@ require 'aws-sdk-ssm'
 
 module IngestUtils
   class ConfigureHelper
-    attr_reader :stage, :s3_bucket, :wasabi_bucket, :debug, :develop, :message_queue_name, :in_progress_queue_name, :dest_queue_names
+    attr_reader :stage, :s3_bucket, :wasabi_bucket, :debug, :develop, :message_queue_name, :in_progress_queue_name,
+                :dest_queue_names
 
     def initialize(params)
       @stage = ArchivalStorageIngest::STAGE_PROD
@@ -32,6 +33,7 @@ module IngestUtils
       end
     end
 
+    # rubocop:disable Metrics/AbcSize
     def configure(config)
       config.stage = stage
       config.message_queue_name = message_queue_name
@@ -44,6 +46,7 @@ module IngestUtils
 
       config
     end
+    # rubocop:enable Metrics/AbcSize
 
     # def configure_wasabi_manager(stage)
     #   wasabi_cred = wasabi_credentials(stage)

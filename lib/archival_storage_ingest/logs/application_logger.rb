@@ -50,10 +50,13 @@ module ArchivalStorageIngestLogger
   class OpenSearchLogger < ApplicationLogger
     def initialize(stage:, type:)
       super(stage: stage, type: type)
+
+      # rubocop:disable Layout/LineLength
       opensearch_url = ssm_param("/cular/archivalstorage/#{stage}/application_logger/opensearch/opensearch_url")
       opensearch_main_user = ssm_param("/cular/archivalstorage/#{stage}/application_logger/opensearch/opensearch_main_user")
       opensearch_main_password = ssm_param("/cular/archivalstorage/#{stage}/application_logger/opensearch/opensearch_main_password",
                                            with_decryption: true)
+      # rubocop:enable Layout/LineLength
 
       @client = OpenSearch::Client.new(
         host: opensearch_url, user: opensearch_main_user, password: opensearch_main_password,

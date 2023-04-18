@@ -17,21 +17,34 @@ require 'aws-sdk-ssm'
 # * +m2m_bucket+ [String] [optional]
 # * +max_retry+ [Int] [optional]
 class WasabiManager < S3Manager
+  attr_reader :endpoint, :region, :stage
+
+  # rubocop:disable Metrics/ParameterLists
+  def initialize(s3_bucket, asif_s3_bucket = 's3-cular-invalid',
+                 asif_archive_size_s3_bucket = 's3-cular-invalid',
+                 m2m_bucket = 's3-cular-invalid', max_retry = MAX_RETRY)
+    super
+    @endpoint = 'https://s3.wasabisys.com' # fixed value
+    @region = 'us-east-1' # fixed value
+    @stage = if ENV['asi_develop'] || ENV['asi_ingest_transfer_wasabi_develop']
+               'dev' # should be either prod or dev, and sandbox not supported for now
+             else
+               'prod'
+             end
+  end
+  # rubocop:enable Metrics/ParameterLists
+
   def s3
     return @s3 unless @s3.nil?
 
-    stage = if ENV['asi_develop'] || ENV['asi_ingest_transfer_wasabi_develop']
-              'dev' # should be either prod or dev, and sandbox not supported for now
-            else
-              'prod'
-            end
     ssm_client = Aws::SSM::Client.new
-    access_key = ssm_client.get_parameter({ name: "/cular/archivalstorage/#{stage}/ingest/wasabi/access_key_id", with_decryption: true }).parameter.value
-    secret_key = ssm_client.get_parameter({ name: "/cular/archivalstorage/#{stage}/ingest/wasabi/secret_access_key", with_decryption: true }).parameter.value
-    region = 'us-east-1' # fixed value
-    endpoint = 'https://s3.wasabisys.com' # fixed value
+    access_key = ssm_client.get_parameter({ name: "/cular/archivalstorage/#{stage}/ingest/wasabi/access_key_id",
+                                            with_decryption: true }).parameter.value
+    secret_key = ssm_client.get_parameter({ name: "/cular/archivalstorage/#{stage}/ingest/wasabi/secret_access_key",
+                                            with_decryption: true }).parameter.value
 
-    s3_client = Aws::S3::Client.new(region: region, access_key_id: access_key, secret_access_key: secret_key, endpoint: endpoint)
+    s3_client = Aws::S3::Client.new(region: region, access_key_id: access_key, secret_access_key: secret_key,
+                                    endpoint: endpoint)
 
     @s3 = Aws::S3::Resource.new(client: s3_client)
   end

@@ -6,7 +6,8 @@ require 'spec_helper'
 RSpec.describe 'Queues' do
   context 'when checking valid queue names' do
     it 'succeeds on valid name' do
-      valid_queue = Queues.resolve_queue_name(queue: Queues::QUEUE_PERIODIC_FIXITY, stage: ArchivalStorageIngest::STAGE_PROD)
+      valid_queue = Queues.resolve_queue_name(queue: Queues::QUEUE_PERIODIC_FIXITY,
+                                              stage: ArchivalStorageIngest::STAGE_PROD)
       got = Queues.valid_queue_name?(valid_queue)
       expect(got).to be_truthy
     end

@@ -167,7 +167,8 @@ module FixityCompareWorker
       return if manifest_def.nil?
 
       cm = collection_manifest(manifest_def: manifest_def)
-      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root, sfs_root: sfs_root)
+      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root,
+                                                                    sfs_root: sfs_root)
       env_initializer.initialize_periodic_fixity_env(cmf: cm, sfs_location: manifest_def.sfs, ticket_id: msg.ticket_id,
                                                      relay_queue_name: @relay_queue_name)
       queuer = WorkQueuer::PeriodicFixityQueuer.new(confirm: false)
@@ -181,7 +182,8 @@ module FixityCompareWorker
     end
 
     def collection_manifest(manifest_def:)
-      cm_filename = Manifests.collection_manifest_filename(depositor: manifest_def.depositor, collection: manifest_def.collection)
+      cm_filename = Manifests.collection_manifest_filename(depositor: manifest_def.depositor,
+                                                           collection: manifest_def.collection)
       dest_path = File.join(manifest_dir, cm_filename)
       @s3_manager.download_file(s3_key: manifest_def.s3_key, dest_path: dest_path)
       dest_path

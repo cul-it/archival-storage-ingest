@@ -7,7 +7,8 @@ require 'archival_storage_ingest/workers/fixity_worker'
 
 RSpec.describe 'ManifestMissingAttributePopulator' do # rubocop:disable Metrics/BlockLength
   let(:source_path) do
-    File.join(File.dirname(__FILE__), 'resources', 'manifests', 'manifest_to_filesystem_comparator', 'RMC', 'RMA', 'RMA01234')
+    File.join(File.dirname(__FILE__), 'resources', 'manifests', 'manifest_to_filesystem_comparator', 'RMC', 'RMA',
+              'RMA01234')
   end
   let(:depositor) { 'RMC/RMA' }
   let(:collection) { 'RMA01234' }

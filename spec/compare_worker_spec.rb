@@ -43,7 +43,8 @@ RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
 
   def setup_manifest(man, key)
     if man.nil?
-      allow(s3_manager).to receive(:retrieve_file).with(key).and_raise(Aws::S3::Errors::NoSuchKey.new('context', 'no manifest'))
+      allow(s3_manager).to receive(:retrieve_file).with(key).and_raise(Aws::S3::Errors::NoSuchKey.new('context',
+                                                                                                      'no manifest'))
     else
       allow(s3_manager).to receive(:retrieve_file).with(key).and_return(man)
     end

@@ -13,7 +13,8 @@ ArchivalStorageIngest.configure do |config|
   config.dry_run = ENV['asi_ingest_dry_run'] || false
   config.polling_interval = ENV['asi_ingest_polling_interval'].to_i if ENV['asi_ingest_polling_interval']
   config.inhibit_file = ENV['asi_ingest_inhibit_file'] || '/cul/app/archival_storage_ingest/control/ingest.inhibit'
-  config.global_inhibit_file = ENV['asi_global_inhibit_file'] || '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
+  config.global_inhibit_file = ENV['asi_global_inhibit_file'] ||
+                               '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
 
   config_params = {
     queue_name: Queues::QUEUE_INGEST,

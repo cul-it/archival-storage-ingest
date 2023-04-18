@@ -82,7 +82,8 @@ module ArchivalStorageIngest
     end
 
     def log_queue
-      @log_queue ||= IngestQueue::SQSQueue.new(Queues.resolve_fifo_queue_name(queue: Queues::QUEUE_JIRA, stage: stage), queuer)
+      queue_name = Queues.resolve_fifo_queue_name(queue: Queues::QUEUE_JIRA, stage: stage)
+      @log_queue ||= IngestQueue::SQSQueue.new(queue_name, queuer)
     end
 
     def issue_logger

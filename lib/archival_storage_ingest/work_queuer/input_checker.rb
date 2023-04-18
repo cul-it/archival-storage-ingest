@@ -22,7 +22,7 @@ module WorkQueuer
       @errors << "Queue name #{ingest_config[:queue_name]} is not valid!" unless
         valid_queue_name?(ingest_config[:queue_name])
 
-      @errors.size.zero?
+      @errors.empty?
     end
 
     def dest_path_ok?(dest_path)
@@ -61,7 +61,7 @@ module WorkQueuer
           File.exist?(ingest_manifest)
       end
 
-      @errors.size.zero?
+      @errors.empty?
     end
 
     def ingest_manifest_errors(input_im)
@@ -70,7 +70,7 @@ module WorkQueuer
         @errors << "Source path for package #{package.package_id} is not valid!" unless
           File.exist?(package.source_path.to_s)
       end
-      @errors.size.zero?
+      @errors.empty?
     end
   end
 

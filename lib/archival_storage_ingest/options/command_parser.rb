@@ -77,7 +77,9 @@ module CommandParser
         opts.on('-r', '--sfs_root [String]', 'SFS root') { |r| @sfs_root = r }
         opts.on('-j', '--java_path [String]', 'Java path') { |j| @java_path = j }
         opts.on('-k', '--tika_path [String]', 'Tika path') { |k| @tika_path = k }
-        opts.on('-h', '--storage_manifest_schema [String]', 'Storage manifest schema') { |h| @storage_manifest_schema = h }
+        opts.on('-h', '--storage_manifest_schema [String]', 'Storage manifest schema') do |h|
+          @storage_manifest_schema = h
+        end
         opts.on('-m', '--ingest_manifest_schema [String]', 'Ingest manifest schema') { |m| @ingest_manifest_schema = m }
       end.parse!(args)
     end

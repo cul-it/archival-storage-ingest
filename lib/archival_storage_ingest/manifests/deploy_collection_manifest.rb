@@ -17,6 +17,7 @@ module Manifests
     # manifest_validator - uses default one in production, specify one for testing
     # sfs_prefix, java_path, tika_path - uses default values in production, specify them for testing
     #                                    these are used to initialize FileIdentifier
+    # rubocop:disable Metrics/ParameterLists
     def initialize(manifests_path:, s3_manager:, wasabi_manager:, file_identifier:, sfs_prefix:,
                    manifest_validator: Manifests::ManifestValidator.new)
       @mom_path = manifests_path
@@ -28,6 +29,7 @@ module Manifests
       @manifest_validator = manifest_validator
       @sfs_prefix = sfs_prefix
     end
+    # rubocop:enable Metrics/ParameterLists
 
     def prepare_manifest_definition(manifest_parameters:)
       prepare_collection_manifest(manifest_parameters: manifest_parameters)

@@ -16,10 +16,10 @@ manifest_response = manifest_converter.generate_ingest_manifest(xml: hashdeep_ma
                                                                 source_path: source_path)
 
 overwrite_list = manifest_response.overwrite_list
-overwrite_list.each do |filepath, overwrite_info|
+overwrite_list.each do |filepath, info|
   puts "Overwrite detected for #{filepath}"
-  puts "  Old SHA1: #{overwrite_info[:collection_file_entry].sha1}, Size: #{overwrite_info[:collection_file_entry].size}"
-  puts "  New SHA1: #{overwrite_info[:ingest_file_entry].sha1}, Size: #{overwrite_info[:ingest_file_entry].size}"
+  puts "  Old SHA1: #{info[:collection_file_entry].sha1}, Size: #{info[:collection_file_entry].size}"
+  puts "  New SHA1: #{info[:ingest_file_entry].sha1}, Size: #{info[:ingest_file_entry].size}"
 end
 
 puts JSON.pretty_generate(manifest_response.ingest_manifest.to_json_ingest_hash)

@@ -86,6 +86,54 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
 
     s3m
   end
+  let(:wasabi_manager) do # rubocop: disable Metrics/BlockLength
+    s3m = S3Manager.new('bogus_bucket')
+
+    allow(s3m).to receive(:s3) { s3m }
+
+    allow(s3m).to receive(:upload_string)
+      .with(any_args)
+      .and_raise(IngestException, 'upload_string must not be called in this test!')
+
+    allow(s3m).to receive(:list_object_keys)
+      .with(any_args)
+      .and_raise(IngestException, 'list_object_keys must not be called in this test!')
+
+    allow(s3m).to receive(:calculate_checksum)
+      .with(any_args)
+      .and_raise(IngestException, 'calculate_checksum must not be called in this test!')
+
+    # This is harmless.
+    allow(s3m).to receive(:manifest_key).with(any_args).and_call_original
+
+    allow(s3m).to receive(:retrieve_file)
+      .with(any_args)
+      .and_raise(IngestException, 'retrieve_file must not be called in this test!')
+
+    allow(s3m).to receive(:upload_file)
+      .with(any_args)
+      .and_raise(IngestException, 'upload_file called with invalid arguments!')
+
+    allow(s3m).to receive(:upload_file)
+      .with(td_s3_key, td_storage_manifest_path) { true }
+
+    allow(s3m).to receive(:upload_file)
+      .with(td2_s3_key, td2_storage_manifest_path) { true }
+
+    allow(s3m).to receive(:upload_file)
+      .with(arxiv_s3_key, arxiv_manifest_path) { true }
+
+    allow(s3m).to receive(:_upload_file)
+      .with(bucket: asif_bucket, s3_key: td_s3_key, file: td_storage_manifest_path) { true }
+
+    allow(s3m).to receive(:_upload_file)
+      .with(bucket: asif_bucket, s3_key: td2_s3_key, file: td2_storage_manifest_path) { true }
+
+    allow(s3m).to receive(:_upload_file)
+      .with(bucket: asif_bucket, s3_key: arxiv_s3_key, file: arxiv_manifest_path) { true }
+
+    s3m
+  end
   let(:ingest_date) { '2020-09-08' }
   let(:sfs_prefix) { File.join(File.dirname(__FILE__), 'resources', 'manifest_deployer') }
   let(:source_path) { File.join(File.dirname(__FILE__), 'resources', 'data', 'test_depositor', 'test_collection') }
@@ -106,7 +154,8 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
     @deployer = Manifests::CollectionManifestDeployer.new(manifests_path: man_of_man, s3_manager: s3_manager,
                                                           manifest_validator: manifest_validator,
                                                           file_identifier: file_identifier,
-                                                          sfs_prefix: sfs_prefix)
+                                                          sfs_prefix: sfs_prefix,
+                                                          wasabi_manager: wasabi_manager)
     allow(FileUtils).to receive(:copy)
       .with(td_storage_manifest_path,
             '/cul/data/archivalxx/test_depositor/test_collection/_EM_test_depositor_test_collection.json') { nil }
@@ -174,7 +223,8 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
                                                           ingest_manifest_path: td_ingest_manifest_path,
                                                           ingest_date: ingest_date)
       manifest_definition = @deployer.prepare_manifest_definition(manifest_parameters: manifest_params)
-      @deployer.deploy_collection_manifest(manifest_def: manifest_definition, collection_manifest: td_storage_manifest_path)
+      @deployer.deploy_collection_manifest(manifest_def: manifest_definition,
+                                           collection_manifest: td_storage_manifest_path)
       expect(s3_manager).to have_received(:upload_file).exactly(1).times
       mom = get_mom(man_of_man)
       expect(mom[0][:sha1]).to eq(new_manifest_sha1)
@@ -188,7 +238,8 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
                                                           ingest_date: ingest_date,
                                                           sfs: 'archivalyy')
       manifest_definition = @deployer.prepare_manifest_definition(manifest_parameters: manifest_params)
-      @deployer.deploy_collection_manifest(manifest_def: manifest_definition, collection_manifest: td2_storage_manifest_path)
+      @deployer.deploy_collection_manifest(manifest_def: manifest_definition,
+                                           collection_manifest: td2_storage_manifest_path)
       expect(s3_manager).to have_received(:upload_file).exactly(1).times
       mom = get_mom(man_of_man)
       expect(mom.size).to eq(2)

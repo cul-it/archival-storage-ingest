@@ -50,7 +50,13 @@ class S3Manager # rubocop:disable Metrics/ClassLength
   end
 
   def upload_file(s3_key, file_to_upload)
-    _upload_file(bucket: @s3_bucket, s3_key: s3_key, file: file_to_upload)
+    errors = []
+    @max_retry.times do
+      return if _upload_file(bucket: @s3_bucket, s3_key: s3_key, file: file_to_upload)
+    rescue IngestException => e
+      errors << e
+    end
+    raise IngestException, "S3 upload_file failed for #{s3_key}:\n".errors.join("\n")
   end
 
   def upload_asif_manifest(s3_key:, manifest_file:)

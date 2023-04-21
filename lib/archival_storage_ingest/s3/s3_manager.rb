@@ -52,8 +52,13 @@ class S3Manager # rubocop:disable Metrics/ClassLength
   def upload_file(s3_key, file_to_upload)
     errors = []
     @max_retry.times do
-      return if _upload_file(bucket: @s3_bucket, s3_key: s3_key, file: file_to_upload)
+      return true if _upload_file(bucket: @s3_bucket, s3_key: s3_key, file: file_to_upload)
+
+      # wait if _upload_file returns false
+      sleep(RETRY_INTERVAL)
     rescue IngestException => e
+      # wait if _upload_file throws exception
+      sleep(RETRY_INTERVAL)
       errors << e
     end
     raise IngestException, "S3 upload_file failed for #{s3_key}:\n".errors.join("\n")

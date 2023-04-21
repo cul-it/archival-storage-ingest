@@ -13,7 +13,7 @@ class MigrationStorageManifestDeployer < BaseManifestDeployer
   def _manifest_deployer
     Manifests::MigrationCollectionManifestDeployer.new(manifests_path: manifest_of_manifests, s3_manager: s3_manager,
                                                        sfs_prefix: sfs_prefix, manifest_validator: manifest_validator,
-                                                       file_identifier: file_identifier)
+                                                       file_identifier: file_identifier, wasabi_manager: wasabi_manager)
   end
 
   def deploy_manifest(manifest_parameters:, dry_run: false)

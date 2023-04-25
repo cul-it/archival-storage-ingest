@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'archival_storage_ingest/exception/IngestException'
+require 'archival_storage_ingest/exception/ingest_exception'
 require 'aws-sdk-ssm'
 require 'net/http'
 require 'opensearch'

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/exception/IngestException'
 require 'aws-sdk-ssm'
 require 'net/http'
 require 'opensearch'
@@ -9,6 +10,7 @@ module ArchivalStorageIngestLogger
   INDEX_TYPE_INGEST = 'ingest'
   INDEX_TYPE_PERIODIC_FIXITY = 'periodic_fixity'
   MAX_RETRY = 3
+  RETRY_INTERVAL = 60
 
   def self.get_application_logger(stage:, index_type:, use_lambda_logger: false)
     if use_lambda_logger
@@ -34,14 +36,12 @@ module ArchivalStorageIngestLogger
     end
 
     def log(log_document)
-      retry_count = 0
       MAX_RETRY.times do
         return _log(log_document)
-
       rescue StandardError
-        retry_count += 1
-        raise if retry_count > 2
+        sleep(RETRY_INTERVAL)
       end
+      raise IngestException, "Failed to write application log after #{MAX_RETRY} attempts"
     end
 
     def _log(_log_document); end

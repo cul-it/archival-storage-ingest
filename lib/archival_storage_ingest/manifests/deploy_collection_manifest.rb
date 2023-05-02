@@ -122,6 +122,12 @@ module Manifests
   end
 
   class MigrationCollectionManifestDeployer < CollectionManifestDeployer
+    def prepare_collection_manifest(manifest_parameters:)
+      manifest = super
+      manifest.documentation = manifest_parameters.ingest_manifest.documentation
+      manifest
+    end
+
     # We want to preserve ingest date from ingest manifest
     def populate_manifest_data(manifest_parameters:)
       add_ingest_date(storage_manifest: manifest_parameters.storage_manifest,

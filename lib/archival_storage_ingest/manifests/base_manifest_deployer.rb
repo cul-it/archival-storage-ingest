@@ -49,8 +49,8 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
   end
 
   def _file_identifier
-    Manifests::FileIdentifier.new(java_path: java_path, tika_path: tika_path,
-                                  sfs_prefix: sfs_prefix)
+    Manifests::FileIdentifier.new(java_path:, tika_path:,
+                                  sfs_prefix:)
   end
 
   def manifest_of_manifests
@@ -135,7 +135,7 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
   end
 
   def _manifest_validator
-    Manifests::ManifestValidator.new(storage_schema: storage_schema, ingest_schema: ingest_schema)
+    Manifests::ManifestValidator.new(storage_schema:, ingest_schema:)
   end
 
   def skip_data_addition
@@ -143,7 +143,7 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
   end
 
   def _skip_data_addition
-    skip_data_addition.nil? || skip_data_addition != 'true' ? false : true
+    !(skip_data_addition.nil? || skip_data_addition != 'true')
   end
 
   def manifest_deployer
@@ -178,15 +178,15 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
   end
 
   def _archive_size
-    ArchiveSize::ArchiveSize.new(archives: archives, s3_manager: s3_manager)
+    ArchiveSize::ArchiveSize.new(archives:, s3_manager:)
   end
 
   def deploy_manifest(manifest_parameters:)
     # This step will finalize storage manifest object and file pointed by the manifest parameters.
-    manifest_deployer.prepare_collection_manifest(manifest_parameters: manifest_parameters)
-    manifest_definition = manifest_deployer.prepare_manifest_definition(manifest_parameters: manifest_parameters)
+    manifest_deployer.prepare_collection_manifest(manifest_parameters:)
+    manifest_definition = manifest_deployer.prepare_manifest_definition(manifest_parameters:)
 
-    describe_and_confirm_deployment(manifest_deployer: manifest_deployer, manifest_definition: manifest_definition)
+    describe_and_confirm_deployment(manifest_deployer:, manifest_definition:)
 
     manifest_deployer.deploy_collection_manifest(manifest_def: manifest_definition,
                                                  collection_manifest: manifest_parameters.storage_manifest_path)

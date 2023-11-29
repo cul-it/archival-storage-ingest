@@ -79,11 +79,11 @@ module IngestMessage
 
     def to_hash
       {
-        type: type, job_id: job_id,
-        dest_path: dest_path, depositor: depositor,
-        collection: collection, ingest_manifest: ingest_manifest,
-        ticket_id: ticket_id, package: package, steward: steward,
-        extract_dir: extract_dir, log: log, worker: worker
+        type:, job_id:,
+        dest_path:, depositor:,
+        collection:, ingest_manifest:,
+        ticket_id:, package:, steward:,
+        extract_dir:, log:, worker:
       }.compact
     end
 

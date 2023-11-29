@@ -9,7 +9,7 @@ require 'archival_storage_ingest/workers/fixity_worker'
 require 'archival_storage_ingest/workers/worker'
 
 # TODO: Refactor tests so that variables are defined locally to their use as much as possible.
-RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'FixityWorker' do
   let(:manifest_dir) { File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'manifest') }
   let(:job_id) { 'test_1234' }
   let(:depositor) { 'RMC/RMA' }
@@ -19,10 +19,10 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
   end
   let(:msg) do
     IngestMessage::SQSMessage.new(
-      job_id: job_id,
+      job_id:,
       dest_path: dest_path.to_s,
-      depositor: depositor,
-      collection: collection
+      depositor:,
+      collection:
     )
   end
   let(:expected_old_ingest_hash) do
@@ -42,7 +42,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
   let(:ingest_manifest_hash) do
     {
       collection_id: collection,
-      depositor: depositor,
+      depositor:,
       number_packages: 1,
       packages: [
         {
@@ -114,11 +114,11 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
     s3m = S3Manager.new('bogus_bucket')
 
     allow(s3m).to receive(:upload_string)
-      .with(".manifest/#{job_id}_s3.json", fixity_manifest_hash.to_json) { true }
+      .with(".manifest/#{job_id}_s3.json", fixity_manifest_hash.to_json).and_return(true)
     # .with(".manifest/#{job_id}_s3.json", expected_hash.to_json) { true }
 
     allow(s3m).to receive(:upload_string)
-      .with(".manifest/#{job_id}_sfs.json", fixity_manifest_hash.to_json) { true }
+      .with(".manifest/#{job_id}_sfs.json", fixity_manifest_hash.to_json).and_return(true)
     # .with(".manifest/#{job_id}_sfs.json", expected_hash.to_json) { true }
 
     allow(s3m).to receive(:upload_file)
@@ -138,10 +138,10 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
     end
 
     allow(s3m).to receive(:calculate_checksum)
-      .with("#{depositor}/#{collection}/1/one.zip") { ['c19ed993b201bd33b3765c3f6ec59bd39f995629', 168] }
+      .with("#{depositor}/#{collection}/1/one.zip").and_return(['c19ed993b201bd33b3765c3f6ec59bd39f995629', 168])
 
     allow(s3m).to receive(:calculate_checksum)
-      .with("#{depositor}/#{collection}/2/two.zip") { ['86c6167b8a8245a699a5735a3c56890421c28689', 168] }
+      .with("#{depositor}/#{collection}/2/two.zip").and_return(['86c6167b8a8245a699a5735a3c56890421c28689', 168])
 
     allow(s3m).to receive(:manifest_key).with(any_args).and_call_original
     ingest_manifest_s3_key = s3m.manifest_key(job_id, Workers::TYPE_INGEST)
@@ -154,7 +154,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
 
   let(:application_logger) { spy('application_logger') }
 
-  describe 'IngestS3FixityGenerator' do # rubocop:disable Metrics/BlockLength
+  describe 'IngestS3FixityGenerator' do
     let(:worker) do
       ArchivalStorageIngest.configure do |config|
         config.logger = Logger.new($stdout)
@@ -164,8 +164,8 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
     end
 
     context 'when doing work' do
-      it 'should upload manifest' do
-        expect(worker.work(msg)).to eq(true)
+      it 'uploads manifest' do
+        expect(worker.work(msg)).to be(true)
 
         expect(s3_manager).to have_received(:upload_string).once
       end
@@ -181,7 +181,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
     context 'when generating periodic manifest' do
       it 'returns manifest for objects in s3 listing' do
         allow(s3_manager).to receive(:calculate_checksum)
-          .with("#{depositor}/#{collection}/3/two.zip") { ['86c6167b8a8245a699a5735a3c56890421c28689', 168] }
+          .with("#{depositor}/#{collection}/3/two.zip").and_return(['86c6167b8a8245a699a5735a3c56890421c28689', 168])
         periodic_worker = FixityWorker::PeriodicFixityS3Generator.new(application_logger, s3_manager)
         manifest = periodic_worker.generate_manifest(msg)
         expect(manifest.to_json_fixity).to eq(periodic_fixity_manifest_hash.to_json)
@@ -189,7 +189,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
     end
   end
 
-  describe 'IngestSFSFixityGenerator' do # rubocop:disable Metrics/BlockLength
+  describe 'IngestSFSFixityGenerator' do
     let(:worker) do
       ArchivalStorageIngest.configure do |config|
         config.logger = Logger.new($stdout)
@@ -199,8 +199,8 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
     end
 
     context 'when doing work' do
-      it 'should upload manifest' do
-        expect(worker.work(msg)).to eq(true)
+      it 'uploads manifest' do
+        expect(worker.work(msg)).to be(true)
 
         expect(s3_manager).to have_received(:upload_string).once
       end
@@ -214,7 +214,7 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
     end
 
     context 'when calculating checksum' do
-      it 'should return checksum hex' do
+      it 'returns checksum hex' do
         (sha1, size) = worker.calculate_checksum('1/one.zip', msg)
         expect(sha1).to eq('c19ed993b201bd33b3765c3f6ec59bd39f995629')
         expect(size).to eq(168)
@@ -234,10 +234,10 @@ RSpec.describe 'FixityWorker' do # rubocop:disable Metrics/BlockLength
         second_dest_path = File.join(File.dirname(__FILE__), 'resources',
                                      'fixity_workers', 'sfs', 'archival02', depositor, collection)
         periodic_msg = IngestMessage::SQSMessage.new(
-          job_id: job_id,
+          job_id:,
           dest_path: "#{dest_path},#{second_dest_path}",
-          depositor: depositor,
-          collection: collection
+          depositor:,
+          collection:
         )
         periodic_worker = FixityWorker::PeriodicFixitySFSGenerator.new(application_logger, s3_manager)
         manifest = periodic_worker.generate_manifest(periodic_msg)

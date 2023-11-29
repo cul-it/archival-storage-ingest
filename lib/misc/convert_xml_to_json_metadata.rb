@@ -27,9 +27,9 @@ module ConvertXmlToJsonMetadata
       end
     end
 
-    def walk_xml(xml, &block)
+    def walk_xml(xml, &)
       doc = File.open(xml) { |f| Nokogiri::XML(f) }
-      doc.css('dfxml fileobject').each(&block)
+      doc.css('dfxml fileobject').each(&)
     end
 
     def generate_skeleton_json_data

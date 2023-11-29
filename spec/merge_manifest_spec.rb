@@ -5,13 +5,13 @@ require 'misc/merge_manifest'
 require 'archival_storage_ingest/manifests/manifest_merger'
 require 'archival_storage_ingest/workers/fixity_worker'
 
-RSpec.describe 'MergeManifest' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'MergeManifest' do
   let(:depositor) { 'RMC/RMA' }
   let(:collection_id) { 'RMA01234' }
   let(:ingest_manifest_hash) do
     {
-      collection_id: collection_id,
-      depositor: depositor,
+      collection_id:,
+      depositor:,
       number_packages: 1,
       packages: [
         {
@@ -39,7 +39,7 @@ RSpec.describe 'MergeManifest' do # rubocop:disable Metrics/BlockLength
     File.join(File.dirname(__FILE__), 'resources', 'm2m', 'merged_ingest_manifest.json')
   end
 
-  before(:each) do
+  before do
     @storage_manifest = Manifests::Manifest.new
     @ingest_manifest = Manifests::Manifest.new(json_text: ingest_manifest_hash.to_json)
   end
@@ -66,19 +66,19 @@ RSpec.describe 'MergeManifest' do # rubocop:disable Metrics/BlockLength
   context 'when merging m2m ingest manifests' do
     it 'creates merged single ingest manifest' do
       manifest_merger = Manifests::M2MManifestMerger.new
-      merged_ingest_manifest = manifest_merger.merge_all_ingest_manifests(ingest_manifest_store: ingest_manifest_store)
+      merged_ingest_manifest = manifest_merger.merge_all_ingest_manifests(ingest_manifest_store:)
       expected = Manifests.read_manifest(filename: expected_merged_ingest_manifest)
       diff = merged_ingest_manifest.fixity_diff(expected)
-      expect(diff[:ingest].empty?).to eq(true)
-      expect(diff[:other].empty?).to eq(true)
+      expect(diff[:ingest].empty?).to be(true)
+      expect(diff[:other].empty?).to be(true)
     end
   end
 end
 
-RSpec.describe 'MergeManifest' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'MergeManifest' do
   let(:ingest_manifest) { File.join(File.dirname(__FILE__), 'resources', 'misc', 'ingest_manifest.json') }
   let(:collection_manifest) { File.join(File.dirname(__FILE__), 'resources', 'misc', 'collection_manifest.json') }
-  let(:expected_json) do # rubocop:disable Metrics/BlockLength
+  let(:expected_json) do
     json_data = {
       'RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records' => {
         'phys_coll_id' => 'RMA02471',
@@ -87,13 +87,13 @@ RSpec.describe 'MergeManifest' do # rubocop:disable Metrics/BlockLength
         'locations' => {
           's3' => [
             {
-              'uri': 's3://s3-cular/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records'
+              uri: 's3://s3-cular/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records'
             }
           ],
           'sfs' => [
             {
-              'uri': 'smb://files.cornell.edu/lib/archival02/RMC/' \
-                     'RMA/RMA03487_Cornell_University_Facilities_Construction_Records'
+              uri: 'smb://files.cornell.edu/lib/archival02/RMC/' \
+                   'RMA/RMA03487_Cornell_University_Facilities_Construction_Records'
             }
           ]
         },

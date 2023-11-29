@@ -7,7 +7,7 @@ require 'archival_storage_ingest/manifests/manifest_of_manifests'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/workers/fixity_compare_worker'
 
-RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
+RSpec.describe 'FixityCheckWorker' do
   subject(:worker) { FixityCompareWorker::ManifestComparator.new(application_logger, s3_manager) }
 
   let(:application_logger) { spy('application_logger') }
@@ -62,6 +62,7 @@ RSpec.describe 'FixityCheckWorker' do # rubocop: disable Metrics/BlockLength
 
       expect(worker.work(msg)).to be_falsey
     end
+
     it 'no sfs diff makes it exit with a false result' do
       setup_manifests(full10, nil)
 
@@ -130,6 +131,7 @@ RSpec.describe 'ManifestOfManifests' do
     File.join(File.dirname(__FILE__), ['resources', 'preingest', 'periodic_fixity', filename])
   end
   let(:man_of_mans) { resource('manifest_of_manifests.json') }
+
   context 'when finding manifest' do
     it 'returns manifest definition if corresponding depositor collection entry is found' do
       mom = Manifests::ManifestOfManifests.new(man_of_mans)
@@ -139,8 +141,12 @@ RSpec.describe 'ManifestOfManifests' do
   end
 end
 
-RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLength
+RSpec.describe 'PeriodicFixityComparator' do
   let(:queuer) { spy('queuer') }
+  let(:dir_to_clean) do
+    periodic_fixity_root = resource('root')
+    File.join(periodic_fixity_root, 'test_depositor_next')
+  end
   let(:s3_bucket) { 'bogus_bucket' }
   let(:s3_manager) do
     s3 = S3Manager.new(s3_bucket)
@@ -179,12 +185,12 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
     periodic_fixity_root = resource('root')
     sfs_root = File.join(File.dirname(__FILE__), %w[resources preingest])
     FixityCompareWorker::PeriodicFixityComparator.new(
-      application_logger: application_logger,
-      s3_manager: s3_manager,
-      manifest_dir: manifest_dir,
-      man_of_mans: man_of_mans,
-      periodic_fixity_root: periodic_fixity_root,
-      sfs_root: sfs_root,
+      application_logger:,
+      s3_manager:,
+      manifest_dir:,
+      man_of_mans:,
+      periodic_fixity_root:,
+      sfs_root:,
       relay_queue_name: queue_periodic_fixity
     )
   end
@@ -215,7 +221,7 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
   end
 
   def setup_next_manifest(man, key, dest_path)
-    allow(s3_manager).to receive(:download_file).with(s3_key: key, dest_path: dest_path).and_return(man)
+    allow(s3_manager).to receive(:download_file).with(s3_key: key, dest_path:).and_return(man)
   end
 
   # rubocop: disable Metrics/AbcSize
@@ -229,14 +235,8 @@ RSpec.describe 'PeriodicFixityComparator' do # rubocop: disable Metrics/BlockLen
                                                      .and_return(['eea594dee92e310255fd618e778889376b0cbf2a', 1175])
     allow(s3_manager).to receive(:delete_object).with(s3_key: ingest_man_key).and_return true
   end
-  # rubocop: enable Metrics/AbcSize
 
-  let(:dir_to_clean) do
-    periodic_fixity_root = resource('root')
-    File.join(periodic_fixity_root, 'test_depositor_next')
-  end
-
-  after(:each) do
+  after do
     FileUtils.remove_dir(dir_to_clean)
   end
 

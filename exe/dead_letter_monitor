@@ -8,7 +8,7 @@ require 'archival_storage_ingest/monitor/dead_letter_monitor'
 
 ArchivalStorageIngest.configure do |config|
   config.log_path = ENV['asi_dead_letter_monitor_log_path'] ||
-                    "#{ENV['default_cular_log_path']}/dead_letter_monitor.log"
+                    "#{ENV.fetch('default_cular_log_path', nil)}/dead_letter_monitor.log"
 end
 
 dead_letter_queues =
@@ -39,5 +39,5 @@ dead_letter_queues =
     ]
   end
 
-dead_letter_monitor = DeadLetterMonitor::DeadLetterMonitor.new(dead_letter_queues: dead_letter_queues)
+dead_letter_monitor = DeadLetterMonitor::DeadLetterMonitor.new(dead_letter_queues:)
 dead_letter_monitor.check_dead_letter_queues

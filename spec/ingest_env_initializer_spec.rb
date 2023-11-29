@@ -8,7 +8,7 @@ require 'json_schemer'
 require 'rspec'
 require 'yaml'
 
-RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'IngestEnvInitializer' do
   let(:depositor) { 'test_depositor' }
   let(:collection) { 'test_collection' }
   let(:base_dir) { File.dirname(__FILE__) }
@@ -48,28 +48,28 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
     File.join(base_dir, 'resources', 'schema', 'manifest_schema_ingest.json')
   end
   let(:manifest_validator) do
-    Manifests::ManifestValidator.new(ingest_schema: ingest_schema,
-                                     storage_schema: storage_schema)
+    Manifests::ManifestValidator.new(ingest_schema:,
+                                     storage_schema:)
   end
   let(:file_identifier) do
     fi = Manifests::FileIdentifier.new(sfs_prefix: 'bogus')
-    allow(fi).to receive(:identify_from_source).with(any_args) { 'text/plain' }
-    allow(fi).to receive(:identify_from_storage).with(any_args) { 'text/plain' }
+    allow(fi).to receive(:identify_from_source).with(any_args).and_return('text/plain')
+    allow(fi).to receive(:identify_from_storage).with(any_args).and_return('text/plain')
     fi
   end
 
-  after(:each) do
+  after do
     FileUtils.remove_dir(dir_to_clean)
   end
 
-  context 'when initializing ingest env' do # rubocop:disable Metrics/BlockLength
-    it 'creates ingest env' do # rubocop:disable Metrics/BlockLength
-      env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root,
-                                                            manifest_validator: manifest_validator,
-                                                            file_identifier: file_identifier)
-      env_initializer.initialize_ingest_env(data: data, cmf: collection_manifest, imf: ingest_manifest,
-                                            sfs_location: sfs_location, ticket_id: ticket_id,
-                                            depositor: depositor, collection_id: collection)
+  context 'when initializing ingest env' do
+    it 'creates ingest env' do
+      env_initializer = Preingest::IngestEnvInitializer.new(ingest_root:, sfs_root:,
+                                                            manifest_validator:,
+                                                            file_identifier:)
+      env_initializer.initialize_ingest_env(data:, cmf: collection_manifest, imf: ingest_manifest,
+                                            sfs_location:, ticket_id:,
+                                            depositor:, collection_id: collection)
       got_path = File.join(ingest_root, depositor, collection)
       got_manifest_path = File.join(got_path, 'manifest')
 
@@ -122,14 +122,14 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
 
   context 'when initializing ingest env without collection manifest' do
     it 'creates ingest env without merged collection manifest' do
-      env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root,
-                                                            manifest_validator: manifest_validator,
-                                                            file_identifier: file_identifier)
-      env_initializer.initialize_ingest_env(data: data, cmf: 'none', imf: ingest_manifest,
-                                            sfs_location: sfs_location, ticket_id: ticket_id,
-                                            depositor: depositor, collection_id: collection)
+      env_initializer = Preingest::IngestEnvInitializer.new(ingest_root:, sfs_root:,
+                                                            manifest_validator:,
+                                                            file_identifier:)
+      env_initializer.initialize_ingest_env(data:, cmf: 'none', imf: ingest_manifest,
+                                            sfs_location:, ticket_id:,
+                                            depositor:, collection_id: collection)
       collection_manifest = File.join(ingest_root, 'manifest', 'collection_manifest', '_EM_collection_manifest.json')
-      expect(File.exist?(collection_manifest)).to eq(false)
+      expect(File.exist?(collection_manifest)).to be(false)
     end
   end
 end

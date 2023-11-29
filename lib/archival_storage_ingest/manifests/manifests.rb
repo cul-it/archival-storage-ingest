@@ -17,12 +17,12 @@ module Manifests
 
   def self.read_manifest(filename:)
     json_io = File.open(filename)
-    read_manifest_io(json_io: json_io)
+    read_manifest_io(json_io:)
   end
 
   def self.read_manifest_io(json_io:)
     json_text = json_io.read
-    Manifests::Manifest.new(json_text: json_text)
+    Manifests::Manifest.new(json_text:)
   end
 
   def self.diff_hash(flattened_a, flattened_b)
@@ -54,7 +54,7 @@ module Manifests
       @locations = [] if @locations.nil?
       @packages = if json_hash[:packages]
                     json_hash[:packages].map do |package|
-                      Manifests::Package.new(package: package)
+                      Manifests::Package.new(package:)
                     end
                   else
                     []
@@ -63,7 +63,7 @@ module Manifests
 
     def add_package(package:)
       package_id = package.package_id
-      if get_package(package_id: package_id)
+      if get_package(package_id:)
         raise IngestException,
               "Package id #{package_id} already exists and can't be added."
       end
@@ -76,7 +76,7 @@ module Manifests
     end
 
     def add_filepath(package_id:, filepath:, sha1:, size:)
-      get_package(package_id: package_id).add_file_entry(filepath: filepath, sha1: sha1, size: size)
+      get_package(package_id:).add_file_entry(filepath:, sha1:, size:)
     end
 
     # not sure how/when we would use this function, yet
@@ -86,17 +86,17 @@ module Manifests
       packages.find { |package| package.package_id == package_id }
     end
 
-    def walk_packages(&block)
-      packages.each(&block)
+    def walk_packages(&)
+      packages.each(&)
     end
 
     def walk_filepath(package_id:, &block)
-      get_package(package_id: package_id).walk_files(&block)
+      get_package(package_id:).walk_files(&block)
     end
 
-    def walk_all_filepath(&block)
+    def walk_all_filepath(&)
       walk_packages do |package|
-        package.walk_files(&block)
+        package.walk_files(&)
       end
     end
 
@@ -140,9 +140,9 @@ module Manifests
 
     def to_json_ingest_hash
       IngestUtils.compact_blank({
-                                  depositor: depositor, collection_id: collection_id,
-                                  steward: steward, documentation: documentation,
-                                  number_packages: number_packages,
+                                  depositor:, collection_id:,
+                                  steward:, documentation:,
+                                  number_packages:,
                                   packages: packages.map(&:to_json_ingest)
                                 })
     end
@@ -153,9 +153,9 @@ module Manifests
 
     def to_json_storage_hash
       IngestUtils.compact_blank({
-                                  depositor: depositor, collection_id: collection_id,
-                                  steward: steward, documentation: documentation,
-                                  locations: locations, number_packages: number_packages,
+                                  depositor:, collection_id:,
+                                  steward:, documentation:,
+                                  locations:, number_packages:,
                                   packages: packages.map(&:to_json_hash_storage)
                                 })
     end
@@ -225,12 +225,12 @@ module Manifests
       @source_path = package[:source_path]
       @bibid = package[:bibid]
       @local_id = package[:local_id]
-      @files = package[:files] ? package[:files].map { |file| Manifests::FileEntry.new(file: file) } : []
+      @files = package[:files] ? package[:files].map { |file| Manifests::FileEntry.new(file:) } : []
       @number_files = package[:number_files] || files.length
     end
 
     def add_file_entry(filepath:, sha1:, size:, md5: nil)
-      file_hash = { filepath: filepath, sha1: sha1, md5: md5, size: size }
+      file_hash = { filepath:, sha1:, md5:, size: }
       add_file(file: FileEntry.new(file: file_hash))
     end
 
@@ -240,8 +240,8 @@ module Manifests
       file
     end
 
-    def walk_files(&block)
-      files.each(&block)
+    def walk_files(&)
+      files.each(&)
     end
 
     def find_file(filepath:)
@@ -252,14 +252,14 @@ module Manifests
     end
 
     def update_file_entry(filepath:, sha1:, size:, md5: nil)
-      file_hash = { filepath: filepath, sha1: sha1, md5: md5, size: size }
+      file_hash = { filepath:, sha1:, md5:, size: }
       update_file(file: FileEntry.new(file: file_hash))
     end
 
     def update_file(file:)
       file_to_update = find_file(filepath: file.filepath)
       if file_to_update.nil?
-        file_to_update = add_file(file: file)
+        file_to_update = add_file(file:)
       else
         file_to_update.sha1 = file.sha1
         file_to_update.size = file.size
@@ -285,28 +285,28 @@ module Manifests
 
     def to_json_hash_storage
       IngestUtils.compact_blank({
-                                  package_id: package_id,
-                                  bibid: bibid,
-                                  local_id: local_id,
-                                  number_files: number_files,
+                                  package_id:,
+                                  bibid:,
+                                  local_id:,
+                                  number_files:,
                                   files: files.map(&:to_json_hash_storage)
                                 })
     end
 
     def to_json_ingest
       IngestUtils.compact_blank({
-                                  package_id: package_id,
-                                  source_path: source_path,
-                                  bibid: bibid,
-                                  local_id: local_id,
-                                  number_files: number_files,
+                                  package_id:,
+                                  source_path:,
+                                  bibid:,
+                                  local_id:,
+                                  number_files:,
                                   files: files.map(&:to_json_hash)
                                 })
     end
 
     def to_json_fixity
       {
-        package_id: package_id,
+        package_id:,
         files: files.map(&:to_fixity_json_hash)
       }
     end
@@ -338,8 +338,8 @@ module Manifests
 
     def list_checksum_info
       IngestUtils.compact_blank({
-                                  sha1: sha1,
-                                  md5: md5
+                                  sha1:,
+                                  md5:
                                 })
     end
 
@@ -376,32 +376,32 @@ module Manifests
 
     def to_json_hash_storage
       IngestUtils.compact_blank({
-                                  filepath: filepath,
-                                  sha1: sha1,
-                                  md5: md5,
-                                  size: size,
-                                  ingest_date: ingest_date,
-                                  tool_version: tool_version,
-                                  media_type: media_type
+                                  filepath:,
+                                  sha1:,
+                                  md5:,
+                                  size:,
+                                  ingest_date:,
+                                  tool_version:,
+                                  media_type:
                                 })
     end
 
     def to_json_hash
       IngestUtils.compact_blank({
-                                  filepath: filepath,
-                                  sha1: sha1,
-                                  md5: md5,
-                                  size: size,
-                                  tool_version: tool_version,
-                                  media_type: media_type
+                                  filepath:,
+                                  sha1:,
+                                  md5:,
+                                  size:,
+                                  tool_version:,
+                                  media_type:
                                 })
     end
 
     def to_fixity_json_hash
       IngestUtils.compact_blank({
-                                  filepath: filepath,
-                                  sha1: sha1,
-                                  size: size
+                                  filepath:,
+                                  sha1:,
+                                  size:
                                 })
     end
   end
@@ -470,15 +470,15 @@ module Manifests
       abs_path = File.join(ingest_package.source_path, file.filepath)
       raise IngestException, "Failed to identify file #{file.filepath}" unless File.exist?(abs_path)
 
-      _identify(abs_path: abs_path)
+      _identify(abs_path:)
     end
 
     def identify_from_storage(manifest:, file:)
-      abs_path = resolve_filepath(manifest: manifest, file: file)
+      abs_path = resolve_filepath(manifest:, file:)
       # resolve_filepath only returns valid abs_path if file exists
       raise IngestException, "Failed to identify file #{file.filepath}" if abs_path.nil?
 
-      _identify(abs_path: abs_path)
+      _identify(abs_path:)
     end
 
     def _identify(abs_path:)

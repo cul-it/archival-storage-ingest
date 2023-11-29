@@ -10,6 +10,6 @@ ingest_manifest_file = ARGV[1]
 ingest_manifest = Manifests.read_manifest(filename: ingest_manifest_file)
 
 mm = Manifests::ManifestMerger.new
-merged_manifest = mm.merge_manifests(storage_manifest: collection_manifest, ingest_manifest: ingest_manifest)
+merged_manifest = mm.merge_manifests(storage_manifest: collection_manifest, ingest_manifest:)
 json_to_store = JSON.pretty_generate(merged_manifest.to_json_storage_hash)
-File.open("#{collection_manifest_file}.merged", 'w') { |file| file.write(json_to_store) }
+File.write("#{collection_manifest_file}.merged", json_to_store)

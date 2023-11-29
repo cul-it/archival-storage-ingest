@@ -6,7 +6,7 @@ require 'pathname'
 require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/workers/transfer_worker'
 
-RSpec.shared_examples 'transfer_worker_shared_examples' do # rubocop:disable Metrics/BlockLength
+RSpec.shared_context 'transfer_worker_shared_examples' do
   let(:dest_path) do
     File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'sfs', 'archival01', 'RMC', 'RMA', 'RMA0001234')
   end
@@ -21,10 +21,10 @@ RSpec.shared_examples 'transfer_worker_shared_examples' do # rubocop:disable Met
   end
   let(:success_msg) do
     IngestMessage::SQSMessage.new(
-      job_id: job_id,
+      job_id:,
       dest_path: dest_path.to_s,
-      depositor: depositor,
-      collection: collection,
+      depositor:,
+      collection:,
       ingest_manifest: success_ingest_manifest
     )
   end
@@ -53,29 +53,30 @@ def ingest_manifest_io(manifest_path:, replace_path:)
   StringIO.new(str_manifest.gsub('REPLACE_ME', replace_path))
 end
 
-RSpec.describe 'S3TransferWorker' do # rubocop:disable Metrics/BlockLength
-  include_examples 'transfer_worker_shared_examples'
-  before(:each) do
+RSpec.describe 'S3TransferWorker' do
+  before do
     @s3_bucket = spy('s3_bucket')
     @s3_manager = spy('s3_manager')
     @application_logger = spy('application_logger')
     @s3_worker = TransferWorker::S3Transferer.new(@application_logger, @s3_manager)
 
     allow(@s3_manager).to receive(:upload_file)
-      .with("#{depositor}/#{collection}/1/resource1.txt", anything) { true }
+      .with("#{depositor}/#{collection}/1/resource1.txt", anything).and_return(true)
     allow(@s3_manager).to receive(:upload_file)
-      .with("#{depositor}/#{collection}/2/resource2.txt", anything) { true }
+      .with("#{depositor}/#{collection}/2/resource2.txt", anything).and_return(true)
     allow(@s3_manager).to receive(:upload_file)
       .with("#{depositor}/#{collection}/3/resource3.txt", anything)
       .and_raise(IngestException, 'Test error message')
     allow(@s3_manager).to receive(:upload_file)
-      .with("#{depositor}/#{collection}/4/resource4.txt", anything) { true }
+      .with("#{depositor}/#{collection}/4/resource4.txt", anything).and_return(true)
     allow(@s3_manager).to receive(:upload_string)
       .with(any_args)
       .and_raise(IngestException, 'upload_string must not be called in this test!')
     allow(@s3_manager).to receive(:manifest_key)
       .with(job_id, Workers::TYPE_INGEST) { ingest_manifest_s3_key }
   end
+
+  include_examples 'transfer_worker_shared_examples'
 
   context 'when generating target' do
     it 'returns relative portion of file path as the key' do
@@ -86,7 +87,7 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable Metrics/BlockLength
           size: 10
         }
       )
-      expect(@s3_worker.target(msg: success_msg, file: file)).to eq(expected_s3_key)
+      expect(@s3_worker.target(msg: success_msg, file:)).to eq(expected_s3_key)
     end
   end
 
@@ -105,7 +106,7 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable Metrics/BlockLength
       allow(@s3_manager).to receive(:retrieve_file)
         .with(ingest_manifest_s3_key) { ingest_manifest }
 
-      expect(@s3_worker.work(success_msg)).to eq(true)
+      expect(@s3_worker.work(success_msg)).to be(true)
       expect(@s3_manager).to have_received(:upload_file).exactly(2).times
     end
   end
@@ -113,10 +114,10 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable Metrics/BlockLength
   context 'when doing failing work' do
     it 'raises error' do
       fail_msg = IngestMessage::SQSMessage.new(
-        job_id: job_id,
+        job_id:,
         dest_path: dest_path.to_s,
-        depositor: depositor,
-        collection: collection,
+        depositor:,
+        collection:,
         ingest_manifest: fail_ingest_manifest
       )
 
@@ -142,20 +143,19 @@ RSpec.describe 'S3TransferWorker' do # rubocop:disable Metrics/BlockLength
 
       symlink_msg = IngestMessage::SQSMessage.new(
         job_id: 'test_1234',
-        depositor: depositor,
-        collection: collection,
+        depositor:,
+        collection:,
         ingest_manifest: symlink_ingest_manifest
       )
-      expect(@s3_worker.work(symlink_msg)).to eq(true)
+      expect(@s3_worker.work(symlink_msg)).to be(true)
 
       expect(@s3_manager).to have_received(:upload_file).exactly(3).times
     end
   end
 end
 
-RSpec.describe 'SFSTransferWorker' do # rubocop:disable Metrics/BlockLength
-  include_examples 'transfer_worker_shared_examples'
-  before(:each) do
+RSpec.describe 'SFSTransferWorker' do
+  before do
     @s3_bucket = spy('s3_bucket')
     @s3_manager = spy('s3_manager')
     @application_logger = spy('application_logger')
@@ -170,16 +170,18 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable Metrics/BlockLength
     allow(@s3_manager).to receive(:manifest_key)
       .with(job_id, Workers::TYPE_INGEST) { ingest_manifest_s3_key }
 
-    allow(FileUtils).to receive(:mkdir_p).with("#{dest_path}/1") { nil }
-    allow(FileUtils).to receive(:mkdir_p).with("#{dest_path}/2") { nil }
-    allow(FileUtils).to receive(:mkdir_p).with("#{dest_path}/4") { nil }
+    allow(FileUtils).to receive(:mkdir_p).with("#{dest_path}/1").and_return(nil)
+    allow(FileUtils).to receive(:mkdir_p).with("#{dest_path}/2").and_return(nil)
+    allow(FileUtils).to receive(:mkdir_p).with("#{dest_path}/4").and_return(nil)
     allow(FileUtils).to receive(:copy)
-      .with("#{symlink_dir}/1/resource1.txt", "#{dest_path}/1/resource1.txt") { nil }
+      .with("#{symlink_dir}/1/resource1.txt", "#{dest_path}/1/resource1.txt").and_return(nil)
     allow(FileUtils).to receive(:copy)
-      .with("#{symlink_dir}/2/resource2.txt", "#{dest_path}/2/resource2.txt") { nil }
+      .with("#{symlink_dir}/2/resource2.txt", "#{dest_path}/2/resource2.txt").and_return(nil)
     allow(FileUtils).to receive(:copy)
-      .with("#{symlink_dir}/4/resource4.txt", "#{dest_path}/4/resource4.txt") { nil }
+      .with("#{symlink_dir}/4/resource4.txt", "#{dest_path}/4/resource4.txt").and_return(nil)
   end
+
+  include_examples 'transfer_worker_shared_examples'
 
   context 'when generating source' do
     it 'constructs correct source path' do
@@ -190,7 +192,7 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable Metrics/BlockLength
       package = im.packages[0]
       source_path = package.source_path
       file = package.files[0]
-      source = @sfs_worker.source(source_path: source_path, file: file)
+      source = @sfs_worker.source(source_path:, file:)
       expect(source).to eq("#{symlink_dir}/1/resource1.txt")
     end
   end
@@ -204,11 +206,11 @@ RSpec.describe 'SFSTransferWorker' do # rubocop:disable Metrics/BlockLength
       symlink_msg = IngestMessage::SQSMessage.new(
         job_id: 'test_1234',
         dest_path: dest_path.to_s,
-        depositor: depositor,
-        collection: collection,
+        depositor:,
+        collection:,
         ingest_manifest: symlink_ingest_manifest
       )
-      expect(@sfs_worker.work(symlink_msg)).to eq(true)
+      expect(@sfs_worker.work(symlink_msg)).to be(true)
       expect(FileUtils).to have_received(:mkdir_p).exactly(3).times
       expect(FileUtils).to have_received(:copy).exactly(3).times
     end

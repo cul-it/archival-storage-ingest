@@ -33,8 +33,8 @@ module Preingest
       _init_attrs(named_params.fetch(:imf))
       @source_path = named_params.fetch(:data)
       im_path = _initialize_ingest_manifest(named_params)
-      _initialize_collection_manifest(im_path: im_path, named_params: named_params)
-      _initialize_config(ingest_manifest_path: im_path, named_params: named_params)
+      _initialize_collection_manifest(im_path:, named_params:)
+      _initialize_config(ingest_manifest_path: im_path, named_params:)
     end
 
     def _init_attrs(manifest_path)
@@ -73,10 +73,10 @@ module Preingest
     end
 
     def _initialize_config(ingest_manifest_path:, named_params:)
-      ingest_config = generate_config(ingest_manifest_path: ingest_manifest_path, named_params: named_params)
+      ingest_config = generate_config(ingest_manifest_path:, named_params:)
       ingest_config_file = prepare_config_path
 
-      File.open(ingest_config_file, 'w') { |file| file.write(ingest_config.to_yaml) }
+      File.write(ingest_config_file, ingest_config.to_yaml)
     end
 
     def generate_config(ingest_manifest_path:, named_params:); end

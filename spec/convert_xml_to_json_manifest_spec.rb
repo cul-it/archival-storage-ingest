@@ -3,7 +3,7 @@
 require 'rspec'
 require 'archival_storage_ingest/manifests/convert_xml_to_json_manifest'
 
-RSpec.describe 'ConvertXmlToJsonMetadata' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'ConvertXmlToJsonMetadata' do
   # rubocop:disable Metrics/LineLength
   let(:hashdeep_manifest_file) { File.join(File.dirname(__FILE__), 'resources', 'manifests', 'hashdeep_manifest.xml') }
   let(:collection_manifest_file) { File.join(File.dirname(__FILE__), 'resources', 'manifests', 'hashdeep_collection_manifest.json') }
@@ -17,7 +17,7 @@ RSpec.describe 'ConvertXmlToJsonMetadata' do # rubocop:disable Metrics/BlockLeng
       collection_manifest = Manifests.read_manifest(filename: collection_manifest_file)
       manifest_response = cxtjm.generate_ingest_manifest(xml: hashdeep_manifest_file,
                                                          manifest: collection_manifest, depth: 2,
-                                                         source_path: source_path)
+                                                         source_path:)
       ingest_manifest = manifest_response.ingest_manifest
       overwrite_list = manifest_response.overwrite_list
       expected_ingest_manifest = Manifests.read_manifest(filename: ingest_manifest_file)

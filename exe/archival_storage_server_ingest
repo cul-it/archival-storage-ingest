@@ -9,7 +9,7 @@ require 'archival_storage_ingest/workers/ingest_worker'
 require 'archival_storage_ingest/logs/application_logger'
 
 ArchivalStorageIngest.configure do |config|
-  config.log_path = ENV['asi_ingest_log_path'] || "#{ENV['default_cular_log_path']}/ingest.log"
+  config.log_path = ENV['asi_ingest_log_path'] || "#{ENV.fetch('default_cular_log_path')}/ingest.log"
   config.dry_run = ENV['asi_ingest_dry_run'] || false
   config.polling_interval = ENV['asi_ingest_polling_interval'].to_i if ENV['asi_ingest_polling_interval']
   config.inhibit_file = ENV['asi_ingest_inhibit_file'] || '/cul/app/archival_storage_ingest/control/ingest.inhibit'
@@ -19,15 +19,16 @@ ArchivalStorageIngest.configure do |config|
   config_params = {
     queue_name: Queues::QUEUE_INGEST,
     dest_queue_names: [Queues::QUEUE_TRANSFER_S3, Queues::QUEUE_TRANSFER_SFS, Queues::QUEUE_TRANSFER_WASABI],
-    asi_develop: ENV['asi_develop'] || ENV['asi_ingest_develop'],
-    asi_sandbox: ENV['asi_sandbox'] || ENV['asi_ingest_sandbox']
+    asi_develop: ENV['asi_develop'] || ENV.fetch('asi_ingest_develop'),
+    asi_sandbox: ENV['asi_sandbox'] || ENV.fetch('asi_ingest_sandbox')
   }
   configure_helper = IngestUtils::ConfigureHelper.new(config_params)
   configure_helper.configure(config)
 
   index_type = ArchivalStorageIngestLogger::INDEX_TYPE_INGEST
-  application_logger = ArchivalStorageIngestLogger.get_application_logger(stage: config.stage, index_type: index_type,
-                                                                          use_lambda_logger: ENV['use_lambda_logger'])
+  application_logger = ArchivalStorageIngestLogger.get_application_logger(stage: config.stage, index_type:,
+                                                                          use_lambda_logger:
+                                                                          ENV.fetch('use_lambda_logger'))
   config.worker = IngestWorker.new(application_logger)
 end
 

@@ -17,7 +17,7 @@ module Preingest
     attr_reader :file_identifier, :manifest_validator
 
     def initialize(ingest_root:, sfs_root:, manifest_validator:, file_identifier:)
-      super(ingest_root: ingest_root, sfs_root: sfs_root)
+      super(ingest_root:, sfs_root:)
 
       @file_identifier = file_identifier
       @manifest_validator = manifest_validator
@@ -30,9 +30,9 @@ module Preingest
 
       unless depositor == named_params.fetch(:depositor) &&
              collection_id == named_params.fetch(:collection_id)
-        msg = "Depositor/Collection mismatch!\n" \
-              "  Given values: #{named_params.fetch(:depositor)}/#{named_params.fetch(:collection_id)}" \
-              "  Manifest values: #{depositor}/#{collection_id}"
+        msg = "Depositor/Collection mismatch!\n  " \
+              "Given values: #{named_params.fetch(:depositor)}/#{named_params.fetch(:collection_id)}  " \
+              "Manifest values: #{depositor}/#{collection_id}"
         raise IngestException, msg
       end
     end
@@ -40,23 +40,23 @@ module Preingest
     # Add data integrity check after copying ingest manifest to correct place
     def _initialize_ingest_manifest(named_params)
       im_path = super
-      manifest = _populate_missing_attribute(ingest_manifest: im_path, source_path: source_path)
+      manifest = _populate_missing_attribute(ingest_manifest: im_path, source_path:)
       raise IngestException, 'Asset mismatch' unless _compare_asset_existence(ingest_manifest: manifest)
 
       other_checksum_checker = Manifests::ManifestNonDefaultChecksumChecker.new
       other_checksum_checker.check_non_default_checksums(ingest_manifest: manifest)
-      @manifest_validator.validate_ingest_manifest(manifest: manifest)
+      @manifest_validator.validate_ingest_manifest(manifest:)
 
       size_checker = Manifests::ManifestFilesizeChecker.new
-      @total_size, @size_mismatch = size_checker.check_filesize(manifest: manifest)
+      @total_size, @size_mismatch = size_checker.check_filesize(manifest:)
 
       im_path
     end
 
     def _populate_missing_attribute(ingest_manifest:, source_path:)
-      mmap = Manifests::ManifestMissingAttributePopulator.new(file_identifier: file_identifier)
-      manifest = mmap.populate_missing_attribute_from_file(manifest: ingest_manifest, source_path: source_path)
-      File.open(ingest_manifest, 'w') { |file| file.write(JSON.pretty_generate(manifest.to_json_ingest_hash)) }
+      mmap = Manifests::ManifestMissingAttributePopulator.new(file_identifier:)
+      manifest = mmap.populate_missing_attribute_from_file(manifest: ingest_manifest, source_path:)
+      File.write(ingest_manifest, JSON.pretty_generate(manifest.to_json_ingest_hash))
 
       manifest
     end
@@ -68,12 +68,12 @@ module Preingest
 
     def _initialize_collection_manifest(im_path:, named_params:)
       manifest = if named_params.fetch(:cmf) == NO_COLLECTION_MANIFEST
-                   _def_create_collection_manifest(im_path: im_path, sfs_location: named_params.fetch(:sfs_location))
+                   _def_create_collection_manifest(im_path:, sfs_location: named_params.fetch(:sfs_location))
                  else
                    _merge_ingest_manifest_to_collection_manifest(imf: im_path, cmf: named_params.fetch(:cmf),
                                                                  sfs_loc: named_params.fetch(:sfs_location))
                  end
-      _store_collection_manifest(manifest: manifest)
+      _store_collection_manifest(manifest:)
     end
 
     def _def_create_collection_manifest(im_path:, sfs_location:)
@@ -81,7 +81,7 @@ module Preingest
 
       if manifest.locations.count.zero?
         update_locations(storage_manifest: manifest, s3_location: full_s3_location,
-                         sfs_location: full_sfs_location(sfs_location: sfs_location))
+                         sfs_location: full_sfs_location(sfs_location:))
       end
 
       manifest.walk_packages { |package| package.source_path = nil }
@@ -108,16 +108,16 @@ module Preingest
     def _store_collection_manifest(manifest:)
       manifest_dir = File.join(collection_root, 'manifest')
       collection_manifest_dir = File.join(manifest_dir, 'collection_manifest')
-      cm_filename = Manifests.collection_manifest_filename(depositor: depositor, collection: collection_id)
+      cm_filename = Manifests.collection_manifest_filename(depositor:, collection: collection_id)
       FileUtils.mkdir_p(collection_manifest_dir)
       manifest_path = File.join(collection_manifest_dir, cm_filename)
 
       json_to_write = JSON.pretty_generate(manifest.to_json_storage_hash)
-      File.open(manifest_path, 'w') { |file| file.write(json_to_write) }
+      File.write(manifest_path, json_to_write)
     end
 
     def generate_config(ingest_manifest_path:, named_params:)
-      { type: work_type, depositor: depositor, collection: collection_id,
+      { type: work_type, depositor:, collection: collection_id,
         dest_path: dest_path(sfs_location: named_params.fetch(:sfs_location)),
         ingest_manifest: ingest_manifest_path, ticket_id: named_params.fetch(:ticket_id) }
     end

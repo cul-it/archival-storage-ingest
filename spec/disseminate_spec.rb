@@ -9,7 +9,7 @@ require 'archival_storage_ingest/disseminate/packager'
 require 'archival_storage_ingest/disseminate/disseminator'
 require 'zip'
 
-RSpec.describe 'Disseminator' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'Disseminator' do
   let(:depositor) { 'RMC/RMA' }
   let(:collection) { 'RMA01234' }
   let(:test_package_id) { 'fixity_temporary_package' }
@@ -61,7 +61,7 @@ RSpec.describe 'Disseminator' do # rubocop:disable Metrics/BlockLength
     context 'For SFS disseminate transferer' do
       it 'does not copy but reference the original files and populates list for later use' do
         sfs_transferer = Disseminate::SFSTransferer.new(sfs_prefix: disseminate_dir, sfs_bucket: archival_bucket)
-        sfs_transferer.transfer(request: disseminate_request, depositor: depositor, collection: collection)
+        sfs_transferer.transfer(request: disseminate_request, depositor:, collection:)
         expect(sfs_transferer.transferred_packages.size).to eq(1)
         package = sfs_transferer.transferred_packages[test_package_id]
         expect(package.size).to eq(3)
@@ -72,7 +72,7 @@ RSpec.describe 'Disseminator' do # rubocop:disable Metrics/BlockLength
     end
   end
 
-  describe 'Disseminate fixity checker' do # rubocop:disable Metrics/BlockLength
+  describe 'Disseminate fixity checker' do
     context 'When checking fixity fails' do
       it 'returns false and populates error' do
         fixity_checker = Disseminate::SFSFixityChecker.new
@@ -100,7 +100,7 @@ RSpec.describe 'Disseminator' do # rubocop:disable Metrics/BlockLength
             '3/three.txt' => abs_path_file3
           }
         }
-        status = fixity_checker.check_fixity(request: disseminate_request, transferred_packages: transferred_packages)
+        status = fixity_checker.check_fixity(request: disseminate_request, transferred_packages:)
         expect(status).to be_truthy
         expect(fixity_checker.error).to eq('')
       end
@@ -108,15 +108,15 @@ RSpec.describe 'Disseminator' do # rubocop:disable Metrics/BlockLength
   end
 
   describe 'Disseminate packager' do
-    after(:each) do
-      File.delete(zip_filepath) if File.exist? zip_filepath
+    after do
+      FileUtils.rm_f(zip_filepath)
     end
 
     context 'When packaging dissemination' do
       it 'zips transferred files' do
         packager = Disseminate::SFSPackager.new
-        packager.package_dissemination(zip_filepath: zip_filepath, depositor: depositor,
-                                       collection: collection, transferred_packages: transferred_packages)
+        packager.package_dissemination(zip_filepath:, depositor:,
+                                       collection:, transferred_packages:)
         entries = {}
         Zip::File.open(zip_filepath) do |zip_file|
           # Handle entries one by one
@@ -135,17 +135,17 @@ RSpec.describe 'Disseminator' do # rubocop:disable Metrics/BlockLength
   end
 
   describe 'Disseminator' do
-    after(:each) do
-      File.delete(zip_filepath) if File.exist? zip_filepath
+    after do
+      FileUtils.rm_f(zip_filepath)
     end
 
     context 'When disseminating request' do
       it 'checks input, transfers assets, runs fixity and packages into zip' do
         disseminator = Disseminate::Disseminator.new(sfs_prefix: disseminate_dir,
-                                                     target_dir: target_dir, sfs_bucket: 'archival0x')
+                                                     target_dir:, sfs_bucket: 'archival0x')
         dissemination = disseminator.disseminate(manifest: manifest_file, csv: csv_file,
-                                                 depositor: depositor, collection: collection,
-                                                 zip_filename: zip_filename)
+                                                 depositor:, collection:,
+                                                 zip_filename:)
         expect(dissemination).to eq(zip_filepath)
         entries = {}
         Zip::File.open(zip_filepath) do |zip_file|

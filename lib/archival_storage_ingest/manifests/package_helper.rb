@@ -19,7 +19,7 @@ module Manifests
     end
 
     def find_package_id(filepath:)
-      package_id_path = package_identifier(filepath: filepath)
+      package_id_path = package_identifier(filepath:)
       package = package_id_map[package_id_path]
       unless package
         package = Manifests::Package.new(

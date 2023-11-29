@@ -4,11 +4,11 @@ require 'rspec'
 require 'misc/archive_size'
 require 'json'
 
-RSpec.describe ArchiveSize do # rubocop: disable Metrics/BlockLength
+RSpec.describe ArchiveSize do
   let(:archive_size_json) { File.join(File.dirname(__FILE__), 'resources', 'misc', 'cular_archive_space.json') }
   let(:archive_size_file) { File.read(archive_size_json) }
   let(:archive_size_data) { JSON.parse(archive_size_file) }
-  let(:s3_manager) do # rubocop: disable Metrics/BlockLength
+  let(:s3_manager) do
     s3m = S3Manager.new('bogus_bucket')
 
     allow(s3m).to receive(:upload_file)
@@ -20,7 +20,7 @@ RSpec.describe ArchiveSize do # rubocop: disable Metrics/BlockLength
       .and_raise(IngestException, 'upload_asif_manifest must not be called in this test!')
 
     allow(s3m).to receive(:upload_asif_archive_size)
-      .with(s3_key: 'cular_archive_space.json', data: archive_size_data) { true }
+      .with(s3_key: 'cular_archive_space.json', data: archive_size_data).and_return(true)
 
     allow(s3m).to receive(:upload_string)
       .with(any_args)
@@ -62,7 +62,7 @@ RSpec.describe ArchiveSize do # rubocop: disable Metrics/BlockLength
       { path: '/cul/data/archival05' }
     ]
 
-    @archive_size = ArchiveSize::ArchiveSize.new(archives: archives, s3_manager: s3_manager)
+    @archive_size = ArchiveSize::ArchiveSize.new(archives:, s3_manager:)
     @archive_size.deploy_asif_archive_size(archive_size_data)
     expect(s3_manager).to have_received(:upload_asif_archive_size).exactly(1).times
   end

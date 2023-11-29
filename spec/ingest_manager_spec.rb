@@ -9,7 +9,7 @@ require 'archival_storage_ingest/messages/ingest_message'
 require 'mail'
 
 RSpec.describe 'IngestManager' do
-  before(:each) do
+  before do
     @logger = spy('logger')
     @queuer = spy('queuer')
     @msg_q = spy('message q')
@@ -73,7 +73,7 @@ RSpec.describe 'IngestManager' do
         )
       end
 
-      before(:each) do
+      before do
         # message = { id: 5, type: 'test' }
         allow(@msg_q).to receive(:retrieve_message).and_return message
       end
@@ -85,7 +85,7 @@ RSpec.describe 'IngestManager' do
       end
 
       context 'Successful processing' do
-        before(:each) do
+        before do
           allow(@worker).to receive(:work).and_return true
         end
 
@@ -123,7 +123,7 @@ RSpec.describe 'IngestManager' do
       end
 
       context 'Processing error' do
-        before(:each) do
+        before do
           allow(@worker).to receive(:work).and_raise IngestException, 'This is the error'
         end
 
@@ -141,12 +141,12 @@ RSpec.describe 'IngestManager' do
 
           expect(@issue_logger).to have_received(:notify_worker_started).once
           expect(@issue_logger).to have_received(:notify_worker_error).once
-          expect(@dest1_q).to_not have_received(:send_message)
+          expect(@dest1_q).not_to have_received(:send_message)
         end
       end
 
       context 'Processing skipped' do
-        before(:each) do
+        before do
           allow(@worker).to receive(:work).and_return false
         end
 
@@ -175,7 +175,8 @@ RSpec.describe 'IngestManager' do
       collection: 'TestCollection'
     )
   end
-  before(:each) do
+
+  before do
     @logger = spy('logger')
     @queuer = spy('queuer')
     @msg_q = spy('message q')
@@ -211,10 +212,10 @@ RSpec.describe 'IngestManager' do
       allow(@wip_q).to receive(:retrieve_message).and_return message
 
       expect { @manager.do_work }.to raise_error(SystemExit)
-      expect(@worker).to_not have_received(:work)
+      expect(@worker).not_to have_received(:work)
       expect(@issue_logger).to have_received(:notify_error).once
-      expect(@issue_logger).to_not have_received(:notify_worker_started)
-      expect(@dest1_q).to_not have_received(:send_message)
+      expect(@issue_logger).not_to have_received(:notify_worker_started)
+      expect(@dest1_q).not_to have_received(:send_message)
     end
   end
 end

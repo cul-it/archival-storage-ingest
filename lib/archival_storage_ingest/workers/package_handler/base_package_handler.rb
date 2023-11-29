@@ -13,17 +13,17 @@ module M2MWorker
     end
 
     def queue_ingest(msg:, path:)
-      im = ingest_manifest(msg: msg, path: path)
-      im_path = create_ingest_manifest_file(msg: msg, manifest: im)
-      cm = collection_manifest(msg: msg) # filename or none
+      im = ingest_manifest(msg:, path:)
+      im_path = create_ingest_manifest_file(msg:, manifest: im)
+      cm = collection_manifest(msg:) # filename or none
 
-      env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: ingest_root, sfs_root: sfs_root,
-                                                            manifest_validator: manifest_validator,
-                                                            file_identifier: file_identifier)
+      env_initializer = Preingest::IngestEnvInitializer.new(ingest_root:, sfs_root:,
+                                                            manifest_validator:,
+                                                            file_identifier:)
       env_initializer.initialize_ingest_env(cmf: cm, imf: im_path, sfs_location: sfs_root, ticket_id: 'NO_REPORT',
                                             data: path, depositor: im.depositor, collection_id: im.collection_id)
 
-      ic = ingest_config(env_initializer: env_initializer, msg: msg)
+      ic = ingest_config(env_initializer:, msg:)
       queuer.queue_ingest(ic)
     end
 
@@ -55,14 +55,14 @@ module M2MWorker
       FileUtils.mkdir(manifest_path)
       manifest_file = File.join(manifest_path, 'ingest_manifest.json')
       json_to_store = JSON.pretty_generate(manifest.to_json_ingest_hash).to_s
-      File.open(manifest_file, 'w') { |file| file.write(json_to_store) }
+      File.write(manifest_file, json_to_store)
       manifest_file
     end
 
     # :filepath, :sha1, :md5, :size, :ingest_date
     # do we get sha1, size from ecommons metadata?
     def populate_files(path:)
-      files = list_files(path: path)
+      files = list_files(path:)
       populated = []
       files.each do |file|
         populated << Manifests::FileEntry.new(file: { filepath: IngestUtils.relative_path(file, path) })

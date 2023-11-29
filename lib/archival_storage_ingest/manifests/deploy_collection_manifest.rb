@@ -32,7 +32,7 @@ module Manifests
     # rubocop:enable Metrics/ParameterLists
 
     def prepare_manifest_definition(manifest_parameters:)
-      prepare_collection_manifest(manifest_parameters: manifest_parameters)
+      prepare_collection_manifest(manifest_parameters:)
       manifest_def = manifest_of_manifests.manifest_definition(depositor: manifest_parameters.depositor,
                                                                collection: manifest_parameters.collection_id)
 
@@ -46,12 +46,12 @@ module Manifests
     end
 
     def prepare_collection_manifest(manifest_parameters:)
-      manifest = populate_manifest_data(manifest_parameters: manifest_parameters)
+      manifest = populate_manifest_data(manifest_parameters:)
 
-      @manifest_validator.validate_storage_manifest(manifest: manifest)
+      @manifest_validator.validate_storage_manifest(manifest:)
 
       json_to_write = JSON.pretty_generate(manifest.to_json_storage_hash)
-      File.open(manifest_parameters.storage_manifest_path, 'w') { |file| file.write(json_to_write) }
+      File.write(manifest_parameters.storage_manifest_path, json_to_write)
 
       manifest_parameters.storage_manifest = manifest
       manifest
@@ -88,11 +88,11 @@ module Manifests
     end
 
     def deploy_collection_manifest(manifest_def:, collection_manifest:, dest: nil)
-      deploy_sfs(cm_path: collection_manifest, manifest_def: manifest_def)
-      deploy_s3(cm_path: collection_manifest, manifest_def: manifest_def)
-      deploy_wasabi(cm_path: collection_manifest, manifest_def: manifest_def)
-      deploy_asif(cm_path: collection_manifest, manifest_def: manifest_def)
-      deploy_manifest_definition(dest: dest)
+      deploy_sfs(cm_path: collection_manifest, manifest_def:)
+      deploy_s3(cm_path: collection_manifest, manifest_def:)
+      deploy_wasabi(cm_path: collection_manifest, manifest_def:)
+      deploy_asif(cm_path: collection_manifest, manifest_def:)
+      deploy_manifest_definition(dest:)
     end
 
     def deploy_sfs(cm_path:, manifest_def:)
@@ -115,7 +115,7 @@ module Manifests
     end
 
     def deploy_manifest_definition(dest: nil)
-      destination = manifest_of_manifests.save(dest: dest)
+      destination = manifest_of_manifests.save(dest:)
 
       puts "Manifest of manifests at #{destination} is updated.  Please commit the change."
     end
@@ -150,10 +150,10 @@ module Manifests
       if dry_run
         File.foreach(collection_manifest) { |each_line| puts each_line }
       else
-        deploy_sfs(cm_path: collection_manifest, manifest_def: manifest_def)
-        deploy_s3(cm_path: collection_manifest, manifest_def: manifest_def)
-        deploy_asif(cm_path: collection_manifest, manifest_def: manifest_def)
-        deploy_manifest_definition(dest: dest)
+        deploy_sfs(cm_path: collection_manifest, manifest_def:)
+        deploy_s3(cm_path: collection_manifest, manifest_def:)
+        deploy_asif(cm_path: collection_manifest, manifest_def:)
+        deploy_manifest_definition(dest:)
       end
     end
   end

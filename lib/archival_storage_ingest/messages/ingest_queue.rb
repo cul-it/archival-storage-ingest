@@ -23,7 +23,7 @@ module IngestQueue
 
     def prepare_send_queue_params(queue_name, msg)
       queue_url = get_queue_url(queue_name)
-      queue_params = { queue_url: queue_url, message_body: msg.to_json,
+      queue_params = { queue_url:, message_body: msg.to_json,
                        message_attributes: {
                          job_id: { string_value: msg.job_id, data_type: 'String' }
                        } }
@@ -34,7 +34,7 @@ module IngestQueue
 
     def retrieve_single_message(queue_name)
       queue_url = get_queue_url(queue_name)
-      resp = @sqs.receive_message(queue_url: queue_url,
+      resp = @sqs.receive_message(queue_url:,
                                   max_number_of_messages: 1)
 
       return nil if resp.messages.empty?
@@ -46,7 +46,7 @@ module IngestQueue
 
     def get_queue_url(queue_name)
       if @known_queues[queue_name].nil?
-        queue_url = @sqs.get_queue_url(queue_name: queue_name).queue_url
+        queue_url = @sqs.get_queue_url(queue_name:).queue_url
         @known_queues[queue_name] = queue_url
       end
 

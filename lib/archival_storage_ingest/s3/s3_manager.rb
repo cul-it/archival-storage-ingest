@@ -52,7 +52,7 @@ class S3Manager # rubocop:disable Metrics/ClassLength
   def upload_file(s3_key, file_to_upload)
     errors = []
     @max_retry.times do
-      return true if _upload_file(bucket: @s3_bucket, s3_key: s3_key, file: file_to_upload)
+      return true if _upload_file(bucket: @s3_bucket, s3_key:, file: file_to_upload)
 
       # wait interval if _upload_file returns false
       sleep(RETRY_INTERVAL)
@@ -66,7 +66,7 @@ class S3Manager # rubocop:disable Metrics/ClassLength
   end
 
   def upload_asif_manifest(s3_key:, manifest_file:)
-    _upload_file(bucket: @asif_s3_bucket, s3_key: s3_key, file: manifest_file)
+    _upload_file(bucket: @asif_s3_bucket, s3_key:, file: manifest_file)
   end
 
   def upload_asif_archive_size(s3_key:, data:)
@@ -97,7 +97,7 @@ class S3Manager # rubocop:disable Metrics/ClassLength
   end
 
   def _list_object(prefix, continuation_token)
-    s3.client.list_objects_v2(bucket: @s3_bucket, prefix: prefix, continuation_token: continuation_token)
+    s3.client.list_objects_v2(bucket: @s3_bucket, prefix:, continuation_token:)
   end
 
   # https://aws.amazon.com/blogs/developer/downloading-objects-from-amazon-s3-using-the-aws-sdk-for-ruby/
@@ -139,16 +139,16 @@ class S3Manager # rubocop:disable Metrics/ClassLength
   end
 
   def _download_file(bucket:, s3_key:, dest_path:)
-    s3.client.get_object({ bucket: bucket, key: s3_key }, target: dest_path)
+    s3.client.get_object({ bucket:, key: s3_key }, target: dest_path)
   end
 
   def download_file(s3_key:, dest_path:)
-    _download_file(bucket: @s3_bucket, s3_key: s3_key, dest_path: dest_path)
+    _download_file(bucket: @s3_bucket, s3_key:, dest_path:)
   end
 
   # used to download m2m zip package
   def download_m2m_file(s3_key:, dest_path:)
-    _download_file(bucket: @m2m_bucket, s3_key: s3_key, dest_path: dest_path)
+    _download_file(bucket: @m2m_bucket, s3_key:, dest_path:)
   end
 
   def delete_object(s3_key:)

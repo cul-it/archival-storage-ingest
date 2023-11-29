@@ -11,22 +11,22 @@ require 'archival_storage_ingest/logs/application_logger'
 
 class MigrationStorageManifestDeployer < BaseManifestDeployer
   def _manifest_deployer
-    Manifests::MigrationCollectionManifestDeployer.new(manifests_path: manifest_of_manifests, s3_manager: s3_manager,
-                                                       sfs_prefix: sfs_prefix, manifest_validator: manifest_validator,
-                                                       file_identifier: file_identifier, wasabi_manager: wasabi_manager)
+    Manifests::MigrationCollectionManifestDeployer.new(manifests_path: manifest_of_manifests, s3_manager:,
+                                                       sfs_prefix:, manifest_validator:,
+                                                       file_identifier:, wasabi_manager:)
   end
 
   def deploy_manifest(manifest_parameters:, dry_run: false)
     # This step will finalize storage manifest object and file pointed by the manifest parameters.
-    manifest_deployer.prepare_collection_manifest(manifest_parameters: manifest_parameters)
-    manifest_definition = manifest_deployer.prepare_manifest_definition(manifest_parameters: manifest_parameters)
+    manifest_deployer.prepare_collection_manifest(manifest_parameters:)
+    manifest_definition = manifest_deployer.prepare_manifest_definition(manifest_parameters:)
 
     puts "Dry run? #{dry_run}"
-    describe_and_confirm_deployment(manifest_deployer: manifest_deployer, manifest_definition: manifest_definition)
+    describe_and_confirm_deployment(manifest_deployer:, manifest_definition:)
 
     manifest_deployer.deploy_collection_manifest(manifest_def: manifest_definition,
                                                  collection_manifest: manifest_parameters.storage_manifest_path,
-                                                 dry_run: dry_run)
+                                                 dry_run:)
     archive_size.deploy_asif_archive_size unless dry_run
   end
 end
@@ -39,7 +39,7 @@ sfs = ARGV.shift
 dry_run = ARGV.shift ? true : false
 manifest_deployer = MigrationStorageManifestDeployer.new
 manifest_parameters = Manifests::ManifestParameters.new(storage_manifest_path: new_collection_manifest,
-                                                        ingest_manifest_path: ingest_manifest, sfs: sfs)
+                                                        ingest_manifest_path: ingest_manifest, sfs:)
 
 # puts 'Deployment Summary'
 # puts "S3 bucket: #{manifest_deployer.s3_bucket}"
@@ -54,10 +54,10 @@ index_type = ArchivalStorageIngestLogger::INDEX_TYPE_INGEST
 stage = 'prod'
 stage = 'dev' if ENV['asi_develop'] || ENV['asi_queue_develop']
 stage = 'sandbox' if ENV['asi_sandbox'] || ENV['asi_queue_sandbox']
-application_logger = ArchivalStorageIngestLogger.get_application_logger(stage: stage, index_type: index_type,
+application_logger = ArchivalStorageIngestLogger.get_application_logger(stage:, index_type:,
                                                                         use_lambda_logger: true)
 
-manifest_deployer.deploy_manifest(manifest_parameters: manifest_parameters, dry_run: dry_run)
+manifest_deployer.deploy_manifest(manifest_parameters:, dry_run:)
 
 cm = Manifests.read_manifest(filename: new_collection_manifest)
 agent = IngestUtils::Agent.new

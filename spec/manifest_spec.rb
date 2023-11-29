@@ -7,7 +7,7 @@ require 'archival_storage_ingest/workers/fixity_worker'
 
 RSpec.describe 'Manifest' do
   context 'when adding items' do
-    it 'should add to items section and increment file count' do
+    it 'adds to items section and increment file count' do
       test_package_id = FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID
       manifest = Manifests::Manifest.new(json_text: FixityWorker::FIXITY_MANIFEST_TEMPLATE_STR)
       manifest.add_filepath(package_id: test_package_id, filepath: 'a/b/c/resource1.txt', sha1: 'deadbeef1', size: 5)
@@ -59,13 +59,13 @@ def resource(filename)
   File.join(File.dirname(__FILE__), ['resources', 'manifests', filename])
 end
 
-RSpec.describe 'Manifests' do # rubocop:disable Metrics/BlockLength
-  context 'loading manifest' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'Manifests' do
+  context 'loading manifest' do
     let(:manifest10) { Manifests.read_manifest(filename: resource('10ItemsFull.json')) }
     let(:manifest_arxiv) { Manifests.read_manifest(filename: resource('arXiv.json')) }
 
     it 'can be loaded from files' do
-      expect(manifest10.hash).to_not be_nil
+      expect(manifest10.hash).not_to be_nil
     end
 
     it 'knows the depositor/collection' do
@@ -124,7 +124,7 @@ RSpec.describe 'Manifests' do # rubocop:disable Metrics/BlockLength
   end
 end
 
-RSpec.describe 'Manifest Comparator' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'Manifest Comparator' do
   let(:collection_manifest) do
     f = resource('comparator/collection_manifest.json')
     Manifests.read_manifest(filename: f)
@@ -142,7 +142,7 @@ RSpec.describe 'Manifest Comparator' do # rubocop:disable Metrics/BlockLength
     it 'passes' do
       comparator = Manifests::ManifestComparator.new(cm_filename: '_EM_RMC_RMA_RMA02205_Cornell_football_films.json')
       status, _diff = comparator.fixity_diff(ingest: sfs_manifest, fixity: sfs_manifest)
-      expect(status).to eq(true)
+      expect(status).to be(true)
     end
   end
 
@@ -151,7 +151,7 @@ RSpec.describe 'Manifest Comparator' do # rubocop:disable Metrics/BlockLength
       comparator = Manifests::ManifestComparator.new(cm_filename: '_EM_RMC_RMA_RMA02205_Cornell_football_films.json',
                                                      fixity_mode: false)
       status, _diff = comparator.fixity_diff(ingest: collection_manifest, fixity: sfs_manifest)
-      expect(status).to eq(false)
+      expect(status).to be(false)
     end
   end
 
@@ -159,7 +159,7 @@ RSpec.describe 'Manifest Comparator' do # rubocop:disable Metrics/BlockLength
     it 'ignores collection manifest entry from fixity manifest and passes' do
       comparator = Manifests::ManifestComparator.new(cm_filename: '_EM_RMC_RMA_RMA02205_Cornell_football_films.json')
       status, _diff = comparator.fixity_diff(ingest: collection_manifest, fixity: sfs_manifest)
-      expect(status).to eq(true)
+      expect(status).to be(true)
     end
   end
 
@@ -167,7 +167,7 @@ RSpec.describe 'Manifest Comparator' do # rubocop:disable Metrics/BlockLength
     it 'returns false status and list of mismatch keys' do
       comparator = Manifests::ManifestComparator.new(cm_filename: '_EM_RMC_RMA_RMA02205_Cornell_football_films.json')
       status, diff = comparator.fixity_diff(ingest: sfs_manifest, fixity: mismatch_manifest)
-      expect(status).to eq(false)
+      expect(status).to be(false)
       expect(diff[:ingest]).to eq(%w[RMA02205_F0018/RMA02205_F0018.mov RMA02205_F0018/RMA02205_F0018.mp4])
       expect(diff[:other]).to eq(%w[RMA02205_F0018/NEW_RMA02205_F0018.mov RMA02205_F0018/RMA02205_F0018.mp4])
     end

@@ -113,7 +113,7 @@ module WorkQueuer
 
     def work_notification_message(work_msg)
       "New ingest\n" \
-      "Ingest Info\n#{work_msg.to_pretty_json}"
+        "Ingest Info\n#{work_msg.to_pretty_json}"
     end
 
     def confirm_work(ingest_config, input_checker)
@@ -186,7 +186,7 @@ module WorkQueuer
 
     def work_notification_message(work_msg)
       "New periodic fixity check queued.\n" \
-      "Fixity Check Info\n#{work_msg.to_pretty_json}"
+        "Fixity Check Info\n#{work_msg.to_pretty_json}"
     end
 
     def confirm_work(ingest_config, _input_checker)

@@ -13,9 +13,9 @@ source_path = ARGV[1]
 abort('Usage: populate_missing_ingest_manifest_attribute PATH_TO_INGEST_MANIFEST SOURCE_PATH') if ARGV.empty?
 
 mfc = Manifests::ManifestToFilesystemComparator.new
-abort unless mfc.compare_manifest_to_filesystem(manifest: ingest_manifest, source_path: source_path)
+abort unless mfc.compare_manifest_to_filesystem(manifest: ingest_manifest, source_path:)
 
 mmap = Manifests::ManifestMissingAttributePopulator.new
-manifest = mmap.populate_missing_attribute(manifest: ingest_manifest, source_path: source_path)
+manifest = mmap.populate_missing_attribute(manifest: ingest_manifest, source_path:)
 ingest_json = manifest.to_json_ingest_hash
 puts JSON.pretty_generate(ingest_json)

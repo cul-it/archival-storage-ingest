@@ -27,6 +27,6 @@ end
 #   { archive: '/cul/data/archival07' }
 # ]
 
-archive_size = ArchiveSize::ArchiveSize.new(archives: archives, s3_manager: s3_manager)
+archive_size = ArchiveSize::ArchiveSize.new(archives:, s3_manager:)
 
 archive_size.deploy_asif_archive_size

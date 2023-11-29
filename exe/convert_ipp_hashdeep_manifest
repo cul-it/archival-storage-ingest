@@ -13,7 +13,7 @@ collection_manifest = Manifests.read_manifest(filename: collection_manifest_file
 manifest_response = manifest_converter.generate_ingest_manifest(xml: hashdeep_manifest_file,
                                                                 manifest: collection_manifest,
                                                                 depth: 2,
-                                                                source_path: source_path)
+                                                                source_path:)
 
 overwrite_list = manifest_response.overwrite_list
 overwrite_list.each do |filepath, info|

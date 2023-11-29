@@ -15,9 +15,9 @@ ingest_manifest = ARGV[2]
 s3_bucket = ENV['asi_develop'] ? 's3-cular-dev' : 's3-cular'
 s3_manager = S3Manager.new(s3_bucket)
 
-manifest_generator = Manifests::ManifestGeneratorS3.new(depositor: depositor,
-                                                        collection_id: collection_id,
-                                                        s3_manager: s3_manager,
-                                                        ingest_manifest: ingest_manifest)
+manifest_generator = Manifests::ManifestGeneratorS3.new(depositor:,
+                                                        collection_id:,
+                                                        s3_manager:,
+                                                        ingest_manifest:)
 manifest = manifest_generator.generate_manifest
 puts JSON.pretty_generate(manifest.to_json_fixity_hash)

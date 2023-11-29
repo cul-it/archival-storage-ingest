@@ -20,7 +20,7 @@ module Disseminate
         transferred_package = transferred_packages[package_id]
         package.each do |request_file|
           transferred_file = transferred_package[request_file[:filepath]]
-          check_fixity_file(request_file: request_file, transferred_file: transferred_file)
+          check_fixity_file(request_file:, transferred_file:)
         end
       end
 

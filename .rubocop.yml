@@ -1,9 +1,17 @@
+require:
+  - rubocop-rake
+  - rubocop-rspec
+
+AllCops:
+  TargetRubyVersion: 3.1.4
+  NewCops: enable
+  # Too many changes needed, won't do it for now
+  Exclude:
+    - 'spec/**/*.rb'
+
 Layout:
   Metrics/LineLength:
     Max: 132
-
-AllCops:
-  TargetRubyVersion: 2.6
 
 Style/Documentation:
   Enabled: false

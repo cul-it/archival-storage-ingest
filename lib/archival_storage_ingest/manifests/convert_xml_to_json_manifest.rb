@@ -9,22 +9,22 @@ module Manifests
   # Change the logic if that is not the case.
   class ConvertXmlToJsonManifest
     def generate_ingest_manifest(xml:, manifest:, depth:, source_path:)
-      ingest_manifest = generate_base_manifest(manifest: manifest)
-      package_helper = Manifests::PackageHelper.new(manifest: manifest, depth: depth, source_path: source_path)
+      ingest_manifest = generate_base_manifest(manifest:)
+      package_helper = Manifests::PackageHelper.new(manifest:, depth:, source_path:)
       walk_xml(xml) do |node|
-        add_to_json_manifest(node: node, package_helper: package_helper, ingest_manifest: ingest_manifest)
+        add_to_json_manifest(node:, package_helper:, ingest_manifest:)
       end
-      overwrite_list = list_overwrite(collection_manifest: manifest, ingest_manifest: ingest_manifest)
-      ConvertedResponse.new(ingest_manifest: ingest_manifest, overwrite_list: overwrite_list)
+      overwrite_list = list_overwrite(collection_manifest: manifest, ingest_manifest:)
+      ConvertedResponse.new(ingest_manifest:, overwrite_list:)
     end
 
     def add_to_json_manifest(node:, package_helper:, ingest_manifest:)
       filepath = clean_filepath(filepath: node.at_css('filename').content)
-      package = get_package(ingest_manifest: ingest_manifest, package_helper: package_helper, filepath: filepath)
+      package = get_package(ingest_manifest:, package_helper:, filepath:)
 
       size = node.at_css('filesize').content.to_s.to_i
       sha1 = node.at_css('hashdigest[type="SHA1"]').content.to_s
-      package.add_file_entry(filepath: filepath, sha1: sha1, size: size)
+      package.add_file_entry(filepath:, sha1:, size:)
     end
 
     # IPP xml manifest has windows separator "\" and needs to be replaced to "/"
@@ -34,20 +34,20 @@ module Manifests
     end
 
     def get_package(ingest_manifest:, package_helper:, filepath:)
-      package_id = package_helper.find_package_id(filepath: filepath)
-      package = ingest_manifest.get_package(package_id: package_id)
+      package_id = package_helper.find_package_id(filepath:)
+      package = ingest_manifest.get_package(package_id:)
       unless package
         package = Manifests::Package.new(
-          package: { package_id: package_id, source_path: package_helper.source_path }
+          package: { package_id:, source_path: package_helper.source_path }
         )
-        ingest_manifest.add_package(package: package)
+        ingest_manifest.add_package(package:)
       end
       package
     end
 
-    def walk_xml(xml, &block)
+    def walk_xml(xml, &)
       doc = File.open(xml) { |f| Nokogiri::XML(f) }
-      doc.css('dfxml fileobject').each(&block)
+      doc.css('dfxml fileobject').each(&)
     end
 
     def generate_base_manifest(manifest:)
@@ -67,9 +67,9 @@ module Manifests
         collection_package = collection_manifest.get_package(package_id: ingest_package.package_id)
         next if collection_package.nil?
 
-        overwrite_list = _list_overwrite(collection_package: collection_package,
-                                         ingest_package: ingest_package,
-                                         overwrite_list: overwrite_list)
+        overwrite_list = _list_overwrite(collection_package:,
+                                         ingest_package:,
+                                         overwrite_list:)
       end
       overwrite_list
     end

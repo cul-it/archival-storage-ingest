@@ -31,7 +31,7 @@ data_path = File.join(File.dirname(__FILE__), 'resources',
 ingest_manifest = File.join(File.dirname(__FILE__), 'resources', 'manifests', 'manifest_generator',
                             'ingest_manifest.json')
 
-RSpec.describe 'ManifestGeneratorS3' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'ManifestGeneratorS3' do
   let(:s3_manager) do
     s3m = S3Manager.new('bogus_bucket')
 
@@ -52,10 +52,10 @@ RSpec.describe 'ManifestGeneratorS3' do # rubocop:disable Metrics/BlockLength
     end
 
     allow(s3m).to receive(:calculate_checksum)
-      .with("#{depositor}/#{collection_id}/1/one.txt") { ['ef72cf86c1599c80612317fdd2f50f4863c3efb0', 10] }
+      .with("#{depositor}/#{collection_id}/1/one.txt").and_return(['ef72cf86c1599c80612317fdd2f50f4863c3efb0', 10])
 
     allow(s3m).to receive(:calculate_checksum)
-      .with("#{depositor}/#{collection_id}/2/two.txt") { ['158481d59505dedf144ec5e4b87e92043f48ab68', 10] }
+      .with("#{depositor}/#{collection_id}/2/two.txt").and_return(['158481d59505dedf144ec5e4b87e92043f48ab68', 10])
 
     allow(s3m).to receive(:retrieve_file)
       .with(any_args)
@@ -67,7 +67,7 @@ RSpec.describe 'ManifestGeneratorS3' do # rubocop:disable Metrics/BlockLength
   context 'when generating s3 manifest' do
     it 'creates fixity manifest based on the s3 listing' do
       s3_manifest_generator = Manifests::ManifestGeneratorS3.new(
-        depositor: depositor, collection_id: collection_id, s3_manager: s3_manager
+        depositor:, collection_id:, s3_manager:
       )
       manifest = s3_manifest_generator.generate_manifest
       expect(manifest.packages[0].to_json_fixity).to eq(manifest_hash[:packages][0])
@@ -79,8 +79,8 @@ RSpec.describe 'ManifestGeneratorS3' do # rubocop:disable Metrics/BlockLength
   context 'when generating update s3 manifest' do
     it 'only checks items in ingest manifest' do
       s3_manifest_generator = Manifests::ManifestGeneratorS3.new(
-        depositor: depositor, collection_id: collection_id, s3_manager: s3_manager,
-        ingest_manifest: ingest_manifest
+        depositor:, collection_id:, s3_manager:,
+        ingest_manifest:
       )
       manifest = s3_manifest_generator.generate_manifest
       expect(manifest.packages[0].number_files).to eq(1)
@@ -93,7 +93,7 @@ RSpec.describe 'ManifestGeneratorSFS' do
   context 'when generating sfs manifest' do
     it 'creates fixity manifest based on the filesystem' do
       sfs_manifest_generator = Manifests::ManifestGeneratorSFS.new(
-        depositor: depositor, collection_id: collection_id, data_path: data_path
+        depositor:, collection_id:, data_path:
       )
       manifest = sfs_manifest_generator.generate_manifest
       expect(manifest.packages[0].to_json_fixity).to eq(manifest_hash[:packages][0])
@@ -105,8 +105,8 @@ RSpec.describe 'ManifestGeneratorSFS' do
   context 'when generating update sfs manifest' do
     it 'only checks items in ingest manifest' do
       sfs_manifest_generator = Manifests::ManifestGeneratorSFS.new(
-        depositor: depositor, collection_id: collection_id, data_path: data_path,
-        ingest_manifest: ingest_manifest
+        depositor:, collection_id:, data_path:,
+        ingest_manifest:
       )
       manifest = sfs_manifest_generator.generate_manifest
       expect(manifest.packages[0].number_files).to eq(1)

@@ -59,8 +59,8 @@ module FixityWorker
       object_paths.each do |object_path|
         log_checksum_start(msg, object_path)
         (sha, size, errors) = calculate_checksum(object_path, msg)
-        log_checksum_output(msg: msg, object_path: object_path, sha: sha, size: size, errors: errors)
-        fixity_package.add_file_entry(filepath: object_path, sha1: sha, size: size)
+        log_checksum_output(msg:, object_path:, sha:, size:, errors:)
+        fixity_package.add_file_entry(filepath: object_path, sha1: sha, size:)
       end
 
       manifest

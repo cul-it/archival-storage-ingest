@@ -4,17 +4,13 @@ require 'spec_helper'
 require 'misc/convert_manifest'
 require 'json'
 
-RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
-  after do
-    # Do nothing
-  end
-
+RSpec.describe 'ConvertManifest' do
   let(:convert_manifest) do
     pid_file = resource('pid_list.txt')
-    ConvertManifest::ConvertManifest.new(pid_file: pid_file)
+    ConvertManifest::ConvertManifest.new(pid_file:)
   end
 
-  context 'when converting manifest' do # rubocop:disable Metrics/BlockLength
+  context 'when converting manifest' do
     before do
       manifest_json = JSON.pretty_generate(
         convert_manifest.convert_manifest_to_new_hash(filename: resource('10ItemsOldManifest.json'), depth: 1)
@@ -22,7 +18,7 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
       @manifest = JSON.parse(manifest_json)
     end
 
-    context 'it should have collection-level data' do # rubocop:disable Metrics/BlockLength
+    context 'it should have collection-level data' do
       it 'gets the steward' do
         expect(@manifest['steward']).to eq('swr1')
       end
@@ -59,7 +55,7 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
       end
     end
 
-    context 'when looking at packages' do # rubocop:disable Metrics/BlockLength
+    context 'when looking at packages' do
       before do
         @packages = @manifest['packages']
         @package = @packages[0]
@@ -112,7 +108,7 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
   end
 
   context 'when converting a manifest with nested paths' do
-    it 'should convert full nesting to the filepath' do
+    it 'converts full nesting to the filepath' do
       manifest_json = JSON.pretty_generate(
         convert_manifest.convert_manifest_to_new_hash(
           filename: resource('arXivOldManifest.json'), depth: 1
@@ -131,18 +127,19 @@ RSpec.describe 'ConvertManifest' do # rubocop:disable Metrics/BlockLength
         )
         @manifest = JSON.parse(manifest_json)
       end
-      it 'should get right number of packages' do
+
+      it 'gets right number of packages' do
         expect(@manifest['number_packages']).to eq(4)
       end
 
-      it 'should have full path in filepaths' do
+      it 'has full path in filepaths' do
         expect(@manifest['packages'][0]['files'][0]['filepath']).to eq('Simpsons/Season1/SimpsonsS1E1.mov')
       end
     end
   end
 
   context 'when reading csv metadata' do
-    it 'should return hash keyed off of filepath' do
+    it 'returns hash keyed off of filepath' do
       csv_file = resource('metadata.csv')
       csv_metadata = convert_manifest.populate_csv(filename: csv_file, key: 'filepath')
       expect(csv_metadata.size).to eq(4)

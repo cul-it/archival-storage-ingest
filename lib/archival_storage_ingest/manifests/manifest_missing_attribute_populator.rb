@@ -17,14 +17,14 @@ module Manifests
 
     def populate_missing_attribute_from_file(manifest:, source_path:)
       manifest = Manifests.read_manifest(filename: manifest)
-      populate_missing_attribute(manifest: manifest, source_path: source_path)
+      populate_missing_attribute(manifest:, source_path:)
     end
 
     def populate_missing_attribute(manifest:, source_path:)
       manifest.walk_packages do |package|
         package.source_path = source_path
         package.walk_files do |file|
-          populate_missing_attribute_for_file(package: package, file: file)
+          populate_missing_attribute_for_file(package:, file:)
         end
       end
 
@@ -36,12 +36,12 @@ module Manifests
       (file.sha1, _size) = IngestUtils.calculate_checksum(filepath: full_path) if IngestUtils.blank?(file.sha1)
       file.size = File.size?(full_path) if file.size.nil?
 
-      file.media_type = file_identifier.identify_from_source(ingest_package: package, file: file)
+      file.media_type = file_identifier.identify_from_source(ingest_package: package, file:)
       file.tool_version = file_identifier.identify_tool
     end
 
     def to_file(destination:, manifest:, json_type: Manifests::MANIFEST_TYPE_INGEST)
-      File.open(destination, 'w') { |file| file.puts manifest.to_json(json_type: json_type) }
+      File.open(destination, 'w') { |file| file.puts manifest.to_json(json_type:) }
     end
   end
 end

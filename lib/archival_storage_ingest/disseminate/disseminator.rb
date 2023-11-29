@@ -48,11 +48,11 @@ module Disseminate
     end
 
     def init_fixity_checker
-      return SFSFixityChecker.new if @source_location.eql?(DEFAULT_SOURCE_LOCATION)
+      SFSFixityChecker.new if @source_location.eql?(DEFAULT_SOURCE_LOCATION)
     end
 
     def init_packager
-      return SFSPackager.new if @source_location.eql?(DEFAULT_SOURCE_LOCATION)
+      SFSPackager.new if @source_location.eql?(DEFAULT_SOURCE_LOCATION)
     end
   end
 end

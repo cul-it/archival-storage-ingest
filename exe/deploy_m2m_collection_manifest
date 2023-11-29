@@ -48,7 +48,7 @@ collection = ARGV.shift
 sfs = ARGV.shift
 
 m2m_manifest_deployer = M2MStorageManifestDeployer.new
-exit(true) unless m2m_manifest_deployer.backup_manifests(depositor:, collection:)
+exit unless m2m_manifest_deployer.backup_manifests(depositor:, collection:)
 
 sm_path = m2m_manifest_deployer.manifest_backup_handler.storage_manifest_path
 im_path = m2m_manifest_deployer.manifest_backup_handler.ingest_manifest_path

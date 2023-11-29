@@ -201,7 +201,7 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
     puts 'Proceed with deployment? (Y/N)'
     unless 'y'.casecmp(gets.chomp).zero? # rubocop:disable Style/GuardClause
       puts 'Deployment terminated by user input.'
-      exit(true)
+      exit
     end
   end
 end

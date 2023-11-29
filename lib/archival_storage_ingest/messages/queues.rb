@@ -50,7 +50,7 @@ module Queues
 
     return false unless queue_name.start_with?('cular_')
 
-    parts = queue_name.split(/_/, 3)
+    parts = queue_name.split('_', 3)
     return false unless ArchivalStorageIngest.valid_stage?(parts[1])
 
     const = Queues.constants.find { |q_symbol| Queues.const_get(q_symbol).eql?(parts[2]) }

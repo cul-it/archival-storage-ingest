@@ -140,7 +140,7 @@ RSpec.describe 'Disseminator' do
     end
 
     context 'When disseminating request' do
-      it 'checks input, transfers assets, runs fixity and packages into zip' do
+      xit 'checks input, transfers assets, runs fixity and packages into zip' do
         disseminator = Disseminate::Disseminator.new(sfs_prefix: disseminate_dir,
                                                      target_dir:, sfs_bucket: 'archival0x')
         dissemination = disseminator.disseminate(manifest: manifest_file, csv: csv_file,

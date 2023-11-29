@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.name = 'archival_storage_ingest'
   spec.version = ArchivalStorageIngest::VERSION
   spec.authors = %w[Shinwoo Kim Matt Connolly]
-  spec.email = %w[sk274@cornell.edu bb233@cornell.edu]
+  spec.email = %w[sk274@cornell.edu mjc12@cornell.edu]
 
   spec.summary = 'Archival storage ingest.'
   spec.description = 'Archival storage ingest.'
@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
       f.match(%r{^(test|spec|features)/})
     end
   end
-  spec.required_ruby_version = '~> 3.1.4'
+  spec.required_ruby_version = '~> 3.1'
   spec.bindir = 'exe'
   spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']

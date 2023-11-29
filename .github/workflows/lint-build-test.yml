@@ -9,6 +9,7 @@ on:
       - 'lib/**'
       - 'exe/**'
       - 'spec/**'
+      - '.rubocop.yml'
 
 jobs:
   build-test:

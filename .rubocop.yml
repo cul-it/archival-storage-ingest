@@ -8,6 +8,7 @@ AllCops:
   # Too many changes needed, won't do it for now
   Exclude:
     - 'spec/**/*.rb'
+    - 'vendor/bundle/**/*'
 
 Layout:
   Metrics/LineLength:

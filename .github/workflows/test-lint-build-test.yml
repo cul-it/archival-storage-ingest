@@ -5,13 +5,14 @@ on:
     branches:
       - dev-*
     paths:
-        - 'lib/**'
-        - 'exe/**'
-        - 'spec/**'
+      - '.github/**'
+      - 'lib/**'
+      - 'exe/**'
+      - 'spec/**'
 
 jobs:
   build-test:
-    if: ! contains(github.event.head_commit.message, '[SKIP GA]')
+    if: "!contains(github.event.head_commit.message, '[SKIP GA]')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -28,7 +29,7 @@ jobs:
         run: bundle exec rspec
   pull-request:
     runs-on: ubuntu-latest
-    if: ! contains(github.event.head_commit.message, '[SKIP PR]')
+    if: "!contains(github.event.head_commit.message, '[SKIP PR]')"
     needs: build-test
     steps:
       - uses: actions/checkout@v3

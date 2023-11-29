@@ -5,9 +5,10 @@ on:
     branches:
       - CULAR-*
     paths:
-        - 'lib/**'
-        - 'exe/**'
-        - 'spec/**'
+      - '.github/**'
+      - 'lib/**'
+      - 'exe/**'
+      - 'spec/**'
 
 jobs:
   build-test:

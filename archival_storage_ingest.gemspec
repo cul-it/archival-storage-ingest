@@ -34,13 +34,16 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  # spec.add_development_dependency 'bundler'
-  # spec.add_development_dependency 'coveralls'
-  # spec.add_development_dependency 'nokogiri'
-  # spec.add_development_dependency 'rake'
-  # spec.add_development_dependency 'rspec'
-  # spec.add_development_dependency 'rubocop'
-  # spec.add_development_dependency 'rubocop-rspec'
+  # rubocop:disable Gemspec/DevelopmentDependencies
+  spec.add_development_dependency 'bundler'
+  spec.add_development_dependency 'coveralls'
+  spec.add_development_dependency 'nokogiri'
+  spec.add_development_dependency 'rake'
+  spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'rubocop'
+  spec.add_development_dependency 'rubocop-rake'
+  spec.add_development_dependency 'rubocop-rspec'
+  # rubocop:enable Gemspec/DevelopmentDependencies
 
   spec.add_runtime_dependency 'aws-sdk'
   spec.add_runtime_dependency 'json_schemer'

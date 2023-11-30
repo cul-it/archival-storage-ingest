@@ -17,6 +17,19 @@ module IngestUtils
   ALGORITHM_MD5 = 'md5'
   ALGORITHM_SHA1 = 'sha1'
   MAX_RETRY = 3
+  PLATFORM_S3 = 'S3'
+  PLATFORM_S3_WEST = 'S3-West'
+  PLATFORM_WASABI = 'Wasabi'
+  S3_BUCKET = 's3-cular'
+  S3_WEST_BUCKET = 's3-cular-west'
+  WASABI_BUCKET = 'wasabi-cular'
+  # Temporary bucket to house version history of manifests
+  MANIFEST_BUCKET = 's3-cular-manifest'
+  CLOUD_PLATFORM_TO_BUCKET_NAME = {
+    PLATFORM_S3 => S3_BUCKET,
+    PLATFORM_S3_WEST => S3_WEST_BUCKET,
+    PLATFORM_WASABI => WASABI_BUCKET
+  }.freeze
 
   def self.relativize(file, path_to_trim)
     Pathname.new(file).relative_path_from(path_to_trim).to_s

@@ -102,6 +102,10 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
     end
   end
 
+  def manifest_bucket
+    's3-cular-manifest'
+  end
+
   def s3_manager
     @s3_manager ||= _s3_manager
   end
@@ -128,6 +132,14 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
     else
       Manifests::DEFAULT_SFS_PREFIX
     end
+  end
+
+  def manifest_storage_manager
+    @manifest_storage_manager || _manifest_storage_manager
+  end
+
+  def _manifest_storage_manager
+    S3Manager.new(manifest_bucket)
   end
 
   def manifest_validator

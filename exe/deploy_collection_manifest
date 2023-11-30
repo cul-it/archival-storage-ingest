@@ -13,7 +13,7 @@ class StorageManifestDeployer < BaseManifestDeployer
   def _manifest_deployer
     Manifests::CollectionManifestDeployer.new(manifests_path: manifest_of_manifests, s3_manager:,
                                               wasabi_manager:, sfs_prefix:, manifest_validator:,
-                                              file_identifier:)
+                                              file_identifier:, manifest_storage_manager:)
   end
 end
 

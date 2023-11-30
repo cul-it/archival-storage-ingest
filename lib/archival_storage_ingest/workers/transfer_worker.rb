@@ -21,7 +21,7 @@ module TransferWorker
     def _work(msg)
       ingest_manifest = fetch_ingest_manifest(msg)
       ingest_manifest.walk_packages do |package|
-        process_package(package: package, msg: msg)
+        process_package(package:, msg:)
       end
 
       true
@@ -36,11 +36,11 @@ module TransferWorker
     def process_package(package:, msg:)
       source_path = package.source_path
       package.walk_files do |file|
-        source = source(source_path: source_path, file: file)
-        target = target(msg: msg, file: file)
-        @application_logger.log(process_file_start_msg(msg: msg, target: target))
-        process_file(source: source, target: target)
-        @application_logger.log(process_file_complete_msg(msg: msg, target: target))
+        source = source(source_path:, file:)
+        target = target(msg:, file:)
+        @application_logger.log(process_file_start_msg(msg:, target:))
+        process_file(source:, target:)
+        @application_logger.log(process_file_complete_msg(msg:, target:))
       end
     end
 

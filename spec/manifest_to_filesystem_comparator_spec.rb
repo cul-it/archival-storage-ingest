@@ -6,7 +6,7 @@ require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/manifests/manifest_to_filesystem_comparator'
 require 'archival_storage_ingest/workers/fixity_worker'
 
-RSpec.describe 'ManifestToFilesystemComparator' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'ManifestToFilesystemComparator' do
   let(:source_path) do
     File.join(File.dirname(__FILE__), 'resources', 'manifests', 'manifest_to_filesystem_comparator', 'RMC', 'RMA',
               'RMA01234')
@@ -15,8 +15,8 @@ RSpec.describe 'ManifestToFilesystemComparator' do # rubocop:disable Metrics/Blo
   let(:collection_id) { 'RMA01234' }
   let(:ingest_manifest_hash) do
     {
-      collection_id: collection_id,
-      depositor: depositor,
+      collection_id:,
+      depositor:,
       number_packages: 1,
       packages: [
         {
@@ -43,8 +43,8 @@ RSpec.describe 'ManifestToFilesystemComparator' do # rubocop:disable Metrics/Blo
     it 'succeeds' do
       manifest = Manifests::Manifest.new(json_text: ingest_manifest_hash.to_json)
       comparator = Manifests::ManifestToFilesystemComparator.new
-      status = comparator.compare_manifest_to_filesystem(manifest: manifest, source_path: source_path)
-      expect(status).to eq(true)
+      status = comparator.compare_manifest_to_filesystem(manifest:, source_path:)
+      expect(status).to be(true)
     end
   end
 
@@ -53,8 +53,8 @@ RSpec.describe 'ManifestToFilesystemComparator' do # rubocop:disable Metrics/Blo
       manifest = Manifests::Manifest.new(json_text: ingest_manifest_hash.to_json)
       manifest.get_package(package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID).files.pop
       comparator = Manifests::ManifestToFilesystemComparator.new
-      status = comparator.compare_manifest_to_filesystem(manifest: manifest, source_path: source_path)
-      expect(status).to eq(false)
+      status = comparator.compare_manifest_to_filesystem(manifest:, source_path:)
+      expect(status).to be(false)
     end
   end
 
@@ -64,8 +64,8 @@ RSpec.describe 'ManifestToFilesystemComparator' do # rubocop:disable Metrics/Blo
       manifest.add_filepath(package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID, filepath: 'bogus', sha1: 'deadbeef',
                             size: 1)
       comparator = Manifests::ManifestToFilesystemComparator.new
-      status = comparator.compare_manifest_to_filesystem(manifest: manifest, source_path: source_path)
-      expect(status).to eq(false)
+      status = comparator.compare_manifest_to_filesystem(manifest:, source_path:)
+      expect(status).to be(false)
     end
   end
 end

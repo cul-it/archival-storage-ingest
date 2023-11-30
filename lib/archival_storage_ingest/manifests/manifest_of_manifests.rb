@@ -10,7 +10,7 @@ module Manifests
     storage_manifest = Manifests.read_manifest(filename: storage_manifest_path)
     depositor = storage_manifest.depositor
     collection = storage_manifest.collection_id
-    params = { depositor: depositor, collection: collection, path: File.basename(storage_manifest_path),
+    params = { depositor:, collection:, path: File.basename(storage_manifest_path),
                sha1: IngestUtils.calculate_checksum(filepath: storage_manifest_path)[0], sfs: [sfs],
                s3_key: "#{depositor}/#{collection}/#{File.basename(storage_manifest_path)}",
                depcol: "#{depositor}/#{collection}" }
@@ -42,7 +42,7 @@ module Manifests
     end
 
     def add_manifest_definition(storage_manifest_path:, sfs:)
-      new_manifest_def = Manifests.create_manifest_definition(storage_manifest_path: storage_manifest_path, sfs: sfs)
+      new_manifest_def = Manifests.create_manifest_definition(storage_manifest_path:, sfs:)
       @manifest_of_manifests << new_manifest_def
 
       new_manifest_def
@@ -84,8 +84,8 @@ module Manifests
 
     def to_hash
       {
-        depositor: depositor, collection: collection, sha1: sha1, sfs: sfs,
-        depcol: depcol, path: path, s3_key: s3_key
+        depositor:, collection:, sha1:, sfs:,
+        depcol:, path:, s3_key:
       }.compact
     end
   end

@@ -56,9 +56,9 @@ module M2MWorker
     end
 
     def work(msg)
-      path = prepare_package(msg: msg)
-      handler = m2m_package_handler(msg: msg)
-      handler.queue_ingest(msg: msg, path: path)
+      path = prepare_package(msg:)
+      handler = m2m_package_handler(msg:)
+      handler.queue_ingest(msg:, path:)
 
       true
     end
@@ -68,7 +68,7 @@ module M2MWorker
       s3_manager.download_m2m_file(s3_key: msg.package, dest_path: zip_dest_path)
       extract_dest_path = File.join(package_extract_dir, msg.package, msg.depositor, msg.collection)
       FileUtils.mkdir_p(extract_dest_path)
-      extract_package(zip_dest_path: zip_dest_path, extract_dest_path: extract_dest_path)
+      extract_package(zip_dest_path:, extract_dest_path:)
       extract_dest_path
     end
 
@@ -83,11 +83,11 @@ module M2MWorker
     end
 
     def m2m_package_handler(msg:)
-      if ecommons?(msg: msg)
-        return M2MWorker::ECommonsPackageHandler.new(ingest_root: ingest_root, sfs_root: sfs_root,
-                                                     file_identifier: file_identifier,
-                                                     manifest_validator: manifest_validator,
-                                                     queuer: queuer)
+      if ecommons?(msg:)
+        return M2MWorker::ECommonsPackageHandler.new(ingest_root:, sfs_root:,
+                                                     file_identifier:,
+                                                     manifest_validator:,
+                                                     queuer:)
       end
 
       raise IngestException, "Package handler not found for #{msg.depositor}/#{msg.collection}"

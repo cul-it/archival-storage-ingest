@@ -8,7 +8,7 @@ module Preingest
   # It expects COLLECTION MANIFEST for the passed ingest_manifest_path argument!
   class PeriodicFixityEnvInitializer < BaseEnvInitializer
     def initialize(periodic_fixity_root:, sfs_root:)
-      super(ingest_root: periodic_fixity_root, sfs_root: sfs_root)
+      super(ingest_root: periodic_fixity_root, sfs_root:)
     end
 
     # alias for initialize_ingest_env
@@ -30,7 +30,7 @@ module Preingest
 
     def generate_config(ingest_manifest_path:, named_params:)
       config = {
-        type: work_type, depositor: depositor, collection: collection_id,
+        type: work_type, depositor:, collection: collection_id,
         dest_path: dest_path(sfs_location: named_params.fetch(:sfs_location)),
         ingest_manifest: ingest_manifest_path, ticket_id: named_params.fetch(:ticket_id)
       }

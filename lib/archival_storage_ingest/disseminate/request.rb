@@ -23,14 +23,14 @@ module Disseminate
       CSV.foreach(csv, headers: true) do |row|
         package_id = row.fetch(PACKAGE_ID)
         @packages[package_id] = [] if @packages[package_id].nil?
-        @packages[package_id] << { package_id: package_id, filepath: row.fetch(FILEPATH),
+        @packages[package_id] << { package_id:, filepath: row.fetch(FILEPATH),
                                    fixity: row.fetch(FIXITY), size: row.fetch(SIZE).to_i }
       end
     end
 
     def validate
       @packages.each do |package_id, package|
-        manifest_package = @manifest.get_package(package_id: package_id)
+        manifest_package = @manifest.get_package(package_id:)
         package.each do |disseminate_file|
           manifest_file = manifest_package.find_file(filepath: disseminate_file[:filepath])
           validate_file(d_file: disseminate_file, m_file: manifest_file)
@@ -48,13 +48,13 @@ module Disseminate
       end
     end
 
-    def walk_packages(&block)
-      @packages.each(&block)
+    def walk_packages(&)
+      @packages.each(&)
     end
 
-    def walk_files(&block)
+    def walk_files(&)
       @packages.each_value do |package|
-        package.each(&block)
+        package.each(&)
       end
     end
 

@@ -38,7 +38,7 @@ module FixityCompareWorker
       ingest_manifest, sfs_manifest, s3_manifest = retrieve_manifests(msg)
 
       cm_filename = Manifests.collection_manifest_filename(depositor: msg.depositor, collection: msg.collection)
-      comparator = Manifests::ManifestComparator.new(cm_filename: cm_filename)
+      comparator = Manifests::ManifestComparator.new(cm_filename:)
       sfs_status, sfs_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: sfs_manifest)
       s3_status, s3_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: s3_manifest)
 
@@ -116,6 +116,28 @@ module FixityCompareWorker
       'Periodic Manifest Comparator'
     end
 
+    def retrieve_manifests(msg)
+      # s3_manifest = retrieve_manifest(msg, Workers::TYPE_S3)
+      sfs_manifest = retrieve_manifest(msg, Workers::TYPE_SFS)
+      ingest_manifest = retrieve_manifest(msg, Workers::TYPE_INGEST)
+      [ingest_manifest, sfs_manifest]
+    end
+
+    def compare_fixity_report(msg)
+      ingest_manifest, sfs_manifest = retrieve_manifests(msg)
+
+      cm_filename = Manifests.collection_manifest_filename(depositor: msg.depositor, collection: msg.collection)
+      comparator = Manifests::ManifestComparator.new(cm_filename:)
+      sfs_status, sfs_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: sfs_manifest)
+      # s3_status, s3_diff = comparator.fixity_diff(ingest: ingest_manifest, fixity: s3_manifest)
+
+      raise IngestException, "Ingest and SFS manifests do not match: #{sfs_diff}" unless sfs_status
+
+      # raise IngestException, "Ingest and S3 manifests do not match: #{s3_diff}" unless s3_status
+
+      true
+    end
+
     def _work(msg)
       return false unless super(msg)
 
@@ -140,7 +162,7 @@ module FixityCompareWorker
     def cm_file_entry(msg:, filepath:)
       im_key = s3_manager.manifest_key(msg.job_id, Workers::TYPE_INGEST)
       (sha1, size) = s3_manager.calculate_checksum(im_key)
-      Manifests::FileEntry.new(file: { filepath: filepath, sha1: sha1, size: size })
+      Manifests::FileEntry.new(file: { filepath:, sha1:, size: })
     end
 
     # Sometimes, when the things to check are very small, both s3 and sfs return at around the same time.
@@ -166,9 +188,9 @@ module FixityCompareWorker
       manifest_def = next_manifest_definition(msg)
       return if manifest_def.nil?
 
-      cm = collection_manifest(manifest_def: manifest_def)
-      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: periodic_fixity_root,
-                                                                    sfs_root: sfs_root)
+      cm = collection_manifest(manifest_def:)
+      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root:,
+                                                                    sfs_root:)
       env_initializer.initialize_periodic_fixity_env(cmf: cm, sfs_location: manifest_def.sfs, ticket_id: msg.ticket_id,
                                                      relay_queue_name: @relay_queue_name)
       queuer = WorkQueuer::PeriodicFixityQueuer.new(confirm: false)
@@ -185,7 +207,7 @@ module FixityCompareWorker
       cm_filename = Manifests.collection_manifest_filename(depositor: manifest_def.depositor,
                                                            collection: manifest_def.collection)
       dest_path = File.join(manifest_dir, cm_filename)
-      @s3_manager.download_file(s3_key: manifest_def.s3_key, dest_path: dest_path)
+      @s3_manager.download_file(s3_key: manifest_def.s3_key, dest_path:)
       dest_path
     end
   end

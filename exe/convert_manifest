@@ -9,7 +9,7 @@ csv = ARGV[2]
 data_root = ARGV[3]
 depth = ARGV[4] || '1'
 
-convert_manifest = ConvertManifest::ConvertManifest.new(pid_file: pid_file)
-new_manifest = convert_manifest.convert_manifest(filename: old_manifest, csv: csv, data_root: data_root,
+convert_manifest = ConvertManifest::ConvertManifest.new(pid_file:)
+new_manifest = convert_manifest.convert_manifest(filename: old_manifest, csv:, data_root:,
                                                  depth: depth.to_i)
-File.open("#{old_manifest}.new.json", 'w') { |file| file.write(new_manifest) }
+File.write("#{old_manifest}.new.json", new_manifest)

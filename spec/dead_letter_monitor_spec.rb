@@ -7,13 +7,13 @@ require 'json'
 # require 'mail'
 # require 'mail/network/delivery_methods/test_mailer'
 
-RSpec.describe 'DeadLetterMonitor' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'DeadLetterMonitor' do
   let(:dead_letter_queue_name) { %w[dlq1 dlq2] }
   let(:dead_letter_message_hash) do
     {
       job_id: '21daed0d-f687-4fd1-94e2-0bc68c3c1f19',
       dest_path: '/cul/app/archival_storage_ingest/data/target',
-      depositor: 'test_depositor', "collection": 'test_collection',
+      depositor: 'test_depositor', collection: 'test_collection',
       ingest_manifest: '/cul/app/archival_storage_ingest/ingest/test/manifest/ingest_manifest/test.json',
       ticket_id: 'CULAR-1937'
     }
@@ -23,7 +23,7 @@ RSpec.describe 'DeadLetterMonitor' do # rubocop:disable Metrics/BlockLength
     sqs_response = spy('sqs_response')
     allow(sqs_response).to receive(:body) { JSON.generate(dead_letter_message_hash) }
     allow(sqs_queuer).to receive(:retrieve_single_message).with(dead_letter_queue_name[0]) { sqs_response }
-    allow(sqs_queuer).to receive(:retrieve_single_message).with(dead_letter_queue_name[1]) { nil }
+    allow(sqs_queuer).to receive(:retrieve_single_message).with(dead_letter_queue_name[1]).and_return(nil)
     sqs_queuer
   end
 

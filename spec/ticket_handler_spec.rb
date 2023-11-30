@@ -5,7 +5,7 @@ require 'archival_storage_ingest/ticket/ticket_handler'
 require 'mail'
 require 'mail/network/delivery_methods/test_mailer'
 
-RSpec.describe 'TicketHandler' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'TicketHandler' do
   let(:ticket_id) { 'CULAR-1937' }
   let(:comment) { 'This is a test.' }
   let(:ticket_handler) do
@@ -13,7 +13,7 @@ RSpec.describe 'TicketHandler' do # rubocop:disable Metrics/BlockLength
   end
 
   describe 'JiraHandler' do
-    it 'should generate email object' do
+    it 'generates email object' do
       test_mail = ticket_handler.generate_email(subject: ticket_id, body: comment)
       expect(test_mail.from).to eq([TicketHandler::DEFAULT_FROM])
       expect(test_mail.to).to eq([TicketHandler::DEFAULT_TO])
@@ -21,7 +21,7 @@ RSpec.describe 'TicketHandler' do # rubocop:disable Metrics/BlockLength
       expect(test_mail.body.to_s).to eq(comment)
     end
 
-    it 'should send email to add comment' do
+    it 'sends email to add comment' do
       # Instantiate this lazy variable so next defaults section actually takes effect!
       ticket_handler
 

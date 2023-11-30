@@ -25,11 +25,11 @@ module IngestUtils
     end
 
     def configure_queues(params)
-      @message_queue_name = Queues.resolve_queue_name(stage: stage, queue: params[:queue_name])
-      @in_progress_queue_name = Queues.resolve_in_progress_queue_name(stage: stage, queue: params[:queue_name])
+      @message_queue_name = Queues.resolve_queue_name(stage:, queue: params[:queue_name])
+      @in_progress_queue_name = Queues.resolve_in_progress_queue_name(stage:, queue: params[:queue_name])
       @dest_queue_names = []
       params[:dest_queue_names].each do |dest_queue_name|
-        dest_queue_names.append(Queues.resolve_queue_name(queue: dest_queue_name, stage: stage))
+        dest_queue_names.append(Queues.resolve_queue_name(queue: dest_queue_name, stage:))
       end
     end
 
@@ -77,7 +77,7 @@ module IngestUtils
     # end
 
     def ssm_param(ssm_client, param, with_decryption: true)
-      ssm_client.get_parameter({ name: param, with_decryption: with_decryption }).parameter.value
+      ssm_client.get_parameter({ name: param, with_decryption: }).parameter.value
     end
   end
 end

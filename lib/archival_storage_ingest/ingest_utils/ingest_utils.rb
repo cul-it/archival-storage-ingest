@@ -38,7 +38,7 @@ module IngestUtils
     file_size = File.size(filepath)
     MAX_RETRY.times do
       begin
-        dig, size = _calculate_checksum(filepath: filepath, algorithm: algorithm)
+        dig, size = _calculate_checksum(filepath:, algorithm:)
         return [dig, size, errors] if file_size == size
 
         errors << "Size mismatch: #{file_size}, #{size}!"
@@ -91,7 +91,7 @@ module IngestUtils
   # deprecated, use process instead
   class DirectoryWalker
     def process_immediate_children(dir)
-      Dir.glob("#{dir}/*").sort.each do |path|
+      Dir.glob("#{dir}/*").each do |path|
         next if EXCLUDE_FILE_LIST[File.basename(path).downcase]
 
         yield(path)
@@ -100,7 +100,7 @@ module IngestUtils
 
     # deprecated, use process instead
     def process_rest(dir)
-      Dir.glob("#{dir}/**/*/**").sort.each do |path|
+      Dir.glob("#{dir}/**/*/**").each do |path|
         next if EXCLUDE_FILE_LIST[File.basename(path).downcase]
 
         yield(path)
@@ -108,7 +108,7 @@ module IngestUtils
     end
 
     def process(dir)
-      Dir.glob("#{dir}{,/*/**}/*").sort.each do |path|
+      Dir.glob("#{dir}{,/*/**}/*").each do |path|
         next if EXCLUDE_FILE_LIST[File.basename(path).downcase]
 
         yield(path)

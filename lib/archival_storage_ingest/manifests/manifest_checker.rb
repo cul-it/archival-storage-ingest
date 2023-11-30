@@ -29,7 +29,7 @@ module Manifests
       errors = []
       ingest_manifest.walk_packages do |package|
         package.walk_files do |file|
-          (status, error) = _check_non_default_checksums(source_path: package.source_path, file: file)
+          (status, error) = _check_non_default_checksums(source_path: package.source_path, file:)
           errors << error unless status
         end
       end

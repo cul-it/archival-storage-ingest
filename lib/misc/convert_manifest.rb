@@ -36,7 +36,7 @@ module ConvertManifest
       depcolsplit = depcol.split('/')
       col = depcolsplit[-1]
       dep = depcolsplit[0..-2].join('/')
-      documentation = documentation_pid(filename: filename)
+      documentation = documentation_pid(filename:)
 
       locations = populate_locations(collection['locations'])
 
@@ -47,8 +47,8 @@ module ConvertManifest
         steward: collection['steward'],
         depositor: dep,
         collection_id: col,
-        locations: locations,
-        documentation: documentation,
+        locations:,
+        documentation:,
         number_packages: packs.length,
         packages: packs
       }.compact
@@ -67,9 +67,9 @@ module ConvertManifest
     end
 
     def convert_manifest(filename:, csv:, data_root:, depth: 1)
-      manifest_hash = convert_manifest_to_new_hash(filename: filename, depth: depth)
+      manifest_hash = convert_manifest_to_new_hash(filename:, depth:)
       manifest_hash[:packages] =
-        add_additional_metadata(packages: manifest_hash[:packages], data_root: data_root, csv: csv)
+        add_additional_metadata(packages: manifest_hash[:packages], data_root:, csv:)
       JSON.pretty_generate(manifest_hash)
     end
 
@@ -114,7 +114,7 @@ module ConvertManifest
       flattened.each { |file| file.delete :bibid }
       {
         package_id: "urn:uuid:#{SecureRandom.uuid}",
-        bibid: bibid, files: flattened,
+        bibid:, files: flattened,
         number_files: flattened.length
       }.compact
     end
@@ -124,18 +124,18 @@ module ConvertManifest
       data_roots = data_root.split(',')
 
       packages.each do |package|
-        add_package_metadata(package: package, csv_metadata: csv_metadata)
-        add_file_metadata(package: package, data_roots: data_roots)
+        add_package_metadata(package:, csv_metadata:)
+        add_file_metadata(package:, data_roots:)
       end
 
-      check_data(packages: packages, csv_metadata: csv_metadata)
+      check_data(packages:, csv_metadata:)
 
       packages
     end
 
     def add_package_metadata(package:, csv_metadata:) # rubocop:disable Metrics/AbcSize
       filepath = package[:files][0][:filepath]
-      csv_entry = csv_data(csv_metadata: csv_metadata, filepath: filepath)
+      csv_entry = csv_data(csv_metadata:, filepath:)
       csv_local_id = csv_entry['local_id']
       csv_bibid = csv_entry['bibid']
       package[:local_id] = csv_local_id if csv_local_id
@@ -150,7 +150,7 @@ module ConvertManifest
 
     def add_file_metadata(package:, data_roots:)
       package[:files].each do |file_entry|
-        real_file_path = real_path(data_roots: data_roots, filepath: file_entry[:filepath])
+        real_file_path = real_path(data_roots:, filepath: file_entry[:filepath])
         unless real_file_path
           puts "#{file_entry[:filepath]} does not exists!"
           next

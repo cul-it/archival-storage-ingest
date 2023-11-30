@@ -21,8 +21,8 @@ module Manifests
 
   class M2MCollectionManifestDeployer < CollectionManifestDeployer
     def initialize(manifests_path:, s3_manager:, file_identifier:, sfs_prefix:, manifest_validator: nil)
-      super(manifests_path: manifests_path, s3_manager: s3_manager, file_identifier: file_identifier,
-            sfs_prefix: sfs_prefix, manifest_validator: manifest_validator)
+      super(manifests_path:, s3_manager:, file_identifier:,
+            sfs_prefix:, manifest_validator:)
     end
 
     # def m2m_deploy_collection_manifest(m2m_manifest_parameters:)
@@ -67,7 +67,7 @@ module Manifests
 
     def initialize(s3_manager:, local_manifest_store:)
       @s3_manager = s3_manager
-      @m2m_s3_helper = M2MS3Helper.new(s3_manager: s3_manager)
+      @m2m_s3_helper = M2MS3Helper.new(s3_manager:)
       @local_manifest_store = local_manifest_store
       @storage_manifest_store = "#{local_manifest_store}/storage_manifest"
       @ingest_manifest_store = "#{local_manifest_store}/ingest_manifest"
@@ -75,17 +75,17 @@ module Manifests
     end
 
     def backup_manifests(depositor:, collection:, populate_date:)
-      local_cleanup(depositor: depositor, collection: collection, populate_date: populate_date)
+      local_cleanup(depositor:, collection:, populate_date:)
 
-      @storage_manifest_path = download_storage_manifest(depositor: depositor, collection: collection)
-      @ingest_manifest_path, ims = m2m_s3_helper.download_ingest_manifests(depositor: depositor, collection: collection,
+      @storage_manifest_path = download_storage_manifest(depositor:, collection:)
+      @ingest_manifest_path, ims = m2m_s3_helper.download_ingest_manifests(depositor:, collection:,
                                                                            dest_root: ingest_manifest_store,
-                                                                           populate_date: populate_date)
+                                                                           populate_date:)
       return false unless ims.any?
 
-      zip_and_upload(depositor: depositor, collection: collection, storage_manifest_path: storage_manifest_path)
+      zip_and_upload(depositor:, collection:, storage_manifest_path:)
 
-      cleanup(depositor: depositor, collection: collection, populate_date: populate_date)
+      cleanup(depositor:, collection:, populate_date:)
       true
     end
 
@@ -93,15 +93,15 @@ module Manifests
       manifest_name = "_EM_#{depositor}_#{collection}.json"
       s3_key = "#{depositor}/#{collection}/#{manifest_name}"
       dest_path = "#{storage_manifest_store}/#{depositor}/#{collection}/#{manifest_name}"
-      s3_manager.download_file(s3_key: s3_key, dest_path: dest_path)
+      s3_manager.download_file(s3_key:, dest_path:)
 
       dest_path
     end
 
     def download_ingest_manifests(depositor:, collection:, populate_date:)
-      m2m_s3_helper.download_ingest_manifests(depositor: depositor, collection: collection,
+      m2m_s3_helper.download_ingest_manifests(depositor:, collection:,
                                               dest_root: ingest_manifest_store,
-                                              populate_date: populate_date)
+                                              populate_date:)
     end
 
     def zip_and_upload(depositor:, collection:, storage_manifest_path:)
@@ -110,8 +110,8 @@ module Manifests
       day = now.strftime('%d')
       zip_path = "#{backup_store}/#{depositor}_#{collection}_#{now.year}#{month}#{day}.zip"
       ingest_manifest_loc = "#{ingest_manifest_store}/#{depositor}/#{collection}"
-      zip_manifests(zip_path: zip_path, storage_manifest_path: storage_manifest_path,
-                    ingest_manifest_loc: ingest_manifest_loc)
+      zip_manifests(zip_path:, storage_manifest_path:,
+                    ingest_manifest_loc:)
       s3_key = ".m2m/manifest_backup/#{File.basename(zip_path)}"
       s3_manager.upload_file(s3_key, zip_path)
     end
@@ -128,8 +128,8 @@ module Manifests
     end
 
     def cleanup(depositor:, collection:, populate_date:)
-      s3_cleanup(depositor: depositor, collection: collection, populate_date: populate_date)
-      local_cleanup(depositor: depositor, collection: collection, populate_date: populate_date)
+      s3_cleanup(depositor:, collection:, populate_date:)
+      local_cleanup(depositor:, collection:, populate_date:)
     end
 
     def local_cleanup(depositor:, collection:, populate_date:)
@@ -139,9 +139,9 @@ module Manifests
     end
 
     def s3_cleanup(depositor:, collection:, populate_date:)
-      m2m_s3_helper.delete_ingest_manifests(ingest_manifest_store: ingest_manifest_store,
-                                            depositor: depositor, collection: collection,
-                                            populate_date: populate_date)
+      m2m_s3_helper.delete_ingest_manifests(ingest_manifest_store:,
+                                            depositor:, collection:,
+                                            populate_date:)
     end
   end
 
@@ -155,10 +155,10 @@ module Manifests
     end
 
     def download_storage_manifest(depositor:, collection:)
-      manifest_name = resolve_storage_manifest_name(depositor: depositor, collection: collection)
+      manifest_name = resolve_storage_manifest_name(depositor:, collection:)
       s3_key = "#{depositor}/#{collection}/#{manifest_name}"
       dest_path = "#{storage_manifest_store}/#{depositor}/#{collection}/#{manifest_name}"
-      s3_manager.download_file(s3_key: s3_key, dest_path: dest_path)
+      s3_manager.download_file(s3_key:, dest_path:)
 
       dest_path
     end
@@ -170,7 +170,7 @@ module Manifests
       downloaded = []
       ims.each do |s3_key|
         dest_path = "#{this_dest_root}/#{File.basename(s3_key)}"
-        s3_manager.download_file(s3_key: s3_key, dest_path: dest_path)
+        s3_manager.download_file(s3_key:, dest_path:)
         downloaded << dest_path
       end
 
@@ -181,7 +181,7 @@ module Manifests
       s3_keys = Dir["#{ingest_manifest_store}/#{depositor}/#{collection}/#{populate_date}/"].map do |key|
         "#{INGEST_MANIFEST_PREFIX}/#{IngestUtils.relative_path(key, ingest_manifest_store)}"
       end
-      s3_manager.delete_objects(s3_keys: s3_keys)
+      s3_manager.delete_objects(s3_keys:)
     end
   end
 end

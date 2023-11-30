@@ -82,7 +82,7 @@ module ArchivalStorageIngest
     end
 
     def log_queue
-      queue_name = Queues.resolve_fifo_queue_name(queue: Queues::QUEUE_JIRA, stage: stage)
+      queue_name = Queues.resolve_fifo_queue_name(queue: Queues::QUEUE_JIRA, stage:)
       @log_queue ||= IngestQueue::SQSQueue.new(queue_name, queuer)
     end
 
@@ -165,7 +165,7 @@ module ArchivalStorageIngest
       if ingest_msg.nil?
         notify_error(error_msg)
       else
-        notify_worker_error(ingest_msg: ingest_msg, error_msg: error_msg)
+        notify_worker_error(ingest_msg:, error_msg:)
       end
 
       exit(0)

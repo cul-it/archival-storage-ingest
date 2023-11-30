@@ -18,7 +18,7 @@ def get_mom(mom)
   JSON.parse(mom_text, symbolize_names: true)
 end
 
-RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockLength
+RSpec.describe 'CollectionManifestDeployer' do
   let(:td_storage_manifest_path) do
     resolve_filename(%w[manifests test_depositor test_collection _EM_test_depositor_test_collection.json])
   end
@@ -40,7 +40,7 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
   let(:old_manifest_sha1) { 'deadbeef' }
   let(:new_manifest_sha1) { '921d09399fdba978bb0863c98f372c9c211f8573' }
   let(:asif_bucket) { 's3-cular-invalid' }
-  let(:s3_manager) do # rubocop: disable Metrics/BlockLength
+  let(:s3_manager) do
     s3m = S3Manager.new('bogus_bucket')
 
     allow(s3m).to receive(:upload_string)
@@ -67,26 +67,26 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
       .and_raise(IngestException, 'upload_file called with invalid arguments!')
 
     allow(s3m).to receive(:upload_file)
-      .with(td_s3_key, td_storage_manifest_path) { true }
+      .with(td_s3_key, td_storage_manifest_path).and_return(true)
 
     allow(s3m).to receive(:upload_file)
-      .with(td2_s3_key, td2_storage_manifest_path) { true }
+      .with(td2_s3_key, td2_storage_manifest_path).and_return(true)
 
     allow(s3m).to receive(:upload_file)
-      .with(arxiv_s3_key, arxiv_manifest_path) { true }
+      .with(arxiv_s3_key, arxiv_manifest_path).and_return(true)
 
     allow(s3m).to receive(:_upload_file)
-      .with(bucket: asif_bucket, s3_key: td_s3_key, file: td_storage_manifest_path) { true }
+      .with(bucket: asif_bucket, s3_key: td_s3_key, file: td_storage_manifest_path).and_return(true)
 
     allow(s3m).to receive(:_upload_file)
-      .with(bucket: asif_bucket, s3_key: td2_s3_key, file: td2_storage_manifest_path) { true }
+      .with(bucket: asif_bucket, s3_key: td2_s3_key, file: td2_storage_manifest_path).and_return(true)
 
     allow(s3m).to receive(:_upload_file)
-      .with(bucket: asif_bucket, s3_key: arxiv_s3_key, file: arxiv_manifest_path) { true }
+      .with(bucket: asif_bucket, s3_key: arxiv_s3_key, file: arxiv_manifest_path).and_return(true)
 
     s3m
   end
-  let(:wasabi_manager) do # rubocop: disable Metrics/BlockLength
+  let(:wasabi_manager) do
     s3m = S3Manager.new('bogus_bucket')
 
     allow(s3m).to receive(:s3) { s3m }
@@ -115,22 +115,22 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
       .and_raise(IngestException, 'upload_file called with invalid arguments!')
 
     allow(s3m).to receive(:upload_file)
-      .with(td_s3_key, td_storage_manifest_path) { true }
+      .with(td_s3_key, td_storage_manifest_path).and_return(true)
 
     allow(s3m).to receive(:upload_file)
-      .with(td2_s3_key, td2_storage_manifest_path) { true }
+      .with(td2_s3_key, td2_storage_manifest_path).and_return(true)
 
     allow(s3m).to receive(:upload_file)
-      .with(arxiv_s3_key, arxiv_manifest_path) { true }
+      .with(arxiv_s3_key, arxiv_manifest_path).and_return(true)
 
     allow(s3m).to receive(:_upload_file)
-      .with(bucket: asif_bucket, s3_key: td_s3_key, file: td_storage_manifest_path) { true }
+      .with(bucket: asif_bucket, s3_key: td_s3_key, file: td_storage_manifest_path).and_return(true)
 
     allow(s3m).to receive(:_upload_file)
-      .with(bucket: asif_bucket, s3_key: td2_s3_key, file: td2_storage_manifest_path) { true }
+      .with(bucket: asif_bucket, s3_key: td2_s3_key, file: td2_storage_manifest_path).and_return(true)
 
     allow(s3m).to receive(:_upload_file)
-      .with(bucket: asif_bucket, s3_key: arxiv_s3_key, file: arxiv_manifest_path) { true }
+      .with(bucket: asif_bucket, s3_key: arxiv_s3_key, file: arxiv_manifest_path).and_return(true)
 
     s3m
   end
@@ -139,52 +139,52 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
   let(:source_path) { File.join(File.dirname(__FILE__), 'resources', 'data', 'test_depositor', 'test_collection') }
   let(:file_identifier) do
     fi = Manifests::FileIdentifier.new(sfs_prefix: 'bogus')
-    allow(fi).to receive(:identify_from_source).with(any_args) { 'text/plain' }
-    allow(fi).to receive(:identify_from_storage).with(any_args) { 'text/plain' }
+    allow(fi).to receive(:identify_from_source).with(any_args).and_return('text/plain')
+    allow(fi).to receive(:identify_from_storage).with(any_args).and_return('text/plain')
     fi
   end
   let(:manifest_validator) do
     storage_schema = resolve_filename(%w[schema manifest_schema_storage.json])
     ingest_schema = resolve_filename(%w[schema manifest_schema_ingest.json])
-    Manifests::ManifestValidator.new(storage_schema: storage_schema, ingest_schema: ingest_schema)
+    Manifests::ManifestValidator.new(storage_schema:, ingest_schema:)
   end
 
-  before(:each) do
+  before do
     FileUtils.cp(man_of_man_source, man_of_man)
-    @deployer = Manifests::CollectionManifestDeployer.new(manifests_path: man_of_man, s3_manager: s3_manager,
-                                                          manifest_validator: manifest_validator,
-                                                          file_identifier: file_identifier,
-                                                          sfs_prefix: sfs_prefix,
-                                                          wasabi_manager: wasabi_manager)
+    @deployer = Manifests::CollectionManifestDeployer.new(manifests_path: man_of_man, s3_manager:,
+                                                          manifest_validator:,
+                                                          file_identifier:,
+                                                          sfs_prefix:,
+                                                          wasabi_manager:)
     allow(FileUtils).to receive(:copy)
       .with(td_storage_manifest_path,
-            '/cul/data/archivalxx/test_depositor/test_collection/_EM_test_depositor_test_collection.json') { nil }
+            '/cul/data/archivalxx/test_depositor/test_collection/_EM_test_depositor_test_collection.json').and_return(nil)
     allow(FileUtils).to receive(:copy)
       .with(td2_storage_manifest_path,
-            '/cul/data/archivalyy/test_depositor/test_collection/_EM_test_depositor_2_test_collection.json') { nil }
+            '/cul/data/archivalyy/test_depositor/test_collection/_EM_test_depositor_2_test_collection.json').and_return(nil)
     allow(FileUtils).to receive(:copy)
       .with(arxiv_manifest_path,
-            '/cul/data/archivalyy/arXiv/arXiv/arXiv.json') { nil }
+            '/cul/data/archivalyy/arXiv/arXiv/arXiv.json').and_return(nil)
 
     td_target = File.join(sfs_prefix, 'archivalxx', 'test_depositor', 'test_collection',
                           '_EM_test_depositor_test_collection.json')
     allow(FileUtils).to receive(:copy)
-      .with(td_storage_manifest_path, td_target) { nil }
+      .with(td_storage_manifest_path, td_target).and_return(nil)
     td2_target = File.join(sfs_prefix, 'archivalyy', 'test_depositor_2', 'test_collection',
                            '_EM_test_depositor_2_test_collection.json')
     allow(FileUtils).to receive(:copy)
-      .with(td2_storage_manifest_path, td2_target) { nil }
+      .with(td2_storage_manifest_path, td2_target).and_return(nil)
   end
 
-  after(:each) do
+  after do
     FileUtils.rm man_of_man
   end
 
-  context 'when resolving manifest definition' do # rubocop: disable Metrics/BlockLength
+  context 'when resolving manifest definition' do
     it 'returns definition if found' do
       manifest_params = Manifests::ManifestParameters.new(storage_manifest_path: td_storage_manifest_path,
                                                           ingest_manifest_path: td_ingest_manifest_path,
-                                                          ingest_date: ingest_date)
+                                                          ingest_date:)
       manifest_params.ingest_manifest.walk_packages do |package|
         package.source_path = source_path
       end
@@ -195,7 +195,7 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
     it 'returns added definition when not found' do
       manifest_params = Manifests::ManifestParameters.new(storage_manifest_path: td2_storage_manifest_path,
                                                           ingest_manifest_path: td2_ingest_manifest_path,
-                                                          ingest_date: ingest_date,
+                                                          ingest_date:,
                                                           sfs: 'archivalyy')
       puts manifest_params.storage_manifest.depositor
       manifest_def = @deployer.prepare_manifest_definition(manifest_parameters: manifest_params)
@@ -205,23 +205,23 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
     it 'aborts if sfs is not supplied for new collection' do
       manifest_params = Manifests::ManifestParameters.new(storage_manifest_path: td2_storage_manifest_path,
                                                           ingest_manifest_path: td2_ingest_manifest_path,
-                                                          ingest_date: ingest_date)
+                                                          ingest_date:)
       expect do
         manifest_params = Manifests::ManifestParameters.new(storage_manifest_path: td2_storage_manifest_path,
                                                             ingest_manifest_path: td2_storage_manifest_path,
-                                                            ingest_date: ingest_date)
+                                                            ingest_date:)
         @deployer.prepare_manifest_definition(manifest_parameters: manifest_params)
       end.to raise_error(SystemExit)
     end
   end
 
-  context 'when deploying collection manifest' do # rubocop: disable Metrics/BlockLength
+  context 'when deploying collection manifest' do
     it 'updates sha1 of existing manifest definition' do
       mom = get_mom(man_of_man)
       expect(mom[0][:sha1]).to eq(old_manifest_sha1)
       manifest_params = Manifests::ManifestParameters.new(storage_manifest_path: td_storage_manifest_path,
                                                           ingest_manifest_path: td_ingest_manifest_path,
-                                                          ingest_date: ingest_date)
+                                                          ingest_date:)
       manifest_definition = @deployer.prepare_manifest_definition(manifest_parameters: manifest_params)
       @deployer.deploy_collection_manifest(manifest_def: manifest_definition,
                                            collection_manifest: td_storage_manifest_path)
@@ -235,7 +235,7 @@ RSpec.describe 'CollectionManifestDeployer' do # rubocop: disable Metrics/BlockL
       expect(mom.size).to eq(1)
       manifest_params = Manifests::ManifestParameters.new(storage_manifest_path: td2_storage_manifest_path,
                                                           ingest_manifest_path: td2_ingest_manifest_path,
-                                                          ingest_date: ingest_date,
+                                                          ingest_date:,
                                                           sfs: 'archivalyy')
       manifest_definition = @deployer.prepare_manifest_definition(manifest_parameters: manifest_params)
       @deployer.deploy_collection_manifest(manifest_def: manifest_definition,

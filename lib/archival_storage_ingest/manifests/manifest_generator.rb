@@ -21,7 +21,7 @@ module Manifests
       keys = list_keys
       keys.each do |key|
         (sha1, size) = calculate_checksum(key)
-        package.add_file_entry(filepath: manifest_key(key), sha1: sha1, size: size)
+        package.add_file_entry(filepath: manifest_key(key), sha1:, size:)
       end
       manifest
     end
@@ -50,7 +50,7 @@ module Manifests
     attr_reader :s3_manager, :s3_prefix
 
     def initialize(depositor:, collection_id:, s3_manager:, ingest_manifest: nil)
-      super(depositor: depositor, collection_id: collection_id, ingest_manifest: ingest_manifest)
+      super(depositor:, collection_id:, ingest_manifest:)
       @s3_manager = s3_manager
       @s3_prefix = "#{depositor}/#{collection_id}"
     end
@@ -76,7 +76,7 @@ module Manifests
     attr_reader :data_path
 
     def initialize(depositor:, collection_id:, data_path:, ingest_manifest: nil)
-      super(depositor: depositor, collection_id: collection_id, ingest_manifest: ingest_manifest)
+      super(depositor:, collection_id:, ingest_manifest:)
       @data_path = data_path
     end
 
@@ -97,7 +97,7 @@ module Manifests
     end
 
     def calculate_checksum(filepath)
-      IngestUtils.calculate_checksum(filepath: filepath)
+      IngestUtils.calculate_checksum(filepath:)
     end
 
     def manifest_key(filepath)

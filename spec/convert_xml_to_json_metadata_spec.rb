@@ -3,11 +3,11 @@
 require 'rspec'
 require 'misc/convert_xml_to_json_metadata'
 
-RSpec.describe 'ConvertXmlToJsonMetadata' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'ConvertXmlToJsonMetadata' do
   let(:hashdeep_manifest) { File.join(File.dirname(__FILE__), 'resources', 'misc', 'hashdeep_manifest.xml') }
-  let(:expected_json) do # rubocop:disable Metrics/BlockLength
+  let(:expected_json) do
     json_data = {
-      "RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records": {
+      'RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records': {
         'phys_coll_id' => 'RMA02471',
         'steward' => 'eef46',
         'items' => {

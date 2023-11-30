@@ -13,7 +13,7 @@ storage_schema = ENV['asi_storage_schema'] || '/cul/app/cular-metadata/manifest_
 
 ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLength
   config.log_path = ENV['asi_ingest_m2m_log_path'] ||
-                    "#{ENV['default_cular_log_path']}/ingest_m2m.log"
+                    "#{ENV.fetch('default_cular_log_path', nil)}/ingest_m2m.log"
   config.dry_run = ENV['asi_ingest_m2m_dry_run'] || false
   config.polling_interval = ENV['asi_ingest_m2m_polling_interval'].to_i if
                             ENV['asi_ingest_m2m_polling_interval']
@@ -56,15 +56,15 @@ ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLengt
 
   s3_manager = S3Manager.new(s3_bucket, 'invalid-asif-bucket',
                              'invalid-size-bucket', s3_m2m_bucket)
-  manifest_validator = Manifests::ManifestValidator.new(ingest_schema: ingest_schema,
-                                                        storage_schema: storage_schema)
+  manifest_validator = Manifests::ManifestValidator.new(ingest_schema:,
+                                                        storage_schema:)
   config.worker = M2MInitiateWorker.new({
-                                          package_zip_dir: package_zip_dir,
-                                          package_extract_dir: package_extract_dir,
-                                          ingest_root: ingest_root,
-                                          sfs_root: sfs_root,
-                                          s3_manager: s3_manager,
-                                          manifest_validator: manifest_validator
+                                          package_zip_dir:,
+                                          package_extract_dir:,
+                                          ingest_root:,
+                                          sfs_root:,
+                                          s3_manager:,
+                                          manifest_validator:
                                         })
 end
 

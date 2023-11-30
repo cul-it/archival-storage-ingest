@@ -43,8 +43,8 @@ class WasabiManager < S3Manager
     secret_key = ssm_client.get_parameter({ name: "/cular/archivalstorage/#{stage}/ingest/wasabi/secret_access_key",
                                             with_decryption: true }).parameter.value
 
-    s3_client = Aws::S3::Client.new(region: region, access_key_id: access_key, secret_access_key: secret_key,
-                                    endpoint: endpoint)
+    s3_client = Aws::S3::Client.new(region:, access_key_id: access_key, secret_access_key: secret_key,
+                                    endpoint:)
 
     @s3 = Aws::S3::Resource.new(client: s3_client)
   end

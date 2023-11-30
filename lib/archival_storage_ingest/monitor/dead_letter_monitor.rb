@@ -32,8 +32,8 @@ class DeadLetterMonitor
       dead_letter_message = check_dead_letter_queue(dead_letter_queue)
       next if dead_letter_message.nil?
 
-      notify_dead_letter_message(dead_letter_queue: dead_letter_queue,
-                                 dead_letter_message: dead_letter_message)
+      notify_dead_letter_message(dead_letter_queue:,
+                                 dead_letter_message:)
       # dead_letter_found = true
     end
 
@@ -49,7 +49,7 @@ class DeadLetterMonitor
   def notify_dead_letter_message(dead_letter_queue:, dead_letter_message:)
     error_msg = "#Dead letter message found on #{dead_letter_queue}"
     dead_letter_message.worker = 'Dead letter monitor'
-    issue_logger.notify_worker_error(ingest_msg: dead_letter_message, error_msg: error_msg)
+    issue_logger.notify_worker_error(ingest_msg: dead_letter_message, error_msg:)
   end
 
   # def notify_admin_ok

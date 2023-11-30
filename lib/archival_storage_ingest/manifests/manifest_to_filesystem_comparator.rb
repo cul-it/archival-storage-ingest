@@ -9,11 +9,11 @@ module Manifests
   # It will traverse source_path directly, not modifying it with depositor/collection information.
   class ManifestToFilesystemComparator
     def compare_manifest_to_filesystem(manifest:, source_path: nil)
-      manifest_listing = populate_manifest_files(manifest: manifest)
-      filesystem_listing = populate_filesystem(manifest: manifest, source_path: source_path)
+      manifest_listing = populate_manifest_files(manifest:)
+      filesystem_listing = populate_filesystem(manifest:, source_path:)
       return true if manifest_listing == filesystem_listing
 
-      print_diffs(manifest_listing: manifest_listing, filesystem_listing: filesystem_listing)
+      print_diffs(manifest_listing:, filesystem_listing:)
 
       false
     end
@@ -39,7 +39,7 @@ module Manifests
     end
 
     def populate_filesystem(manifest:, source_path:)
-      source_paths = populate_source_path(manifest: manifest, source_path: source_path)
+      source_paths = populate_source_path(manifest:, source_path:)
       filesystem_listing = []
       directory_walker = IngestUtils::DirectoryWalker.new
       source_paths.each do |sp|

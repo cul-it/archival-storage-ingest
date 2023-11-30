@@ -27,7 +27,7 @@ module TicketHandler
     # If an existing ticket id is used for subject, this will add comment.
     # Otherwise, it will create a new ticket.
     def update_issue_tracker(subject:, body:)
-      mail = generate_email(subject: subject, body: body)
+      mail = generate_email(subject:, body:)
 
       mail.deliver
     end
@@ -54,7 +54,7 @@ module TicketHandler
 
     def update_issue_tracker(subject:, body:)
       req = Net::HTTP::Post.new(web_hook)
-      req.set_form_data('payload' => JSON.generate(payload(subject: subject, body: body)))
+      req.set_form_data('payload' => JSON.generate(payload(subject:, body:)))
 
       http = Net::HTTP.new(web_hook.hostname, web_hook.port)
       http.use_ssl = true
@@ -71,31 +71,31 @@ module TicketHandler
 
     def payload(subject:, body:)
       {
-        'blocks': [
-          payload_header(subject: subject),
-          payload_body(body: body)
+        blocks: [
+          payload_header(subject:),
+          payload_body(body:)
         ]
       }
     end
 
     def payload_header(subject:)
       {
-        'type': 'header',
-        'text': {
-          'type': 'plain_text',
-          'text': subject,
-          'emoji': true
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: subject,
+          emoji: true
         }
       }
     end
 
     def payload_body(body:)
       {
-        'type': 'section',
-        'fields': [
+        type: 'section',
+        fields: [
           {
-            'type': 'plain_text',
-            'text': body
+            type: 'plain_text',
+            text: body
           }
         ]
       }

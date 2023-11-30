@@ -12,20 +12,20 @@ module TicketHandler
     end
 
     def notify_worker_started(ingest_msg)
-      notify_status(ingest_msg: ingest_msg, status: 'Started')
+      notify_status(ingest_msg:, status: 'Started')
     end
 
     def notify_worker_completed(ingest_msg)
-      notify_status(ingest_msg: ingest_msg, status: 'Completed')
+      notify_status(ingest_msg:, status: 'Completed')
     end
 
     def notify_worker_skipped(ingest_msg)
-      notify_status(ingest_msg: ingest_msg, status: 'Skipped')
+      notify_status(ingest_msg:, status: 'Skipped')
     end
 
     def notify_worker_error(ingest_msg:, error_msg:)
       status = "Error\n\n#{error_msg}"
-      notify_status(ingest_msg: ingest_msg, status: status)
+      notify_status(ingest_msg:, status:)
     end
 
     def notify_status(ingest_msg:, status:)
@@ -36,7 +36,7 @@ module TicketHandler
 
     # This will create a new ticket.
     def notify_error(error_msg)
-      ingest_msg = IngestMessage::SQSMessage.new(job_id: SecureRandom.uuid, log: error_msg, worker: worker)
+      ingest_msg = IngestMessage::SQSMessage.new(job_id: SecureRandom.uuid, log: error_msg, worker:)
       queue.send_message(ingest_msg)
     end
   end
@@ -55,18 +55,18 @@ module TicketHandler
         notify_error(ingest_msg)
       else
         body = "#{Time.new}\n" \
-             "#{ingest_msg.worker}\n" \
-             "Depositor/Collection: #{ingest_msg.depositor}/#{ingest_msg.collection}\n" \
-             "Job ID: #{ingest_msg.job_id}\n" \
-             "Status: #{ingest_msg.log}"
-        ticket_handler.update_issue_tracker(subject: ingest_msg.ticket_id, body: body)
+               "#{ingest_msg.worker}\n" \
+               "Depositor/Collection: #{ingest_msg.depositor}/#{ingest_msg.collection}\n" \
+               "Job ID: #{ingest_msg.job_id}\n" \
+               "Status: #{ingest_msg.log}"
+        ticket_handler.update_issue_tracker(subject: ingest_msg.ticket_id, body:)
       end
     end
 
     def notify_error(ingest_msg)
       subject = "#{ingest_msg.worker} service has terminated due to fatal error."
       body = "#{Time.new}\n#{ingest_msg.log}"
-      ticket_handler.update_issue_tracker(subject: subject, body: body)
+      ticket_handler.update_issue_tracker(subject:, body:)
     end
   end
 
@@ -97,15 +97,15 @@ module TicketHandler
     end
 
     def notify_worker_error(subject:, error_msg:)
-      _notify_error(subject: subject, error_msg: error_msg)
+      _notify_error(subject:, error_msg:)
     end
 
     def notify_error(subject:, error_msg:)
-      _notify_error(subject: subject, error_msg: error_msg)
+      _notify_error(subject:, error_msg:)
     end
 
     def _notify_error(subject:, error_msg:)
-      slack_handler.update_issue_tracker(subject: subject, body: error_msg)
+      slack_handler.update_issue_tracker(subject:, body: error_msg)
     end
   end
 
@@ -130,7 +130,7 @@ module TicketHandler
     attr_reader :slack_handler
 
     def initialize(queue:, worker:, slack_handler:)
-      super(queue: queue, worker: worker)
+      super(queue:, worker:)
       @slack_handler = slack_handler
     end
 
@@ -141,13 +141,13 @@ module TicketHandler
     def notify_error(error_msg)
       super(error_msg)
       subject = "#{worker} service has terminated due to fatal error."
-      slack_handler.update_issue_tracker(subject: subject, body: error_msg)
+      slack_handler.update_issue_tracker(subject:, body: error_msg)
     end
 
     def notify_worker_error(ingest_msg:, error_msg:)
-      super(ingest_msg: ingest_msg, error_msg: error_msg)
+      super(ingest_msg:, error_msg:)
       subject = "#{worker} service has terminated due to fatal error."
-      slack_handler.update_issue_tracker(subject: subject, body: error_msg)
+      slack_handler.update_issue_tracker(subject:, body: error_msg)
     end
   end
 

@@ -7,8 +7,8 @@ require 'archival_storage_ingest/version'
 Gem::Specification.new do |spec|
   spec.name = 'archival_storage_ingest'
   spec.version = ArchivalStorageIngest::VERSION
-  spec.authors = %w[Shinwoo Kim Buddha Buck]
-  spec.email = %w[sk274@cornell.edu bb233@cornell.edu]
+  spec.authors = %w[Shinwoo Kim Matt Connolly]
+  spec.email = %w[sk274@cornell.edu mjc12@cornell.edu]
 
   spec.summary = 'Archival storage ingest.'
   spec.description = 'Archival storage ingest.'
@@ -29,22 +29,26 @@ Gem::Specification.new do |spec|
       f.match(%r{^(test|spec|features)/})
     end
   end
-  spec.required_ruby_version = '~> 2.6'
+  spec.required_ruby_version = '~> 3.1'
   spec.bindir = 'exe'
   spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
+  # rubocop:disable Gemspec/DevelopmentDependencies
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'coveralls'
   spec.add_development_dependency 'nokogiri'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec'
   spec.add_development_dependency 'rubocop'
+  spec.add_development_dependency 'rubocop-rake'
   spec.add_development_dependency 'rubocop-rspec'
+  # rubocop:enable Gemspec/DevelopmentDependencies
 
   spec.add_runtime_dependency 'aws-sdk'
   spec.add_runtime_dependency 'json_schemer'
   spec.add_runtime_dependency 'mail'
   spec.add_runtime_dependency 'opensearch-ruby'
   spec.add_runtime_dependency 'rubyzip'
+  spec.metadata['rubygems_mfa_required'] = 'true'
 end

@@ -10,7 +10,7 @@ require 'archival_storage_ingest/workers/log_worker'
 
 ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLength
   config.log_path = ENV['asi_ingest_logger_log_path'] ||
-                    "#{ENV['default_cular_log_path']}/logger.log"
+                    "#{ENV.fetch('default_cular_log_path', nil)}/logger.log"
   config.dry_run = ENV['asi_ingest_logger_dry_run'] || false
   config.polling_interval = ENV['asi_ingest_logger_polling_interval'].to_i if ENV['asi_ingest_logger_polling_interval']
   config.inhibit_file = ENV['asi_ingest_logger_inhibit_file'] ||
@@ -21,23 +21,23 @@ ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLengt
   stage = ArchivalStorageIngest::STAGE_PROD
   stage = ArchivalStorageIngest::STAGE_DEV if ENV['asi_develop'] || ENV['asi_logger_develop']
   stage = ArchivalStorageIngest::STAGE_SANDBOX if ENV['asi_sandbox'] || ENV['asi_logger_sandbox']
-  config.message_queue_name = Queues.resolve_fifo_queue_name(stage: stage, queue: Queues::QUEUE_JIRA)
-  config.in_progress_queue_name = Queues.resolve_fifo_in_progress_queue_name(stage: stage, queue: Queues::QUEUE_JIRA)
+  config.message_queue_name = Queues.resolve_fifo_queue_name(stage:, queue: Queues::QUEUE_JIRA)
+  config.in_progress_queue_name = Queues.resolve_fifo_in_progress_queue_name(stage:, queue: Queues::QUEUE_JIRA)
   config.dest_queue_names = []
   config.develop = false
   config.debug = stage != ArchivalStorageIngest::STAGE_PROD
   config.s3_bucket = stage == ArchivalStorageIngest::STAGE_PROD ? 's3-cular' : "s3-cular-#{stage}"
   if stage == ArchivalStorageIngest::STAGE_PROD
-    slack_handler = TicketHandler::SlackHandler.new(web_hook: ENV['asi_log_slack_web_hook'])
-    config.issue_logger = TicketHandler::SlackErrorTracker.new(slack_handler: slack_handler)
+    slack_handler = TicketHandler::SlackHandler.new(web_hook: ENV.fetch('asi_log_slack_web_hook', nil))
+    config.issue_logger = TicketHandler::SlackErrorTracker.new(slack_handler:)
   else
     config.issue_logger = TicketHandler::NoopIssueTracker.new
   end
 
   ticket_handler = TicketHandler::JiraHandler.new
-  issue_tracker = TicketHandler::IssueTracker.new(ticket_handler: ticket_handler)
+  issue_tracker = TicketHandler::IssueTracker.new(ticket_handler:)
 
-  config.worker = LogWorker.new(issue_tracker: issue_tracker)
+  config.worker = LogWorker.new(issue_tracker:)
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

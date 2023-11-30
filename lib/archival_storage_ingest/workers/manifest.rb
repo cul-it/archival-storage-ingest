@@ -24,12 +24,12 @@ module WorkerManifest
     attr_reader :files, :number_files
 
     def add_file(filepath, sha1, size = 0)
-      files[filepath] = { sha1: sha1, size: size }
+      files[filepath] = { sha1:, size: }
       @number_files += 1
     end
 
-    def walk_manifest(&block)
-      files.each(&block)
+    def walk_manifest(&)
+      files.each(&)
     end
 
     def to_old_manifest(depositor, collection)

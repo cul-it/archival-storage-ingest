@@ -4,7 +4,7 @@ require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/manifests/manifest_checker'
 require 'rspec'
 
-RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'IngestEnvInitializer' do
   let(:depositor) { 'test_depositor' }
   let(:collection) { 'test_collection' }
   let(:source_data) do
@@ -27,7 +27,7 @@ RSpec.describe 'IngestEnvInitializer' do # rubocop:disable Metrics/BlockLength
       checker = Manifests::ManifestFilesizeChecker.new
       total, mismatch = checker.check_filesize(manifest: ingest_manifest)
       expect(total).to eq(56)
-      expect(mismatch.empty?).to eq(true)
+      expect(mismatch.empty?).to be(true)
     end
   end
 

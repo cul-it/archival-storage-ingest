@@ -10,9 +10,9 @@ require 'date'
 
 class M2MStorageManifestDeployer < BaseManifestDeployer
   def _manifest_deployer
-    Manifests::M2MCollectionManifestDeployer.new(manifests_path: manifest_of_manifests, s3_manager: s3_manager,
-                                                 sfs_prefix: sfs_prefix, manifest_validator: manifest_validator,
-                                                 file_identifier: file_identifier)
+    Manifests::M2MCollectionManifestDeployer.new(manifests_path: manifest_of_manifests, s3_manager:,
+                                                 sfs_prefix:, manifest_validator:,
+                                                 file_identifier:)
   end
 
   def local_manifest_store
@@ -28,8 +28,8 @@ class M2MStorageManifestDeployer < BaseManifestDeployer
   end
 
   def _manifest_backup_handler
-    Manifests::M2MManifestBackupHandler.new(local_manifest_store: local_manifest_store,
-                                            s3_manager: s3_manager)
+    Manifests::M2MManifestBackupHandler.new(local_manifest_store:,
+                                            s3_manager:)
   end
 
   def populate_date
@@ -38,8 +38,8 @@ class M2MStorageManifestDeployer < BaseManifestDeployer
   end
 
   def backup_manifests(depositor:, collection:)
-    manifest_backup_handler.backup_manifests(depositor: depositor, collection: collection,
-                                             populate_date: populate_date)
+    manifest_backup_handler.backup_manifests(depositor:, collection:,
+                                             populate_date:)
   end
 end
 
@@ -48,12 +48,12 @@ collection = ARGV.shift
 sfs = ARGV.shift
 
 m2m_manifest_deployer = M2MStorageManifestDeployer.new
-exit(true) unless m2m_manifest_deployer.backup_manifests(depositor: depositor, collection: collection)
+exit unless m2m_manifest_deployer.backup_manifests(depositor:, collection:)
 
 sm_path = m2m_manifest_deployer.manifest_backup_handler.storage_manifest_path
 im_path = m2m_manifest_deployer.manifest_backup_handler.ingest_manifest_path
 manifest_params = Manifests::M2MManifestParameters.new(storage_manifest_path: sm_path,
                                                        ingest_manifest_path: im_path,
-                                                       sfs: sfs, skip_data_addition: false,
+                                                       sfs:, skip_data_addition: false,
                                                        local_manifest_store: m2m_manifest_deployer.local_manifest_store)
 m2m_manifest_deployer.deploy_manifest(manifest_parameters: manifest_params)

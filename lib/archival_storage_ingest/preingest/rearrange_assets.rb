@@ -14,7 +14,7 @@ module Preingest
 
     def rearrange_data_structure(depositor:, collection:, arrange_info_csv:, source_path:, staging_root:)
       staging_path = File.join(staging_root, depositor, collection)
-      arrange_info = populate_arrange_info(arrange_info_csv: arrange_info_csv)
+      arrange_info = populate_arrange_info(arrange_info_csv:)
 
       arrange_info.each_pair do |new_path, old_path|
         rearrange_asset(source_path: File.join(source_path, old_path),

@@ -14,9 +14,9 @@ module ArchivalStorageIngestLogger
 
   def self.get_application_logger(stage:, index_type:, use_lambda_logger: false)
     if use_lambda_logger
-      ArchivalStorageIngestLogger::LambdaLogger.new(stage: stage, type: index_type)
+      ArchivalStorageIngestLogger::LambdaLogger.new(stage:, type: index_type)
     else
-      ArchivalStorageIngestLogger::OpenSearchLogger.new(stage: stage, type: index_type)
+      ArchivalStorageIngestLogger::OpenSearchLogger.new(stage:, type: index_type)
     end
   end
 
@@ -32,7 +32,7 @@ module ArchivalStorageIngestLogger
     end
 
     def ssm_param(param, with_decryption: false)
-      ssm_client.get_parameter({ name: param, with_decryption: with_decryption }).parameter.value
+      ssm_client.get_parameter({ name: param, with_decryption: }).parameter.value
     end
 
     def log(log_document)
@@ -49,7 +49,7 @@ module ArchivalStorageIngestLogger
 
   class OpenSearchLogger < ApplicationLogger
     def initialize(stage:, type:)
-      super(stage: stage, type: type)
+      super(stage:, type:)
 
       # rubocop:disable Layout/LineLength
       opensearch_url = ssm_param("/cular/archivalstorage/#{stage}/application_logger/opensearch/opensearch_url")
@@ -77,7 +77,7 @@ module ArchivalStorageIngestLogger
 
   class LambdaLogger < ApplicationLogger
     def initialize(stage:, type:)
-      super(stage: stage, type: type)
+      super(stage:, type:)
       @os_lambda_url = URI.parse(ssm_param("/cular/archivalstorage/#{stage}/opensearch/#{type}_lambda_url"))
       @os_lambda_https = Net::HTTP.new(@os_lambda_url.host, @os_lambda_url.port)
       @os_lambda_https.use_ssl = true

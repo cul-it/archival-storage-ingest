@@ -51,7 +51,7 @@ stage = 'prod'
 stage = 'dev' if ENV['asi_develop'] || ENV['asi_queue_develop']
 stage = 'sandbox' if ENV['asi_sandbox'] || ENV['asi_queue_sandbox']
 application_logger = ArchivalStorageIngestLogger.get_application_logger(stage:, index_type:,
-                                                                        use_lambda_logger:)
+                                                                        use_lambda_logger: true)
 
 manifest_deployer.deploy_manifest(manifest_parameters:)
 

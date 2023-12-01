@@ -1,21 +1,18 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/exception/ingest_exception'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/disseminate/request'
 require 'archival_storage_ingest/disseminate/transferer'
 require 'archival_storage_ingest/disseminate/fixity_checker'
 require 'archival_storage_ingest/disseminate/packager'
+require 'archival_storage_ingest/s3/s3_manager'
+require 'archival_storage_ingest/wasabi/wasabi_manager'
 
 module Disseminate
-  SFS_SOURCE_LOCATION = 'SFS'
-  DEFAULT_SOURCE_LOCATION = 'Wasabi'
-  DEFAULT_TARGET_DIR = '/cul/data/ingest_share/DISSEMINATE'
-
   class Disseminator
-    def initialize(source_location: DEFAULT_SOURCE_LOCATION,
-                   target_dir: DEFAULT_TARGET_DIR)
-      @source_location = source_location
-      @target_dir = target_dir
+    def initialize(cloud_platform:)
+      @cloud_platform = cloud_platform
     end
 
     def disseminate(manifest:, csv:, zip_filename:, depositor:, collection:)
@@ -35,24 +32,27 @@ module Disseminate
 
     def package_dissemination(transferred_packages:, zip_filename:, depositor:, collection:)
       packager = init_packager
-      packager.package_dissemination(zip_filepath: File.join(@target_dir, zip_filename),
+      packager.package_dissemination(zip_filepath: zip_filename,
                                      depositor:, collection:,
                                      transferred_packages:)
     end
 
     def init_transferer
-      return SFS_SOURCE_LOCATION.new(sfs_prefix: @sfs_prefix, sfs_bucket: @sfs_bucket) if
-        @source_location.eql?(DEFAULT_SOURCE_LOCATION)
-
-      WasabiTransferer.new
+      bucket = IngestUtils.CLOUD_PLATFORM_TO_BUCKET_NAME[@cloud_platform]
+      cloud_manager = if @cloud_platform == IngestUtils.PLATFORM_WASABI
+                        WasabiManager(bucket)
+                      else
+                        S3Manager(bucket)
+                      end
+      CloudTransferer.new(cloud_manager:)
     end
 
     def init_fixity_checker
-      SFSFixityChecker.new if @source_location.eql?(DEFAULT_SOURCE_LOCATION)
+      DisseminationFixityChecker.new
     end
 
     def init_packager
-      SFSPackager.new if @source_location.eql?(DEFAULT_SOURCE_LOCATION)
+      Packager.new
     end
   end
 end

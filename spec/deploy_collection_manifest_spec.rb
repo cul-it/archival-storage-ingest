@@ -4,11 +4,14 @@ require 'rspec'
 
 require 'archival_storage_ingest/manifests/deploy_collection_manifest'
 require 'archival_storage_ingest/manifests/manifests'
+require 'archival_storage_ingest/s3/local_manager'
 require 'fileutils'
 require 'json'
 
+RESOURCE_ROOT = File.join(File.dirname(__FILE__), 'resources')
+
 def resolve_filename(path_array)
-  File.join(File.dirname(__FILE__), 'resources', path_array)
+  File.join(RESOURCE_ROOT, path_array)
 end
 
 def get_mom(mom)
@@ -41,101 +44,19 @@ RSpec.describe 'CollectionManifestDeployer' do
   let(:new_manifest_sha1) { '921d09399fdba978bb0863c98f372c9c211f8573' }
   let(:asif_bucket) { 's3-cular-invalid' }
   let(:s3_manager) do
-    s3m = S3Manager.new('bogus_bucket')
-
-    allow(s3m).to receive(:upload_string)
-      .with(any_args)
-      .and_raise(IngestException, 'upload_string must not be called in this test!')
-
-    allow(s3m).to receive(:list_object_keys)
-      .with(any_args)
-      .and_raise(IngestException, 'list_object_keys must not be called in this test!')
-
-    allow(s3m).to receive(:calculate_checksum)
-      .with(any_args)
-      .and_raise(IngestException, 'calculate_checksum must not be called in this test!')
-
-    # This is harmless.
-    allow(s3m).to receive(:manifest_key).with(any_args).and_call_original
-
-    allow(s3m).to receive(:retrieve_file)
-      .with(any_args)
-      .and_raise(IngestException, 'retrieve_file must not be called in this test!')
-
-    allow(s3m).to receive(:upload_file)
-      .with(any_args)
-      .and_raise(IngestException, 'upload_file called with invalid arguments!')
-
-    allow(s3m).to receive(:upload_file)
-      .with(td_s3_key, td_storage_manifest_path).and_return(true)
-
-    allow(s3m).to receive(:upload_file)
-      .with(td2_s3_key, td2_storage_manifest_path).and_return(true)
-
-    allow(s3m).to receive(:upload_file)
-      .with(arxiv_s3_key, arxiv_manifest_path).and_return(true)
-
-    allow(s3m).to receive(:_upload_file)
-      .with(bucket: asif_bucket, s3_key: td_s3_key, file: td_storage_manifest_path).and_return(true)
-
-    allow(s3m).to receive(:_upload_file)
-      .with(bucket: asif_bucket, s3_key: td2_s3_key, file: td2_storage_manifest_path).and_return(true)
-
-    allow(s3m).to receive(:_upload_file)
-      .with(bucket: asif_bucket, s3_key: arxiv_s3_key, file: arxiv_manifest_path).and_return(true)
-
-    s3m
+    local_root = File.join(File.dirname(__FILE__), 'resources', 'cloud')
+    LocalManager.new(local_root:, type: TYPE_S3)
   end
   let(:wasabi_manager) do
-    s3m = S3Manager.new('bogus_bucket')
-
-    allow(s3m).to receive(:s3) { s3m }
-
-    allow(s3m).to receive(:upload_string)
-      .with(any_args)
-      .and_raise(IngestException, 'upload_string must not be called in this test!')
-
-    allow(s3m).to receive(:list_object_keys)
-      .with(any_args)
-      .and_raise(IngestException, 'list_object_keys must not be called in this test!')
-
-    allow(s3m).to receive(:calculate_checksum)
-      .with(any_args)
-      .and_raise(IngestException, 'calculate_checksum must not be called in this test!')
-
-    # This is harmless.
-    allow(s3m).to receive(:manifest_key).with(any_args).and_call_original
-
-    allow(s3m).to receive(:retrieve_file)
-      .with(any_args)
-      .and_raise(IngestException, 'retrieve_file must not be called in this test!')
-
-    allow(s3m).to receive(:upload_file)
-      .with(any_args)
-      .and_raise(IngestException, 'upload_file called with invalid arguments!')
-
-    allow(s3m).to receive(:upload_file)
-      .with(td_s3_key, td_storage_manifest_path).and_return(true)
-
-    allow(s3m).to receive(:upload_file)
-      .with(td2_s3_key, td2_storage_manifest_path).and_return(true)
-
-    allow(s3m).to receive(:upload_file)
-      .with(arxiv_s3_key, arxiv_manifest_path).and_return(true)
-
-    allow(s3m).to receive(:_upload_file)
-      .with(bucket: asif_bucket, s3_key: td_s3_key, file: td_storage_manifest_path).and_return(true)
-
-    allow(s3m).to receive(:_upload_file)
-      .with(bucket: asif_bucket, s3_key: td2_s3_key, file: td2_storage_manifest_path).and_return(true)
-
-    allow(s3m).to receive(:_upload_file)
-      .with(bucket: asif_bucket, s3_key: arxiv_s3_key, file: arxiv_manifest_path).and_return(true)
-
-    s3m
+    local_root = File.join(File.dirname(__FILE__), 'resources', 'cloud')
+    LocalManager.new(local_root:, type: TYPE_WASABI)
+  end
+  let(:manifest_storage_manager) do
+    local_root = File.join(File.dirname(__FILE__), 'resources', 'cloud')
+    LocalManager.new(local_root:, type: TYPE_VERSIONED_MANIFEST)
   end
   let(:ingest_date) { '2020-09-08' }
-  let(:sfs_prefix) { File.join(File.dirname(__FILE__), 'resources', 'manifest_deployer') }
+  let(:sfs_prefix) { File.join(File.dirname(__FILE__), 'resources', 'manifests', 'manifest_deployer', 'sfs') }
   let(:source_path) { File.join(File.dirname(__FILE__), 'resources', 'data', 'test_depositor', 'test_collection') }
   let(:file_identifier) do
     fi = Manifests::FileIdentifier.new(sfs_prefix: 'bogus')
@@ -149,35 +70,24 @@ RSpec.describe 'CollectionManifestDeployer' do
     Manifests::ManifestValidator.new(storage_schema:, ingest_schema:)
   end
 
-  before do
+  before(:each) do
     FileUtils.cp(man_of_man_source, man_of_man)
+    FileUtils.mkdir_p File.join(sfs_prefix, 'archivalxx', 'test_depositor', 'test_collection')
+    FileUtils.mkdir_p File.join(sfs_prefix, 'archivalyy', 'test_depositor_2', 'test_collection')
     @deployer = Manifests::CollectionManifestDeployer.new(manifests_path: man_of_man, s3_manager:,
                                                           manifest_validator:,
                                                           file_identifier:,
                                                           sfs_prefix:,
-                                                          wasabi_manager:)
-    allow(FileUtils).to receive(:copy)
-      .with(td_storage_manifest_path,
-            '/cul/data/archivalxx/test_depositor/test_collection/_EM_test_depositor_test_collection.json').and_return(nil)
-    allow(FileUtils).to receive(:copy)
-      .with(td2_storage_manifest_path,
-            '/cul/data/archivalyy/test_depositor/test_collection/_EM_test_depositor_2_test_collection.json').and_return(nil)
-    allow(FileUtils).to receive(:copy)
-      .with(arxiv_manifest_path,
-            '/cul/data/archivalyy/arXiv/arXiv/arXiv.json').and_return(nil)
-
-    td_target = File.join(sfs_prefix, 'archivalxx', 'test_depositor', 'test_collection',
-                          '_EM_test_depositor_test_collection.json')
-    allow(FileUtils).to receive(:copy)
-      .with(td_storage_manifest_path, td_target).and_return(nil)
-    td2_target = File.join(sfs_prefix, 'archivalyy', 'test_depositor_2', 'test_collection',
-                           '_EM_test_depositor_2_test_collection.json')
-    allow(FileUtils).to receive(:copy)
-      .with(td2_storage_manifest_path, td2_target).and_return(nil)
+                                                          wasabi_manager:,
+                                                          manifest_storage_manager:)
   end
 
-  after do
+  after(:each) do
     FileUtils.rm man_of_man
+    [s3_manager, wasabi_manager, manifest_storage_manager].each do |manager|
+      manager.cleanup
+    end
+    FileUtils.rm_rf(sfs_prefix, secure: true) if File.directory? sfs_prefix
   end
 
   context 'when resolving manifest definition' do
@@ -225,7 +135,9 @@ RSpec.describe 'CollectionManifestDeployer' do
       manifest_definition = @deployer.prepare_manifest_definition(manifest_parameters: manifest_params)
       @deployer.deploy_collection_manifest(manifest_def: manifest_definition,
                                            collection_manifest: td_storage_manifest_path)
-      expect(s3_manager).to have_received(:upload_file).exactly(1).times
+      expected_file = File.join(File.dirname(__FILE__), 'resources', 'cloud', TYPE_S3, 'test_depositor', 
+                                'test_collection', '_EM_test_depositor_test_collection.json')
+      expect(File.file? expected_file).to be_truthy
       mom = get_mom(man_of_man)
       expect(mom[0][:sha1]).to eq(new_manifest_sha1)
     end
@@ -240,7 +152,9 @@ RSpec.describe 'CollectionManifestDeployer' do
       manifest_definition = @deployer.prepare_manifest_definition(manifest_parameters: manifest_params)
       @deployer.deploy_collection_manifest(manifest_def: manifest_definition,
                                            collection_manifest: td2_storage_manifest_path)
-      expect(s3_manager).to have_received(:upload_file).exactly(1).times
+      expected_file = File.join(File.dirname(__FILE__), 'resources', 'cloud', TYPE_S3, 'test_depositor_2',
+                                'test_collection', '_EM_test_depositor_2_test_collection.json')
+      expect(File.file? expected_file).to be_truthy
       mom = get_mom(man_of_man)
       expect(mom.size).to eq(2)
       expect(mom[1][:sfs][0]).to eq('archivalyy')

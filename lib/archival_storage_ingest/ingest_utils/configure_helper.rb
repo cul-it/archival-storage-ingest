@@ -7,14 +7,22 @@ require 'aws-sdk-s3'
 require 'aws-sdk-ssm'
 
 module IngestUtils
+  def self.truthy?(param:, default: false)
+    if param
+      param.to_s.downcase == 'true'
+    else
+      default
+    end
+  end
+
   class ConfigureHelper
     attr_reader :stage, :s3_bucket, :wasabi_bucket, :debug, :develop, :message_queue_name, :in_progress_queue_name,
                 :dest_queue_names
 
     def initialize(params)
       @stage = ArchivalStorageIngest::STAGE_PROD
-      @stage = ArchivalStorageIngest::STAGE_DEV if params[:asi_develop]
-      @stage = ArchivalStorageIngest::STAGE_SANDBOX if params[:asi_sandbox]
+      @stage = ArchivalStorageIngest::STAGE_DEV if IngestUtils.truthy?(param: params[:asi_develop])
+      @stage = ArchivalStorageIngest::STAGE_SANDBOX if IngestUtils.truthy?(param: params[:asi_sandbox])
 
       @s3_bucket = stage == ArchivalStorageIngest::STAGE_PROD ? 's3-cular' : "s3-cular-#{stage}"
       @wasabi_bucket = stage == ArchivalStorageIngest::STAGE_PROD ? 'wasabi-cular' : "wasabi-cular-#{stage}"

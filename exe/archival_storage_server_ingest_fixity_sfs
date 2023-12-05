@@ -22,16 +22,17 @@ ArchivalStorageIngest.configure do |config|
   config_params = {
     queue_name: Queues::QUEUE_INGEST_FIXITY_SFS,
     dest_queue_names: [Queues::QUEUE_INGEST_FIXITY_COMPARISON],
-    asi_develop: ENV['asi_develop'] || ENV.fetch('asi_ingest_fixity_sfs_develop'),
-    asi_sandbox: ENV['asi_sandbox'] || ENV.fetch('asi_ingest_fixity_sfs_sandbox')
+    asi_develop: ENV['asi_develop'] || ENV.fetch('asi_ingest_fixity_sfs_develop', false),
+    asi_sandbox: ENV['asi_sandbox'] || ENV.fetch('asi_ingest_fixity_sfs_sandbox', false)
   }
   configure_helper = IngestUtils::ConfigureHelper.new(config_params)
   config = configure_helper.configure(config)
 
   index_type = ArchivalStorageIngestLogger::INDEX_TYPE_INGEST
-  application_logger = ArchivalStorageIngestLogger.get_application_logger(stage: config.stage, index_type:,
-                                                                          use_lambda_logger:
-                                                                          ENV.fetch('use_lambda_logger'))
+  application_logger = ArchivalStorageIngestLogger.get_application_logger(
+    stage: config.stage, index_type:,
+    use_lambda_logger: IngestUtils.truthy(ENV.fetch('use_lambda_logger', true))
+  )
   config.worker = FixityWorker::IngestFixitySFSGenerator.new(application_logger)
 end
 

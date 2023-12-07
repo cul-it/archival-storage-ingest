@@ -52,9 +52,10 @@ ArchivalStorageIngest.configure do |config|
 
   relay_queue_name = Queues.resolve_queue_name(queue: Queues::QUEUE_PERIODIC_FIXITY, stage: config.stage)
   index_type = ArchivalStorageIngestLogger::INDEX_TYPE_PERIODIC_FIXITY
-  application_logger = ArchivalStorageIngestLogger.get_application_logger(stage: config.stage, index_type:,
-                                                                          use_lambda_logger:
-                                                                          ENV.fetch('use_lambda_logger', nil))
+  application_logger = ArchivalStorageIngestLogger.get_application_logger(
+    stage: config.stage, index_type:,
+    use_lambda_logger: IngestUtils.truthy(ENV.fetch('use_lambda_logger', true))
+  )
   config.worker = FixityCompareWorker::PeriodicFixityComparator.new(
     manifest_dir:, man_of_mans:, periodic_fixity_root:,
     sfs_root:, relay_queue_name:, application_logger:

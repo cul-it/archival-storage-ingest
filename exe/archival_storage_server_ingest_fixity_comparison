@@ -22,8 +22,8 @@ ArchivalStorageIngest.configure do |config|
   config_params = {
     queue_name: Queues::QUEUE_INGEST_FIXITY_COMPARISON,
     dest_queue_names: [Queues::QUEUE_COMPLETE],
-    asi_develop: ENV['asi_develop'] || ENV.fetch('asi_ingest_fixity_comparison_develop'),
-    asi_sandbox: ENV['asi_sandbox'] || ENV.fetch('asi_ingest_fixity_comparison_sandbox')
+    asi_develop: ENV['asi_develop'] || ENV.fetch('asi_ingest_fixity_comparison_develop', false),
+    asi_sandbox: ENV['asi_sandbox'] || ENV.fetch('asi_ingest_fixity_comparison_sandbox', false)
   }
   configure_helper = IngestUtils::ConfigureHelper.new(config_params)
   config = configure_helper.configure(config)

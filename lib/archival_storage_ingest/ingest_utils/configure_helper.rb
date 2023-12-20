@@ -7,6 +7,14 @@ require 'aws-sdk-s3'
 require 'aws-sdk-ssm'
 
 module IngestUtils
+  def self.truthy?(param:, default: false)
+    if param
+      param.to_s.downcase == 'true'
+    else
+      default
+    end
+  end
+
   class ConfigureHelper
     attr_reader :stage, :s3_bucket, :wasabi_bucket, :debug, :develop, :message_queue_name, :in_progress_queue_name,
                 :dest_queue_names

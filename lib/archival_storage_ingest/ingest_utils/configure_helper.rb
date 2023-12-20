@@ -13,8 +13,8 @@ module IngestUtils
 
     def initialize(params)
       @stage = ArchivalStorageIngest::STAGE_PROD
-      @stage = ArchivalStorageIngest::STAGE_DEV if IngestUtils.truthy?(param: params[:asi_develop])
-      @stage = ArchivalStorageIngest::STAGE_SANDBOX if IngestUtils.truthy?(param: params[:asi_sandbox])
+      @stage = ArchivalStorageIngest::STAGE_DEV if IngestUtils.boolean_from_param(param: params[:asi_develop])
+      @stage = ArchivalStorageIngest::STAGE_SANDBOX if IngestUtils.boolean_from_param(param: params[:asi_sandbox])
 
       @s3_bucket = stage == ArchivalStorageIngest::STAGE_PROD ? 's3-cular' : "s3-cular-#{stage}"
       @wasabi_bucket = stage == ArchivalStorageIngest::STAGE_PROD ? 'wasabi-cular' : "wasabi-cular-#{stage}"

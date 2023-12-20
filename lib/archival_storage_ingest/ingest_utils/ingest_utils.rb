@@ -129,7 +129,7 @@ module IngestUtils
     end
   end
 
-  def self.truthy?(param:, default: false)
+  def self.boolean_from_param(param:, default: false)
     if param
       param.to_s.downcase == 'true'
     else

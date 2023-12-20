@@ -129,6 +129,14 @@ module IngestUtils
     end
   end
 
+  def self.boolean_from_param(param:, default: false)
+    if param
+      param.to_s.downcase == 'true'
+    else
+      default
+    end
+  end
+
   class Agent
     attr_accessor :login_user_id, :effective_user_id, :hostname, :host_ip
 

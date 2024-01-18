@@ -32,4 +32,33 @@ module Disseminate
       end
     end
   end
+
+  class WasabiTransferer < BaseTransferer
+    def initialize(wasabi_manager)
+      super()
+      @wasabi_manager = wasabi_manager
+    end
+
+    # Transfers files from Wasabi based on the given request.
+    # The files are downloaded to a location based on the depositor and collection.
+    # The paths of the transferred files are stored in the @transferred_packages hash.
+    #
+    # @param [Request] request The request object that contains the packages to transfer
+    # @param [String] depositor Name of the depositor
+    # @param [String] collection Name of the collection
+    def transfer(request:, depositor:, collection:)
+      request.walk_packages do |package_id, package|
+        package.each do |file|
+          @transferred_packages[package_id] = {} if @transferred_packages[package_id].nil?
+
+          source = file[:filepath]
+          target = File.join(depositor, collection, file[:filepath])
+
+          @wasabi_manager.download_file(source:, target:)
+
+          @transferred_packages[package_id][source] = target
+        end
+      end
+    end
+  end
 end

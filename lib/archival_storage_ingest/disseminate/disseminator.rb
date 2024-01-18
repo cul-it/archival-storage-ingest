@@ -7,7 +7,6 @@ require 'archival_storage_ingest/disseminate/fixity_checker'
 require 'archival_storage_ingest/disseminate/packager'
 
 module Disseminate
-  SFS_SOURCE_LOCATION = 'SFS'
   DEFAULT_SOURCE_LOCATION = 'Wasabi'
   DEFAULT_TARGET_DIR = '/cul/data/ingest_share/DISSEMINATE'
 
@@ -41,9 +40,6 @@ module Disseminate
     end
 
     def init_transferer
-      return SFS_SOURCE_LOCATION.new(sfs_prefix: @sfs_prefix, sfs_bucket: @sfs_bucket) if
-        @source_location.eql?(DEFAULT_SOURCE_LOCATION)
-
       WasabiTransferer.new
     end
 
@@ -52,7 +48,7 @@ module Disseminate
     end
 
     def init_packager
-      SFSPackager.new if @source_location.eql?(DEFAULT_SOURCE_LOCATION)
+      DisseminationPackager.new if @source_location.eql?(DEFAULT_SOURCE_LOCATION)
     end
   end
 end

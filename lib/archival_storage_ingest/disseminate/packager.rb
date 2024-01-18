@@ -8,7 +8,7 @@ module Disseminate
     def package_dissemination(zip_filepath:, transferred_packages:); end
   end
 
-  class SFSPackager < BasePackager
+  class DisseminationPackager < BasePackager
     def package_dissemination(zip_filepath:, depositor:, collection:, transferred_packages:)
       Zip.write_zip64_support = true
       Zip::File.open(zip_filepath, Zip::File::CREATE) do |zip_file|

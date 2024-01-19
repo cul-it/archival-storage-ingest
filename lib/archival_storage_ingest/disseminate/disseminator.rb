@@ -24,7 +24,7 @@ module Disseminate
       transferer = init_transferer
       transferer.transfer(request:, depositor:, collection:)
 
-      fixity_checker = init_fixity_checker
+      fixity_checker = DisseminationFixityChecker.new
       raise IngestException, fixity_checker.error unless
         fixity_checker.check_fixity(request:, transferred_packages: transferer.transferred_packages)
 
@@ -33,22 +33,13 @@ module Disseminate
     end
 
     def package_dissemination(transferred_packages:, zip_filename:, depositor:, collection:)
-      packager = init_packager
-      packager.package_dissemination(zip_filepath: File.join(@target_dir, zip_filename),
-                                     depositor:, collection:,
-                                     transferred_packages:)
+      DisseminationPackager.new.package_dissemination(zip_filepath: File.join(@target_dir, zip_filename),
+                                                      depositor:, collection:,
+                                                      transferred_packages:)
     end
 
     def init_transferer
       WasabiTransferer.new
-    end
-
-    def init_fixity_checker
-      SFSFixityChecker.new if @source_location.eql?(DEFAULT_SOURCE_LOCATION)
-    end
-
-    def init_packager
-      DisseminationPackager.new if @source_location.eql?(DEFAULT_SOURCE_LOCATION)
     end
   end
 end

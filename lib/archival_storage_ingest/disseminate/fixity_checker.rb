@@ -14,7 +14,7 @@ module Disseminate
     def error; end
   end
 
-  class SFSFixityChecker < BaseFixityChecker
+  class DisseminationFixityChecker < BaseFixityChecker
     def check_fixity(request:, transferred_packages:)
       request.walk_packages do |package_id, package|
         transferred_package = transferred_packages[package_id]

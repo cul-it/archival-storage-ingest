@@ -5,6 +5,7 @@ require 'archival_storage_ingest/disseminate/request'
 require 'archival_storage_ingest/disseminate/transferer'
 require 'archival_storage_ingest/disseminate/fixity_checker'
 require 'archival_storage_ingest/disseminate/packager'
+require 'archival_storage_ingest/wasabi/wasabi_manager'
 
 module Disseminate
   DEFAULT_SOURCE_LOCATION = 'Wasabi'
@@ -39,7 +40,9 @@ module Disseminate
     end
 
     def init_transferer
-      WasabiTransferer.new
+      wasabi_bucket = ENV['asi_develop'] || ENV['asi_disseminate_develop'] ? 'wasabi-cular-dev' : 'wasabi-cular'
+      wasabi_manager = WasabiManager.new(wasabi_bucket)
+      WasabiTransferer.new(wasabi_manager)
     end
   end
 end

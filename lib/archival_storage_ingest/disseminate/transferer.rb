@@ -51,12 +51,12 @@ module Disseminate
         package.each do |file|
           @transferred_packages[package_id] = {} if @transferred_packages[package_id].nil?
 
-          source = file[:filepath]
+          source = File.join(depositor, collection, file[:filepath])
           target = File.join(depositor, collection, file[:filepath])
 
-          @wasabi_manager.download_file(source:, target:)
+          @wasabi_manager.download_file(s3_key: source, dest_path: target)
 
-          @transferred_packages[package_id][source] = target
+          @transferred_packages[package_id][file[:filepath]] = target
         end
       end
     end

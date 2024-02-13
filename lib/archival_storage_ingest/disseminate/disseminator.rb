@@ -68,6 +68,7 @@ module Disseminate
     #
     # @return [WasabiTransferer] The initialized WasabiTransferer.
     def init_transferer
+      # TODO: get bucket from exe invocation
       wasabi_bucket = ENV['asi_develop'] || ENV['asi_disseminate_develop'] ? 'wasabi-cular-dev' : 'wasabi-cular'
       wasabi_manager = WasabiManager.new(wasabi_bucket)
       WasabiTransferer.new(wasabi_manager)

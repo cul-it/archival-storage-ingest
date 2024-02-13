@@ -24,12 +24,11 @@ module IngestUtils
       @stage = ArchivalStorageIngest::STAGE_DEV if IngestUtils.boolean_from_param(param: params[:asi_develop])
       @stage = ArchivalStorageIngest::STAGE_SANDBOX if IngestUtils.boolean_from_param(param: params[:asi_sandbox])
 
-      @s3_bucket = stage == ArchivalStorageIngest::STAGE_PROD ? 's3-cular' : "s3-cular-#{stage}"
+      configure_queues(params)
+      @s3_bucket = resolve_s3_bucket(stage, Queues.west?(config.message_queue_name))
       @wasabi_bucket = stage == ArchivalStorageIngest::STAGE_PROD ? 'wasabi-cular' : "wasabi-cular-#{stage}"
       @develop = stage != ArchivalStorageIngest::STAGE_PROD
       @debug = stage != ArchivalStorageIngest::STAGE_PROD
-
-      configure_queues(params)
     end
 
     def configure_queues(params)
@@ -39,6 +38,11 @@ module IngestUtils
       params[:dest_queue_names].each do |dest_queue_name|
         dest_queue_names.append(Queues.resolve_queue_name(queue: dest_queue_name, stage:))
       end
+    end
+
+    def resolve_s3_bucket(stage, is_west)
+      west_designator = is_west ? '-west' : ''
+      stage == ArchivalStorageIngest::STAGE_PROD ? "s3-cular#{west_designator}" : "s3-cular#{west_designator}-#{stage}"
     end
 
     # rubocop:disable Metrics/AbcSize

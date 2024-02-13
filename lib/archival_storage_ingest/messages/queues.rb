@@ -5,14 +5,17 @@
 module Queues
   QUEUE_INGEST = 'ingest'
   QUEUE_TRANSFER_S3 = 'transfer_s3'
+  QUEUE_TRANSFER_S3_WEST = 'transfer_s3_west'
   QUEUE_TRANSFER_SFS = 'transfer_sfs'
   QUEUE_TRANSFER_WASABI = 'transfer_wasabi'
   QUEUE_INGEST_FIXITY_S3 = 'ingest_fixity_s3'
+  QUEUE_INGEST_FIXITY_S3_WEST = 'ingest_fixity_s3_west'
   QUEUE_INGEST_FIXITY_SFS = 'ingest_fixity_sfs'
   QUEUE_INGEST_FIXITY_WASABI = 'ingest_fixity_wasabi'
   QUEUE_INGEST_FIXITY_COMPARISON = 'ingest_fixity_comparison'
   QUEUE_PERIODIC_FIXITY = 'periodic_fixity'
   QUEUE_PERIODIC_FIXITY_S3 = 'periodic_fixity_s3'
+  QUEUE_PERIODIC_FIXITY_S3_WEST = 'periodic_fixity_s3_west'
   QUEUE_PERIODIC_FIXITY_SFS = 'periodic_fixity_sfs'
   QUEUE_PERIODIC_FIXITY_WASABI = 'periodic_fixity_wasabi'
   QUEUE_PERIODIC_FIXITY_COMPARISON = 'periodic_fixity_comparison'
@@ -55,5 +58,9 @@ module Queues
 
     const = Queues.constants.find { |q_symbol| Queues.const_get(q_symbol).eql?(parts[2]) }
     !const.nil?
+  end
+
+  def self.west?(queue_name)
+    queue_name.end_with?('_west')
   end
 end

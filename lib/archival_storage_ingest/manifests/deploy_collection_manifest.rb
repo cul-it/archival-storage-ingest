@@ -13,17 +13,18 @@ module Manifests
     attr_reader :file_identifier, :manifest_of_manifests, :manifest_validator, :sfs_prefix
 
     # initialize accepts these keys:
-    # manifest_path, s3_manager
+    # manifest_path, s3_manager, s3_west_manager, wasabi_manager, manifest_storage_manager
     # manifest_validator - uses default one in production, specify one for testing
     # sfs_prefix, java_path, tika_path - uses default values in production, specify them for testing
     #                                    these are used to initialize FileIdentifier
     # rubocop:disable Metrics/ParameterLists
-    def initialize(manifests_path:, s3_manager:, wasabi_manager:, manifest_storage_manager:,
+    def initialize(manifests_path:, s3_manager:, s3_west_manager:, wasabi_manager:, manifest_storage_manager:,
                    file_identifier:, sfs_prefix:, manifest_validator: Manifests::ManifestValidator.new)
       @mom_path = manifests_path
       @manifest_of_manifests = Manifests::ManifestOfManifests.new(manifests_path)
 
       @s3_manager = s3_manager
+      @s3_west_manager = s3_west_manager
       @wasabi_manager = wasabi_manager
       @manifest_storage_manager = manifest_storage_manager
       @file_identifier = file_identifier
@@ -91,6 +92,7 @@ module Manifests
     def deploy_collection_manifest(manifest_def:, collection_manifest:, dest: nil)
       deploy_sfs(cm_path: collection_manifest, manifest_def:)
       deploy_s3(cm_path: collection_manifest, manifest_def:)
+      deploy_s3_west(cm_path: collection_manifest, manifest_def:)
       deploy_wasabi(cm_path: collection_manifest, manifest_def:)
       deploy_asif(cm_path: collection_manifest, manifest_def:)
       deploy_manifest_definition(dest:)
@@ -106,6 +108,10 @@ module Manifests
 
     def deploy_s3(cm_path:, manifest_def:)
       @s3_manager.upload_file(manifest_def.s3_key, cm_path)
+    end
+
+    def deploy_s3_west(cm_path:, manifest_def:)
+      @s3_west_manager.upload_file(manifest_def.s3_key, cm_path)
     end
 
     def deploy_wasabi(cm_path:, manifest_def:)

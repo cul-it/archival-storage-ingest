@@ -70,6 +70,14 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
     ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-dev' : 's3-cular'
   end
 
+  def s3_west_bucket
+    @s3_west_bucket ||= _s3_west_bucket
+  end
+
+  def _s3_west_bucket
+    ENV['asi_develop'] || ENV['asi_deploy_manifest_develop'] ? 's3-cular-west-dev' : 's3-cular-west'
+  end
+
   def wasabi_bucket
     @wasabi_bucket ||= _wasabi_bucket
   end
@@ -112,6 +120,14 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
 
   def _s3_manager
     S3Manager.new(s3_bucket, asif_bucket, asif_archive_size_bucket)
+  end
+
+  def s3_west_manager
+    @s3_west_manager ||= _s3_west_manager
+  end
+
+  def _s3_west_manager
+    S3Manager.new(s3_west_bucket)
   end
 
   def wasabi_manager

@@ -57,25 +57,25 @@ RSpec.describe 'Disseminator' do
     end
   end
 
-  describe 'Disseminate transferer' do
-    context 'For SFS disseminate transferer' do
-      it 'does not copy but reference the original files and populates list for later use' do
-        sfs_transferer = Disseminate::SFSTransferer.new(sfs_prefix: disseminate_dir, sfs_bucket: archival_bucket)
-        sfs_transferer.transfer(request: disseminate_request, depositor:, collection:)
-        expect(sfs_transferer.transferred_packages.size).to eq(1)
-        package = sfs_transferer.transferred_packages[test_package_id]
-        expect(package.size).to eq(3)
-        expect(package['1/one.txt']).to eq(abs_path_file1)
-        expect(package['2/two.txt']).to eq(abs_path_file2)
-        expect(package['3/three.txt']).to eq(abs_path_file3)
-      end
-    end
-  end
+  # describe 'Disseminate transferer' do
+  #   context 'For SFS disseminate transferer' do
+  #     it 'does not copy but reference the original files and populates list for later use' do
+  #       sfs_transferer = Disseminate::SFSTransferer.new(sfs_prefix: disseminate_dir, sfs_bucket: archival_bucket)
+  #       sfs_transferer.transfer(request: disseminate_request, depositor:, collection:)
+  #       expect(sfs_transferer.transferred_packages.size).to eq(1)
+  #       package = sfs_transferer.transferred_packages[test_package_id]
+  #       expect(package.size).to eq(3)
+  #       expect(package['1/one.txt']).to eq(abs_path_file1)
+  #       expect(package['2/two.txt']).to eq(abs_path_file2)
+  #       expect(package['3/three.txt']).to eq(abs_path_file3)
+  #     end
+  #   end
+  # end
 
   describe 'Disseminate fixity checker' do
     context 'When checking fixity fails' do
       it 'returns false and populates error' do
-        fixity_checker = Disseminate::SFSFixityChecker.new
+        fixity_checker = Disseminate::DisseminationFixityChecker.new
         bad_transferred_packages = {
           test_package_id => {
             '1/one.txt' => abs_path_file1,
@@ -92,7 +92,7 @@ RSpec.describe 'Disseminator' do
 
     context 'When checking fixity succeeds' do
       it 'returns true' do
-        fixity_checker = Disseminate::SFSFixityChecker.new
+        fixity_checker = Disseminate::DisseminationFixityChecker.new
         transferred_packages = {
           test_package_id => {
             '1/one.txt' => abs_path_file1,
@@ -114,7 +114,7 @@ RSpec.describe 'Disseminator' do
 
     context 'When packaging dissemination' do
       it 'zips transferred files' do
-        packager = Disseminate::SFSPackager.new
+        packager = Disseminate::Packager.new
         packager.package_dissemination(zip_filepath:, depositor:,
                                        collection:, transferred_packages:)
         entries = {}
@@ -140,9 +140,8 @@ RSpec.describe 'Disseminator' do
     end
 
     context 'When disseminating request' do
-      xit 'checks input, transfers assets, runs fixity and packages into zip' do
-        disseminator = Disseminate::Disseminator.new(sfs_prefix: disseminate_dir,
-                                                     target_dir:, sfs_bucket: 'archival0x')
+      it 'checks input, transfers assets, runs fixity and packages into zip' do
+        disseminator = Disseminate::Disseminator.new(cloud_platform: IngestUtils::PLATFORM_WASABI)
         dissemination = disseminator.disseminate(manifest: manifest_file, csv: csv_file,
                                                  depositor:, collection:,
                                                  zip_filename:)

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/exception/ingest_exception'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/disseminate/request'
 require 'archival_storage_ingest/disseminate/transferer'
 require 'archival_storage_ingest/disseminate/fixity_checker'

@@ -4,17 +4,7 @@ require 'archival_storage_ingest/exception/ingest_exception'
 require 'archival_storage_ingest/ingest_utils/ingest_utils'
 
 module Disseminate
-  class BaseFixityChecker
-    def initialize
-      @errors = []
-    end
-
-    def check_fixity(request:, transferred_packages:); end
-
-    def error; end
-  end
-
-  class DisseminationFixityChecker < BaseFixityChecker
+  class DisseminationFixityChecker
     def check_fixity(request:, transferred_packages:)
       request.walk_packages do |package_id, package|
         transferred_package = transferred_packages[package_id]

@@ -5,6 +5,10 @@ require 'archival_storage_ingest/ingest_utils/ingest_utils'
 
 module Disseminate
   class DisseminationFixityChecker
+    def initialize
+      @errors = []
+    end
+
     def check_fixity(request:, transferred_packages:)
       request.walk_packages do |package_id, package|
         transferred_package = transferred_packages[package_id]

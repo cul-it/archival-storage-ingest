@@ -6,27 +6,20 @@ require 'archival_storage_ingest/disseminate/request'
 require 'archival_storage_ingest/disseminate/transferer'
 require 'archival_storage_ingest/disseminate/fixity_checker'
 require 'archival_storage_ingest/disseminate/packager'
+require 'archival_storage_ingest/s3/s3_manager'
 require 'archival_storage_ingest/wasabi/wasabi_manager'
 
 module Disseminate
-  DEFAULT_SOURCE_LOCATION = 'Wasabi'
-  DEFAULT_TARGET_DIR = '/cul/data/ingest_share/DISSEMINATE'
-
   # The Disseminator class is responsible for managing the dissemination process.
   # It initializes with a source location and a target directory, and provides methods
   # to disseminate files, package the dissemination, and initialize a transferer.
-  #
-  # @attr_reader [String] source_location The location of the source files.
-  # @attr_reader [String] target_dir The directory where the files will be transferred.
   class Disseminator
     # Initializes a new Disseminator
     #
-    # @param [String] source_location The location of the source files.
-    # @param [String] target_dir The directory to which the files will be transferred.
-    def initialize(source_location: DEFAULT_SOURCE_LOCATION,
-                   target_dir: DEFAULT_TARGET_DIR)
-      @source_location = source_location
-      @target_dir = target_dir
+    # @param [String] cloud_platform The cloud platform to use for the dissemination
+    # (i.e., S3 or Wasabi at this point)
+    def initialize(cloud_platform:)
+      @cloud_platform = cloud_platform
     end
 
     # Disseminates files based on the given parameters.
@@ -59,20 +52,22 @@ module Disseminate
     # @param [String] depositor The name of the depositor.
     # @param [String] collection The name of the collection.
     def package_dissemination(transferred_packages:, zip_filename:, depositor:, collection:)
-      DisseminationPackager.new.package_dissemination(zip_filepath: File.join(@target_dir, zip_filename),
+      DisseminationPackager.new.package_dissemination(zip_filepath: zip_filename,
                                                       depositor:, collection:,
                                                       transferred_packages:)
     end
 
-    # Initializes a WasabiTransferer with a WasabiManager to transfer files from Wasabi.
-    # The Wasabi bucket is determined based on the environment variables that may be set for testing.
+    # Initializes a CloudTransferer with a S3Manager or WasabiManager to transfer files from a cloud source.
     #
-    # @return [WasabiTransferer] The initialized WasabiTransferer.
+    # @return [CloudTransferer] The initialized CloudTransferer.
     def init_transferer
-      # TODO: get bucket from exe invocation
-      wasabi_bucket = ENV['asi_develop'] || ENV['asi_disseminate_develop'] ? 'wasabi-cular-dev' : 'wasabi-cular'
-      wasabi_manager = WasabiManager.new(wasabi_bucket)
-      WasabiTransferer.new(wasabi_manager)
+      bucket = IngestUtils::CLOUD_PLATFORM_TO_BUCKET_NAME[@cloud_platform]
+      cloud_manager = if @cloud_platform == IngestUtils::PLATFORM_WASABI
+                        WasabiManager.new(bucket)
+                      else
+                        S3Manager.new(bucket)
+                      end
+      CloudTransferer.new(cloud_manager:)
     end
   end
 end

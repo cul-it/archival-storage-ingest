@@ -139,6 +139,8 @@ class S3Manager # rubocop:disable Metrics/ClassLength
   end
 
   def _download_file(bucket:, s3_key:, dest_path:)
+    dir = File.dirname(dest_path)
+    FileUtils.mkdir_p(dir) unless File.directory?(dir)
     s3.client.get_object({ bucket:, key: s3_key }, target: dest_path)
   end
 

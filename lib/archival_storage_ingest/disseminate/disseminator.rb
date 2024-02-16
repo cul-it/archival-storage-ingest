@@ -11,15 +11,19 @@ require 'archival_storage_ingest/wasabi/wasabi_manager'
 
 module Disseminate
   # The Disseminator class is responsible for managing the dissemination process.
-  # It initializes with a source location and a target directory, and provides methods
+  # It initializes with a platform, sfs_prefix, and default manager (for testing), and provides methods
   # to disseminate files, package the dissemination, and initialize a transferer.
   class Disseminator
     # Initializes a new Disseminator
     #
     # @param [String] cloud_platform The cloud platform to use for the dissemination
     # (i.e., S3 or Wasabi at this point)
-    def initialize(cloud_platform:)
+    # @param [String] sfs_prefix The prefix to use for local file paths
+    # @param [S3Manager] default_manager The default manager for testing (presumably a LocalManager)
+    def initialize(cloud_platform:, sfs_prefix: '.', default_manager: nil)
       @cloud_platform = cloud_platform
+      @default_manager = default_manager
+      @sfs_prefix = sfs_prefix
     end
 
     # Disseminates files based on the given parameters.
@@ -64,10 +68,12 @@ module Disseminate
       bucket = IngestUtils::CLOUD_PLATFORM_TO_BUCKET_NAME[@cloud_platform]
       cloud_manager = if @cloud_platform == IngestUtils::PLATFORM_WASABI
                         WasabiManager.new(bucket)
+                      elsif @cloud_platform == IngestUtils::PLATFORM_LOCAL
+                        @default_manager
                       else
                         S3Manager.new(bucket)
                       end
-      CloudTransferer.new(cloud_manager:)
+      CloudTransferer.new(cloud_manager:, sfs_prefix: @sfs_prefix)
     end
   end
 end

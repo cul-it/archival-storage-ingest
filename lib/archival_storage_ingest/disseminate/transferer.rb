@@ -6,11 +6,10 @@ module Disseminate
   class CloudTransferer
     attr_reader :transferred_packages
 
-    def initialize(cloud_manager:)
+    def initialize(cloud_manager:, sfs_prefix:)
       @cloud_manager = cloud_manager
       @transferred_packages = {}
-      # TODO: Assign sfs_prefix
-      @sfs_prefix = '.'
+      @sfs_prefix = sfs_prefix
     end
 
     def transfer(request:, depositor:, collection:)

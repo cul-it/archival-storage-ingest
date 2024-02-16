@@ -52,9 +52,9 @@ module Disseminate
     # @param [String] depositor The name of the depositor.
     # @param [String] collection The name of the collection.
     def package_dissemination(transferred_packages:, zip_filename:, depositor:, collection:)
-      DisseminationPackager.new.package_dissemination(zip_filepath: zip_filename,
-                                                      depositor:, collection:,
-                                                      transferred_packages:)
+      Packager.new.package_dissemination(zip_filepath: zip_filename,
+                                         depositor:, collection:,
+                                         transferred_packages:)
     end
 
     # Initializes a CloudTransferer with a S3Manager or WasabiManager to transfer files from a cloud source.

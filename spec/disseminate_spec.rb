@@ -19,8 +19,7 @@ RSpec.describe 'Disseminator' do
   let(:bad_csv_file) { File.join(disseminate_dir, 'Bad_Retrieval_RMA01234_20200715.csv') }
   let(:archival_bucket) { 'archival0x' }
   let(:sfs_prefix) { File.join(disseminate_dir, archival_bucket) }
-  let(:zip_filename) { 'Disseminate_RMM01234_20200715.zip' }
-  let(:zip_filepath) { File.join(target_dir, zip_filename) }
+  let(:zip_filepath) { File.join(target_dir, 'Disseminate_RMM01234_20200715.zip') }
   let(:manifest_file) { File.join(sfs_prefix, 'RMC', 'RMA', 'RMA01234', '_EM_RMC_RMA_RMA01234.json') }
   let(:abs_path_file1) { File.join(sfs_prefix, 'RMC/RMA/RMA01234/1/one.txt') }
   let(:abs_path_file2) { File.join(sfs_prefix, 'RMC/RMA/RMA01234/2/two.txt') }

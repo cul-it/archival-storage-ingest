@@ -25,6 +25,7 @@ RSpec.describe 'Disseminator' do
   let(:abs_path_file1) { File.join(sfs_prefix, 'RMC/RMA/RMA01234/1/one.txt') }
   let(:abs_path_file2) { File.join(sfs_prefix, 'RMC/RMA/RMA01234/2/two.txt') }
   let(:abs_path_file3) { File.join(sfs_prefix, 'RMC/RMA/RMA01234/3/three.txt') }
+  let(:manager) { LocalManager.new(local_root: disseminate_dir, type: TYPE_S3) }
   let(:disseminate_request) do
     Disseminate::Request.new(manifest: manifest_file, csv: csv_file)
   end
@@ -141,10 +142,10 @@ RSpec.describe 'Disseminator' do
 
     context 'When disseminating request' do
       it 'checks input, transfers assets, runs fixity and packages into zip' do
-        disseminator = Disseminate::Disseminator.new(cloud_platform: IngestUtils::PLATFORM_WASABI)
+        disseminator = Disseminate::Disseminator.new(cloud_platform: 'Local', sfs_prefix: ,  default_manager: manager)
         dissemination = disseminator.disseminate(manifest: manifest_file, csv: csv_file,
                                                  depositor:, collection:,
-                                                 zip_filename:)
+                                                 zip_filename: zip_filepath)
         expect(dissemination).to eq(zip_filepath)
         entries = {}
         Zip::File.open(zip_filepath) do |zip_file|

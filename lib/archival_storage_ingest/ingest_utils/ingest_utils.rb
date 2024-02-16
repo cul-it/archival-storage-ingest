@@ -20,6 +20,7 @@ module IngestUtils
   PLATFORM_S3 = 'S3'
   PLATFORM_S3_WEST = 'S3-West'
   PLATFORM_WASABI = 'Wasabi'
+  PLATFORM_LOCAL = 'Local'
   S3_BUCKET = 's3-cular'
   S3_WEST_BUCKET = 's3-cular-west'
   WASABI_BUCKET = 'wasabi-cular'

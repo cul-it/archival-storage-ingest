@@ -144,8 +144,7 @@ RSpec.describe 'Disseminator' do
       it 'checks input, transfers assets, runs fixity and packages into zip' do
         disseminator = Disseminate::Disseminator.new(cloud_platform: 'Local', sfs_prefix: ,  default_manager: manager)
         dissemination = disseminator.disseminate(manifest: manifest_file, csv: csv_file,
-                                                 depositor:, collection:,
-                                                 zip_filename: zip_filepath)
+                                                 depositor:, collection:, zip_filepath:)
         expect(dissemination).to eq(zip_filepath)
         entries = {}
         Zip::File.open(zip_filepath) do |zip_file|

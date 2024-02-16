@@ -31,10 +31,10 @@ module Disseminate
     #
     # @param [String] manifest The manifest file.
     # @param [String] csv The CSV file used by the Request to identify the files to disseminate.
-    # @param [String] zip_filename The name of the ZIP file.
+    # @param [String] zip_filepath The path and name of the ZIP file.
     # @param [String] depositor The name of the depositor.
     # @param [String] collection The name of the collection.
-    def disseminate(manifest:, csv:, zip_filename:, depositor:, collection:)
+    def disseminate(manifest:, csv:, zip_filepath:, depositor:, collection:)
       request = Request.new(manifest:, csv:)
       raise IngestException, request.error unless request.validate
 
@@ -46,19 +46,17 @@ module Disseminate
         fixity_checker.check_fixity(request:, transferred_packages: transferer.transferred_packages)
 
       package_dissemination(transferred_packages: transferer.transferred_packages, depositor:,
-                            collection:, zip_filename:)
+                            collection:, zip_filepath:)
     end
 
     # Packages the disseminated files into a ZIP file.
     #
     # @param [Hash] transferred_packages The packages that have been transferred.
-    # @param [String] zip_filename The name of the ZIP file.
+    # @param [String] zip_filepath The path and name of the ZIP file.
     # @param [String] depositor The name of the depositor.
     # @param [String] collection The name of the collection.
-    def package_dissemination(transferred_packages:, zip_filename:, depositor:, collection:)
-      Packager.new.package_dissemination(zip_filepath: zip_filename,
-                                         depositor:, collection:,
-                                         transferred_packages:)
+    def package_dissemination(transferred_packages:, zip_filepath:, depositor:, collection:)
+      Packager.new.package_dissemination(zip_filepath:, depositor:, collection:, transferred_packages:)
     end
 
     # Initializes a CloudTransferer with a S3Manager or WasabiManager to transfer files from a cloud source.

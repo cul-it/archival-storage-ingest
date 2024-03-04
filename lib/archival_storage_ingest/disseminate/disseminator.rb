@@ -1,58 +1,77 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/exception/ingest_exception'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/disseminate/request'
 require 'archival_storage_ingest/disseminate/transferer'
 require 'archival_storage_ingest/disseminate/fixity_checker'
 require 'archival_storage_ingest/disseminate/packager'
+require 'archival_storage_ingest/s3/s3_manager'
+require 'archival_storage_ingest/wasabi/wasabi_manager'
 
 module Disseminate
-  SFS_SOURCE_LOCATION = 'SFS'
-  DEFAULT_SOURCE_LOCATION = 'Wasabi'
-  DEFAULT_TARGET_DIR = '/cul/data/ingest_share/DISSEMINATE'
-
+  # The Disseminator class is responsible for managing the dissemination process.
+  # It initializes with a platform, local file prefix, and default manager (for testing), and provides methods
+  # to disseminate files, package the dissemination, and initialize a transferer.
   class Disseminator
-    def initialize(source_location: DEFAULT_SOURCE_LOCATION,
-                   target_dir: DEFAULT_TARGET_DIR)
-      @source_location = source_location
-      @target_dir = target_dir
+    # Initializes a new Disseminator
+    #
+    # @param [String] cloud_platform The cloud platform to use for the dissemination
+    # (i.e., S3 or Wasabi at this point)
+    # @param [String] local_file_prefix The prefix to use for local file paths
+    # @param [S3Manager] default_manager The default manager for testing (presumably a LocalManager)
+    def initialize(cloud_platform:, local_file_prefix: '.', default_manager: nil)
+      @cloud_platform = cloud_platform
+      @default_manager = default_manager
+      @local_file_prefix = local_file_prefix
     end
 
-    def disseminate(manifest:, csv:, zip_filename:, depositor:, collection:)
+    # Disseminates files based on the given parameters.
+    # It validates the request, transfers the files, checks the fixity, and packages the dissemination.
+    #
+    # @param [String] manifest The manifest file.
+    # @param [String] csv The CSV file used by the Request to identify the files to disseminate.
+    # @param [String] zip_filepath The path and name of the ZIP file.
+    # @param [String] depositor The name of the depositor.
+    # @param [String] collection The name of the collection.
+    def disseminate(manifest:, csv:, zip_filepath:, depositor:, collection:)
       request = Request.new(manifest:, csv:)
       raise IngestException, request.error unless request.validate
 
       transferer = init_transferer
       transferer.transfer(request:, depositor:, collection:)
 
-      fixity_checker = init_fixity_checker
+      fixity_checker = DisseminationFixityChecker.new
       raise IngestException, fixity_checker.error unless
         fixity_checker.check_fixity(request:, transferred_packages: transferer.transferred_packages)
 
       package_dissemination(transferred_packages: transferer.transferred_packages, depositor:,
-                            collection:, zip_filename:)
+                            collection:, zip_filepath:)
     end
 
-    def package_dissemination(transferred_packages:, zip_filename:, depositor:, collection:)
-      packager = init_packager
-      packager.package_dissemination(zip_filepath: File.join(@target_dir, zip_filename),
-                                     depositor:, collection:,
-                                     transferred_packages:)
+    # Packages the disseminated files into a ZIP file.
+    #
+    # @param [Hash] transferred_packages The packages that have been transferred.
+    # @param [String] zip_filepath The path and name of the ZIP file.
+    # @param [String] depositor The name of the depositor.
+    # @param [String] collection The name of the collection.
+    def package_dissemination(transferred_packages:, zip_filepath:, depositor:, collection:)
+      Packager.new.package_dissemination(zip_filepath:, depositor:, collection:, transferred_packages:)
     end
 
+    # Initializes a CloudTransferer with a S3Manager or WasabiManager to transfer files from a cloud source.
+    #
+    # @return [CloudTransferer] The initialized CloudTransferer.
     def init_transferer
-      return SFS_SOURCE_LOCATION.new(sfs_prefix: @sfs_prefix, sfs_bucket: @sfs_bucket) if
-        @source_location.eql?(DEFAULT_SOURCE_LOCATION)
-
-      WasabiTransferer.new
-    end
-
-    def init_fixity_checker
-      SFSFixityChecker.new if @source_location.eql?(DEFAULT_SOURCE_LOCATION)
-    end
-
-    def init_packager
-      SFSPackager.new if @source_location.eql?(DEFAULT_SOURCE_LOCATION)
+      bucket = IngestUtils::CLOUD_PLATFORM_TO_BUCKET_NAME[@cloud_platform]
+      cloud_manager = if @cloud_platform == IngestUtils::PLATFORM_WASABI
+                        WasabiManager.new(bucket)
+                      elsif @cloud_platform == IngestUtils::PLATFORM_LOCAL
+                        @default_manager
+                      else
+                        S3Manager.new(bucket)
+                      end
+      CloudTransferer.new(cloud_manager:, local_file_prefix: @local_file_prefix)
     end
   end
 end

@@ -12,12 +12,27 @@ module Disseminate
   class Request
     attr_reader :zip_filename
 
+    # Initializes a new Request
+    #
+    # @param manifest [String] The path and filename of the manifest for the collection being requested
+    # @param csv [String] The path to the CSV file that contains the details of the files to be disseminated
     def initialize(manifest:, csv:)
       @manifest = Manifests.read_manifest(filename: manifest)
       init_files(csv)
       @error = []
     end
 
+    # Initializes the files for this request
+    #
+    # The CSV file should have the following columns:
+    # - PACKAGE_ID: The identifier of the package that the file belongs to
+    # - FILEPATH: The path of the file within the package
+    # - FIXITY: The fixity value of the file
+    # - SIZE: The size of the file in bytes
+    #
+    # Each row in the CSV file represents a file to be disseminated.
+    #
+    # @param csv [String] The path to the CSV file that contains the details of the files to be disseminated
     def init_files(csv)
       @packages = {}
       CSV.foreach(csv, headers: true) do |row|
@@ -28,6 +43,9 @@ module Disseminate
       end
     end
 
+    # Validates the files for this request
+    #
+    # @return [Boolean] Returns true if the files are valid, false otherwise.
     def validate
       @packages.each do |package_id, package|
         manifest_package = @manifest.get_package(package_id:)
@@ -39,6 +57,15 @@ module Disseminate
       @error.empty?
     end
 
+    # Validates a single file for presence, fixity, and size
+    #
+    # @param d_file [Hash] A hash representing the file to be disseminated
+    # @param m_file [File] A File object representing the file in the manifest
+    #
+    # validate_file does not return a value. Instead, it modifies the `@error` array as a side effect.
+    #  After validate_file  is called for all files, you can call the `error` method to get a string containing
+    #  all error messages. If the `error` method returns an empty string, it means that all files have been
+    #  validated successfully.
     def validate_file(d_file:, m_file:)
       if m_file.nil?
         @error << "#{d_file[:filepath]} in #{d_file[:package_id]} not found in manifest"

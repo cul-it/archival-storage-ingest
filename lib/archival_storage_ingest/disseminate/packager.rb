@@ -4,11 +4,7 @@ require 'archival_storage_ingest/exception/ingest_exception'
 require 'zip'
 
 module Disseminate
-  class BasePackager
-    def package_dissemination(zip_filepath:, transferred_packages:); end
-  end
-
-  class SFSPackager < BasePackager
+  class Packager
     def package_dissemination(zip_filepath:, depositor:, collection:, transferred_packages:)
       Zip.write_zip64_support = true
       Zip::File.open(zip_filepath, Zip::File::CREATE) do |zip_file|

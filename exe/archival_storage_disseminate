@@ -5,20 +5,21 @@ require 'archival_storage_ingest/disseminate/disseminator'
 
 depositor = ARGV[0]
 collection = ARGV[1]
-manifest_file = ARGV[2]
-csv_file = ARGV[3]
+manifest = ARGV[2]
+csv = ARGV[3]
 target_dir = ARGV[4]
-zip_filename = ARGV[5]
+zip_filepath = ARGV[5]
 sfs_bucket = ARGV[6]
 
-puts depositor
-puts collection
-puts manifest_file
-puts csv_file
-puts target_dir
-puts zip_filename
+puts "Depositor: #{depositor}"
+puts "Collection: #{collection}"
+puts "Manifest: #{manifest}"
+puts "CSV: #{csv}"
+puts "Target Directory: #{target_dir}"
+puts "ZIP Filepath: #{zip_filepath}"
+puts "SFS Bucket: #{sfs_bucket}"
 
-disseminator = Disseminate::Disseminator.new(target_dir:, sfs_bucket:)
-disseminator.disseminate(manifest:, csv:, depositor:, collection:, zip_filename:)
+disseminator = Disseminate::Disseminator.new(target_dir:)
+disseminator.disseminate(manifest:, csv:, depositor:, collection:, zip_filepath:)
 
 puts 'Dissemination complete'

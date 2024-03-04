@@ -18,13 +18,13 @@ RSpec.describe 'Disseminator' do
   let(:csv_file) { File.join(disseminate_dir, 'Retrieval_RMA01234_20200715.csv') }
   let(:bad_csv_file) { File.join(disseminate_dir, 'Bad_Retrieval_RMA01234_20200715.csv') }
   let(:archival_bucket) { 'archival0x' }
-  let(:sfs_prefix) { File.join(disseminate_dir, archival_bucket) }
-  let(:zip_filename) { 'Disseminate_RMM01234_20200715.zip' }
-  let(:zip_filepath) { File.join(target_dir, zip_filename) }
-  let(:manifest_file) { File.join(sfs_prefix, 'RMC', 'RMA', 'RMA01234', '_EM_RMC_RMA_RMA01234.json') }
-  let(:abs_path_file1) { File.join(sfs_prefix, 'RMC/RMA/RMA01234/1/one.txt') }
-  let(:abs_path_file2) { File.join(sfs_prefix, 'RMC/RMA/RMA01234/2/two.txt') }
-  let(:abs_path_file3) { File.join(sfs_prefix, 'RMC/RMA/RMA01234/3/three.txt') }
+  let(:local_file_prefix) { File.join(disseminate_dir, archival_bucket) }
+  let(:zip_filepath) { File.join(target_dir, 'Disseminate_RMM01234_20200715.zip') }
+  let(:manifest_file) { File.join(local_file_prefix, 'RMC', 'RMA', 'RMA01234', '_EM_RMC_RMA_RMA01234.json') }
+  let(:abs_path_file1) { File.join(local_file_prefix, 'RMC/RMA/RMA01234/1/one.txt') }
+  let(:abs_path_file2) { File.join(local_file_prefix, 'RMC/RMA/RMA01234/2/two.txt') }
+  let(:abs_path_file3) { File.join(local_file_prefix, 'RMC/RMA/RMA01234/3/three.txt') }
+  let(:manager) { LocalManager.new(local_root: disseminate_dir, type: TYPE_S3) }
   let(:disseminate_request) do
     Disseminate::Request.new(manifest: manifest_file, csv: csv_file)
   end
@@ -57,25 +57,25 @@ RSpec.describe 'Disseminator' do
     end
   end
 
-  describe 'Disseminate transferer' do
-    context 'For SFS disseminate transferer' do
-      it 'does not copy but reference the original files and populates list for later use' do
-        sfs_transferer = Disseminate::SFSTransferer.new(sfs_prefix: disseminate_dir, sfs_bucket: archival_bucket)
-        sfs_transferer.transfer(request: disseminate_request, depositor:, collection:)
-        expect(sfs_transferer.transferred_packages.size).to eq(1)
-        package = sfs_transferer.transferred_packages[test_package_id]
-        expect(package.size).to eq(3)
-        expect(package['1/one.txt']).to eq(abs_path_file1)
-        expect(package['2/two.txt']).to eq(abs_path_file2)
-        expect(package['3/three.txt']).to eq(abs_path_file3)
-      end
-    end
-  end
+  # describe 'Disseminate transferer' do
+  #   context 'For SFS disseminate transferer' do
+  #     it 'does not copy but reference the original files and populates list for later use' do
+  #       sfs_transferer = Disseminate::SFSTransferer.new(sfs_prefix: disseminate_dir, sfs_bucket: archival_bucket)
+  #       sfs_transferer.transfer(request: disseminate_request, depositor:, collection:)
+  #       expect(sfs_transferer.transferred_packages.size).to eq(1)
+  #       package = sfs_transferer.transferred_packages[test_package_id]
+  #       expect(package.size).to eq(3)
+  #       expect(package['1/one.txt']).to eq(abs_path_file1)
+  #       expect(package['2/two.txt']).to eq(abs_path_file2)
+  #       expect(package['3/three.txt']).to eq(abs_path_file3)
+  #     end
+  #   end
+  # end
 
   describe 'Disseminate fixity checker' do
     context 'When checking fixity fails' do
       it 'returns false and populates error' do
-        fixity_checker = Disseminate::SFSFixityChecker.new
+        fixity_checker = Disseminate::DisseminationFixityChecker.new
         bad_transferred_packages = {
           test_package_id => {
             '1/one.txt' => abs_path_file1,
@@ -92,7 +92,7 @@ RSpec.describe 'Disseminator' do
 
     context 'When checking fixity succeeds' do
       it 'returns true' do
-        fixity_checker = Disseminate::SFSFixityChecker.new
+        fixity_checker = Disseminate::DisseminationFixityChecker.new
         transferred_packages = {
           test_package_id => {
             '1/one.txt' => abs_path_file1,
@@ -114,7 +114,7 @@ RSpec.describe 'Disseminator' do
 
     context 'When packaging dissemination' do
       it 'zips transferred files' do
-        packager = Disseminate::SFSPackager.new
+        packager = Disseminate::Packager.new
         packager.package_dissemination(zip_filepath:, depositor:,
                                        collection:, transferred_packages:)
         entries = {}
@@ -140,12 +140,10 @@ RSpec.describe 'Disseminator' do
     end
 
     context 'When disseminating request' do
-      xit 'checks input, transfers assets, runs fixity and packages into zip' do
-        disseminator = Disseminate::Disseminator.new(sfs_prefix: disseminate_dir,
-                                                     target_dir:, sfs_bucket: 'archival0x')
+      it 'checks input, transfers assets, runs fixity and packages into zip' do
+        disseminator = Disseminate::Disseminator.new(cloud_platform: 'Local', local_file_prefix: ,  default_manager: manager)
         dissemination = disseminator.disseminate(manifest: manifest_file, csv: csv_file,
-                                                 depositor:, collection:,
-                                                 zip_filename:)
+                                                 depositor:, collection:, zip_filepath:)
         expect(dissemination).to eq(zip_filepath)
         entries = {}
         Zip::File.open(zip_filepath) do |zip_file|

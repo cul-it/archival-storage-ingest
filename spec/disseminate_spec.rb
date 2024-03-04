@@ -18,12 +18,12 @@ RSpec.describe 'Disseminator' do
   let(:csv_file) { File.join(disseminate_dir, 'Retrieval_RMA01234_20200715.csv') }
   let(:bad_csv_file) { File.join(disseminate_dir, 'Bad_Retrieval_RMA01234_20200715.csv') }
   let(:archival_bucket) { 'archival0x' }
-  let(:sfs_prefix) { File.join(disseminate_dir, archival_bucket) }
+  let(:local_file_prefix) { File.join(disseminate_dir, archival_bucket) }
   let(:zip_filepath) { File.join(target_dir, 'Disseminate_RMM01234_20200715.zip') }
-  let(:manifest_file) { File.join(sfs_prefix, 'RMC', 'RMA', 'RMA01234', '_EM_RMC_RMA_RMA01234.json') }
-  let(:abs_path_file1) { File.join(sfs_prefix, 'RMC/RMA/RMA01234/1/one.txt') }
-  let(:abs_path_file2) { File.join(sfs_prefix, 'RMC/RMA/RMA01234/2/two.txt') }
-  let(:abs_path_file3) { File.join(sfs_prefix, 'RMC/RMA/RMA01234/3/three.txt') }
+  let(:manifest_file) { File.join(local_file_prefix, 'RMC', 'RMA', 'RMA01234', '_EM_RMC_RMA_RMA01234.json') }
+  let(:abs_path_file1) { File.join(local_file_prefix, 'RMC/RMA/RMA01234/1/one.txt') }
+  let(:abs_path_file2) { File.join(local_file_prefix, 'RMC/RMA/RMA01234/2/two.txt') }
+  let(:abs_path_file3) { File.join(local_file_prefix, 'RMC/RMA/RMA01234/3/three.txt') }
   let(:manager) { LocalManager.new(local_root: disseminate_dir, type: TYPE_S3) }
   let(:disseminate_request) do
     Disseminate::Request.new(manifest: manifest_file, csv: csv_file)
@@ -141,7 +141,7 @@ RSpec.describe 'Disseminator' do
 
     context 'When disseminating request' do
       it 'checks input, transfers assets, runs fixity and packages into zip' do
-        disseminator = Disseminate::Disseminator.new(cloud_platform: 'Local', sfs_prefix: ,  default_manager: manager)
+        disseminator = Disseminate::Disseminator.new(cloud_platform: 'Local', local_file_prefix: ,  default_manager: manager)
         dissemination = disseminator.disseminate(manifest: manifest_file, csv: csv_file,
                                                  depositor:, collection:, zip_filepath:)
         expect(dissemination).to eq(zip_filepath)

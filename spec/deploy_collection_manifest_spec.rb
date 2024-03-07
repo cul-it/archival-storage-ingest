@@ -47,6 +47,10 @@ RSpec.describe 'CollectionManifestDeployer' do
     local_root = File.join(File.dirname(__FILE__), 'resources', 'cloud')
     LocalManager.new(local_root:, type: TYPE_S3)
   end
+  let(:s3_west_manager) do
+    local_root = File.join(File.dirname(__FILE__), 'resources', 'cloud')
+    LocalManager.new(local_root:, type: TYPE_S3_WEST)
+  end
   let(:wasabi_manager) do
     local_root = File.join(File.dirname(__FILE__), 'resources', 'cloud')
     LocalManager.new(local_root:, type: TYPE_WASABI)
@@ -74,17 +78,15 @@ RSpec.describe 'CollectionManifestDeployer' do
     FileUtils.cp(man_of_man_source, man_of_man)
     FileUtils.mkdir_p File.join(sfs_prefix, 'archivalxx', 'test_depositor', 'test_collection')
     FileUtils.mkdir_p File.join(sfs_prefix, 'archivalyy', 'test_depositor_2', 'test_collection')
-    @deployer = Manifests::CollectionManifestDeployer.new(manifests_path: man_of_man, s3_manager:,
-                                                          manifest_validator:,
-                                                          file_identifier:,
-                                                          sfs_prefix:,
-                                                          wasabi_manager:,
-                                                          manifest_storage_manager:)
+    @deployer = Manifests::CollectionManifestDeployer.new(
+      manifests_path: man_of_man, s3_manager:, s3_west_manager:, manifest_validator:,
+      file_identifier:, sfs_prefix:, wasabi_manager:, manifest_storage_manager:
+    )
   end
 
   after(:each) do
     FileUtils.rm man_of_man
-    [s3_manager, wasabi_manager, manifest_storage_manager].each do |manager|
+    [s3_manager, s3_west_manager, wasabi_manager, manifest_storage_manager].each do |manager|
       manager.cleanup
     end
     FileUtils.rm_rf(sfs_prefix, secure: true) if File.directory? sfs_prefix

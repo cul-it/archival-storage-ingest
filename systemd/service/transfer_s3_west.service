@@ -1,0 +1,15 @@
+[Unit]
+Description=Archival Storage Transfer S3 West Server
+
+[Service]
+Type=simple
+WorkingDirectory=/cul/app/archival_storage_ingest
+ExecStart=/cul/app/archival_storage_ingest/scripts/transfer_s3_west.sh
+Restart=on-failure
+PrivateTmp=true
+
+User=cular
+Group=cular
+
+[Install]
+WantedBy=multi-user.target

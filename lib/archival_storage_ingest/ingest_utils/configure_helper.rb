@@ -17,7 +17,6 @@ module IngestUtils
       @stage = ArchivalStorageIngest::STAGE_SANDBOX if IngestUtils.boolean_from_param(param: params[:asi_sandbox])
 
       configure_queues(params)
-      @s3_bucket = resolve_s3_bucket(stage, Queues.west?(config.message_queue_name))
       @wasabi_bucket = stage == ArchivalStorageIngest::STAGE_PROD ? 'wasabi-cular' : "wasabi-cular-#{stage}"
       @develop = stage != ArchivalStorageIngest::STAGE_PROD
       @debug = stage != ArchivalStorageIngest::STAGE_PROD
@@ -45,7 +44,7 @@ module IngestUtils
       config.dest_queue_names = dest_queue_names
       config.develop = develop
       config.debug = debug
-      config.s3_bucket = s3_bucket
+      config.s3_bucket = resolve_s3_bucket(stage, Queues.west?(config.message_queue_name))
       config.wasabi_bucket = wasabi_bucket
 
       config

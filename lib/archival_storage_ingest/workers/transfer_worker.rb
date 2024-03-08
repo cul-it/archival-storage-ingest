@@ -93,6 +93,21 @@ module TransferWorker
     end
   end
 
+  class S3WestTransferer < S3Transferer
+    attr_accessor :s3_manifest_manager
+
+    def _name
+      'S3 West Transferer'
+    end
+
+    # Use cular bucket in the east to fetch ingest manifest
+    def fetch_ingest_manifest(msg)
+      manifest_s3_key = s3_manifest_manager.manifest_key(msg.job_id, Workers::TYPE_INGEST)
+      ingest_manifest = s3_manifest_manager.retrieve_file(manifest_s3_key)
+      Manifests::Manifest.new(json_text: ingest_manifest.string)
+    end
+  end
+
   class WasabiTransferer < S3Transferer
     def _name
       'Wasabi Transferer'

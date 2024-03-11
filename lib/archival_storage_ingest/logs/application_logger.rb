@@ -78,7 +78,7 @@ module ArchivalStorageIngestLogger
   class LambdaLogger < ApplicationLogger
     def initialize(stage:, type:)
       super(stage:, type:)
-      @os_lambda_url = URI.parse(ssm_param("/cular/archivalstorage/#{stage}/opensearch/#{type}_lambda_url"))
+      @os_lambda_url = URI.parse(ssm_param("/cular/archivalstorage/#{stage}/application_logger/opensearch/#{type}_lambda_url")) # rubocop:disable Layout/LineLength
       @os_lambda_https = Net::HTTP.new(@os_lambda_url.host, @os_lambda_url.port)
       @os_lambda_https.use_ssl = true
     end

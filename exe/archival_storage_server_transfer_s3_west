@@ -34,7 +34,9 @@ ArchivalStorageIngest.configure do |config|
     stage: config.stage, index_type:,
     use_lambda_logger: IngestUtils.boolean_from_param(param: ENV.fetch('use_lambda_logger'), default: true)
   )
-  config.worker = TransferWorker::S3Transferer.new(application_logger)
+  worker = TransferWorker::S3WestTransferer.new(application_logger)
+  worker.s3_manifest_manager = S3Manager.new(configure_helper.resolve_s3_bucket(config.stage, false))
+  config.worker = worker
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

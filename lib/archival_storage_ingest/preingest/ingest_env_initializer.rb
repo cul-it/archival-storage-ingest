@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/exception/ingest_exception'
+require 'archival_storage_ingest/ingest_utils/ingest_params'
 require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/manifests/manifest_merger'
 require 'archival_storage_ingest/manifests/manifest_missing_attribute_populator'
@@ -25,22 +26,40 @@ module Preingest
 
     # We need to run initialize_env first to populate depositor/collection from ingest manifest
     # and compare it to the provided values.
-    def initialize_ingest_env(named_params)
-      initialize_env(named_params)
+    # def initialize_ingest_env(named_params)
+    #   initialize_env(named_params)
 
-      unless depositor == named_params.fetch(:depositor) &&
-             collection_id == named_params.fetch(:collection_id)
+    #   unless depositor == named_params.fetch(:depositor) &&
+    #          collection_id == named_params.fetch(:collection_id)
+    #     msg = "Depositor/Collection mismatch!\n  " \
+    #           "Given values: #{named_params.fetch(:depositor)}/#{named_params.fetch(:collection_id)}  " \
+    #           "Manifest values: #{depositor}/#{collection_id}"
+    #     raise IngestException, msg
+    #   end
+    # end
+
+    # takes filepath of ingest_params
+    def initialize_ingest_env(ingest_params:)
+      initialize_ingest_env_from_params_obj(ingest_params: IngestUtils::IngestParams.new(ingest_params))
+    end
+
+    # takes IngestUtils::IngestParams object
+    def initialize_ingest_env_from_params_obj(ingest_params:)
+      initialize_env_from_params_obj(ingest_params:)
+
+      unless depositor == ingest_params.depositor &&
+             collection_id == ingest_params.collection
         msg = "Depositor/Collection mismatch!\n  " \
-              "Given values: #{named_params.fetch(:depositor)}/#{named_params.fetch(:collection_id)}  " \
-              "Manifest values: #{depositor}/#{collection_id}"
+              "Given values: #{ingest_params.depositor}/#{ingest_params.collection_id}  " \
+              "Manifest values: #{@depositor}/#{@collection_id}"
         raise IngestException, msg
       end
     end
 
     # Add data integrity check after copying ingest manifest to correct place
-    def _initialize_ingest_manifest(named_params)
+    def _initialize_ingest_manifest
       im_path = super
-      manifest = _populate_missing_attribute(ingest_manifest: im_path, source_path:)
+      manifest = _populate_missing_attribute(ingest_manifest: im_path, source_path: ingest_params.asset_source)
       raise IngestException, 'Asset mismatch' unless _compare_asset_existence(ingest_manifest: manifest)
 
       other_checksum_checker = Manifests::ManifestNonDefaultChecksumChecker.new
@@ -66,17 +85,17 @@ module Preingest
       mfc.compare_manifest_to_filesystem(manifest: ingest_manifest)
     end
 
-    def _initialize_collection_manifest(im_path:, named_params:)
-      manifest = if named_params.fetch(:cmf) == NO_COLLECTION_MANIFEST
-                   _def_create_collection_manifest(im_path:, sfs_location: named_params.fetch(:sfs_location))
+    def _initialize_collection_manifest(im_path:)
+      manifest = if ingest_params.new_collection?
+                   _create_collection_manifest(im_path:, sfs_location: ingest_params.sfsbucket)
                  else
-                   _merge_ingest_manifest_to_collection_manifest(imf: im_path, cmf: named_params.fetch(:cmf),
-                                                                 sfs_loc: named_params.fetch(:sfs_location))
+                   _merge_ingest_manifest_to_collection_manifest(imf: im_path, sfs_loc: ingest_params.sfsbucket,
+                                                                 cmf: ingest_params.existing_storage_manifest)
                  end
       _store_collection_manifest(manifest:)
     end
 
-    def _def_create_collection_manifest(im_path:, sfs_location:)
+    def _create_collection_manifest(im_path:, sfs_location:)
       manifest = Manifests.read_manifest(filename: im_path)
 
       if manifest.locations.count.zero?
@@ -116,10 +135,10 @@ module Preingest
       File.write(manifest_path, json_to_write)
     end
 
-    def generate_config(ingest_manifest_path:, named_params:)
+    def generate_config(ingest_manifest_path:)
       { type: work_type, depositor:, collection: collection_id,
-        dest_path: dest_path(sfs_location: named_params.fetch(:sfs_location)),
-        ingest_manifest: ingest_manifest_path, ticket_id: named_params.fetch(:ticket_id) }
+        dest_path: dest_path(sfs_location: ingest_params.sfsbucket),
+        ingest_manifest: ingest_manifest_path, ticket_id: ingest_params.ticketid }
     end
 
     def dest_path(sfs_location:)

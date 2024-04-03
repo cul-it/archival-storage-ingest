@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/exception/ingest_exception'
+require 'archival_storage_ingest/ingest_utils/ingest_params'
 require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'optparse'
 
@@ -30,6 +31,32 @@ module CommandParser
     end
 
     attr_reader :ingest_config
+  end
+
+  # ingest params command line option parser
+  class IngestParamsCommandParser
+    def initialize
+      @ingest_params = nil
+    end
+
+    def parse!(args)
+      options = {}
+      OptionParser.new do |opts|
+        opts.banner = 'Usage: setup_ingest_env -i [ingest_config_path]'
+
+        # ingest_params provided from the new Jira workflow must be used.
+        opts.on('-i INGEST_PARAMS', '--ingest_params INGEST_PARAMS', 'Ingest params file') do |i|
+          options[:ingest_params] = i
+        end
+      end.parse!(args)
+
+      raise IngestException, "#{options[:ingest_params]} is not a valid file" unless
+          File.file?(options[:ingest_params])
+
+      @ingest_params = IngestUtils::IngestParams.new(options[:ingest_params])
+    end
+
+    attr_reader :ingest_params
   end
 
   class MoveMessageCommandParser

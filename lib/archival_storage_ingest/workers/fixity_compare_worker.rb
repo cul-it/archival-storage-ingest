@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/ingest_utils/ingest_params'
 require 'archival_storage_ingest/workers/worker'
 require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/manifests/manifest_of_manifests'
@@ -188,14 +189,14 @@ module FixityCompareWorker
       manifest_def = next_manifest_definition(msg)
       return if manifest_def.nil?
 
-      cm = collection_manifest(manifest_def:)
-      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root:,
-                                                                    sfs_root:)
-      env_initializer.initialize_periodic_fixity_env(cmf: cm, sfs_location: manifest_def.sfs, ticket_id: msg.ticket_id,
-                                                     relay_queue_name: @relay_queue_name)
+      env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root:, sfs_root:)
+      periodic_fixity_params = IngestUtils::PeriodicFixityParams.new(
+        storage_manifest: collection_manifest(manifest_def:), sfsbucket: manifest_def.sfs,
+        ticketid: msg.ticket_id, relay_queue_name: @relay_queue_name
+      )
+      env_initializer.initialize_periodic_fixity_env_from_params_obj(periodic_fixity_params:)
       queuer = WorkQueuer::PeriodicFixityQueuer.new(confirm: false)
-      fixity_config = YAML.load_file(env_initializer.config_path)
-      queuer.queue_periodic_fixity_check(fixity_config)
+      queuer.queue_periodic_fixity_check(YAML.load_file(env_initializer.config_path))
     end
 
     def next_manifest_definition(msg)

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/ingest_utils/ingest_params'
 require 'yaml'
 
 module Preingest
@@ -9,52 +10,50 @@ module Preingest
   NO_COLLECTION_MANIFEST = 'none'
 
   class BaseEnvInitializer
-    attr_accessor :ingest_root, :sfs_root, :depositor, :collection_id, :collection_root,
-                  :data_root, :source_path, :total_size, :size_mismatch
+    attr_accessor :total_size, :size_mismatch
+    attr_reader :ingest_root, :sfs_root, :depositor, :collection_id, :ingest_params,
+                :collection_root, :data_root
 
     def initialize(ingest_root:, sfs_root:)
       @ingest_root   = ingest_root
       @sfs_root      = sfs_root
-      @depositor     = nil
-      @collection_id = nil
-      @data_root     = nil
-      @source_path   = nil
+      @ingest_params = nil
       @total_size    = 0
       @size_mismatch = {}
     end
 
-    # :imf, :cmf, :data, :sfs_location, :ticket_id are used
-    #
-    # This way of coding (i.e., passing a params object rather than named params)
-    # does make RUBOCOP happy but it is hard to track down
-    # which parameters are used where...
-    # Is there a better way to deal with this situation?
-    def initialize_env(named_params)
-      _init_attrs(named_params.fetch(:imf))
-      @source_path = named_params.fetch(:data)
-      im_path = _initialize_ingest_manifest(named_params)
-      _initialize_collection_manifest(im_path:, named_params:)
-      _initialize_config(ingest_manifest_path: im_path, named_params:)
+    # takes filepath of ingest_params
+    def initialize_env(ingest_params:)
+      initialize_env_from_params_obj(IngestUtils::IngestParams.new(ingest_params))
     end
 
-    def _init_attrs(manifest_path)
-      manifest = Manifests.read_manifest(filename: manifest_path)
+    # takes IngestUtils::IngestParams object
+    def initialize_env_from_params_obj(ingest_params:)
+      @ingest_params = ingest_params
+      _init_attrs
+      im_path = _initialize_ingest_manifest
+      _initialize_collection_manifest(im_path:)
+      _initialize_config(im_path:)
+    end
+
+    def _init_attrs
+      manifest = Manifests.read_manifest(filename: ingest_params.ingest_manifest)
       @depositor = manifest.depositor
       @collection_id = manifest.collection_id
       @collection_root = File.join(ingest_root, depositor, collection_id)
       @data_root = File.join(collection_root, 'data')
     end
 
-    def _initialize_ingest_manifest(named_params)
+    def _initialize_ingest_manifest
       manifest_dir = File.join(collection_root, 'manifest')
 
       # ingest manifest
       ingest_manifest_dir = File.join(manifest_dir, 'ingest_manifest')
-      _initialize_manifest(manifest_dir: ingest_manifest_dir, manifest_file: named_params.fetch(:imf))
+      _initialize_manifest(manifest_dir: ingest_manifest_dir, manifest_file: ingest_params.ingest_manifest)
     end
 
-    def _initialize_collection_manifest(im_path:, named_params:)
-      raise "Do something with #{im_path} & #{named_params}!"
+    def _initialize_collection_manifest(im_path:)
+      raise "Do something with #{im_path}!"
     end
 
     def _initialize_manifest(manifest_dir:, manifest_file:)
@@ -72,14 +71,14 @@ module Preingest
       "smb://files.cornell.edu/lib/#{sfs_location}/#{depositor}/#{collection_id}"
     end
 
-    def _initialize_config(ingest_manifest_path:, named_params:)
-      ingest_config = generate_config(ingest_manifest_path:, named_params:)
-      ingest_config_file = prepare_config_path
+    def _initialize_config(im_path:)
+      ingest_params = generate_config(ingest_manifest_path: im_path)
+      ingest_params_file = prepare_config_path
 
-      File.write(ingest_config_file, ingest_config.to_yaml)
+      File.write(ingest_params_file, ingest_params.to_yaml)
     end
 
-    def generate_config(ingest_manifest_path:, named_params:); end
+    def generate_config(ingest_manifest_path:); end
 
     def dest_path(sfs_location:)
       raise "Do something with #{sfs_location}!"

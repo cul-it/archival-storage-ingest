@@ -25,7 +25,7 @@ SFS_PREFIX = if ENV['SFS_PREFIX']
              else
                Manifests::DEFAULT_SFS_PREFIX
              end
-file_identifier = Manifests::FileIdentifier.new(sfs_prefix:, java_path: JAVA_PATH,
+file_identifier = Manifests::FileIdentifier.new(sfs_prefix: SFS_PREFIX, java_path: JAVA_PATH,
                                                 tika_path: TIKA_PATH)
 manifest_validator = Manifests::ManifestValidator.new(storage_schema: STORAGE_MANIFEST_SCHEMA,
                                                       ingest_schema: INGEST_MANIFEST_SCHEMA)

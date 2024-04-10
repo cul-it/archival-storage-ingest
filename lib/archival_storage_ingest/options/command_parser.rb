@@ -39,23 +39,18 @@ module CommandParser
       @ingest_params = nil
     end
 
-    def parse!(args) # rubocop:disable Metrics/AbcSize
+    def parse!(args)
       OptionParser.new do |opts|
         opts.banner = 'Usage: setup_ingest_env -i [ingest_config_path]'
 
         # ingest_params provided from the new Jira workflow must be used.
         opts.on('-i INGEST_PARAMS', '--ingest_params INGEST_PARAMS', 'Ingest params file') do |i|
-          options[:ingest_params] = i
+          @ingest_params = IngestUtils::IngestParams.new(i)
         end
 
         # Optional parameters, default values will be used if not specified
         opts.on('-n', '--notify_email [String]', 'Notify email') { |n| @notify_email = n }
       end.parse!(args)
-
-      raise IngestException, "#{options[:ingest_params]} is not a valid file" unless
-          File.file?(options[:ingest_params])
-
-      @ingest_params = IngestUtils::IngestParams.new(options[:ingest_params])
     end
 
     def notify_email

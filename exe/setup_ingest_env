@@ -7,6 +7,7 @@ require 'archival_storage_ingest/options/command_parser'
 require 'archival_storage_ingest/preingest/base_env_initializer'
 require 'archival_storage_ingest/preingest/ingest_env_initializer'
 require 'archival_storage_ingest/ticket/ticket_handler'
+require 'archival_storage_ingest/wasabi/wasabi_manager'
 require 'mail'
 
 options = CommandParser::IngestParamsCommandParser.new

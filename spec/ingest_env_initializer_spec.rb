@@ -3,6 +3,7 @@
 require 'archival_storage_ingest/ingest_utils/ingest_params'
 require 'archival_storage_ingest/manifests/manifests'
 require 'archival_storage_ingest/preingest/ingest_env_initializer'
+require 'archival_storage_ingest/s3/local_manager'
 
 require 'fileutils'
 require 'json_schemer'
@@ -31,7 +32,8 @@ RSpec.describe 'IngestEnvInitializer' do
   let(:ingest_root) { File.join(base_dir, 'resources', 'preingest', 'ingest_root') }
   let(:sfs_root) { File.join(base_dir, 'resources', 'preingest', 'sfs_root') }
   let(:source_data) { File.join(base_dir, 'resources', 'preingest', 'source_data') }
-  let(:collection_manifest) { File.join(source_data, '_EM_collection_manifest.json') }
+  let(:storage_manifest_filename) { '_EM_test_depositor_test_collection.json' }
+  let(:storage_manifest) { File.join(source_data, '_EM_collection_manifest.json') }
   let(:ingest_manifest) { File.join(source_data, '_EM_ingest_manifest.json') }
   let(:merged_manifest) { File.join(source_data, '_EM_merged_collection_manifest.json') }
   let(:expected_ingest_config) { File.join(source_data, 'expected_ingest_config.yaml') }
@@ -52,20 +54,29 @@ RSpec.describe 'IngestEnvInitializer' do
   let(:ingest_params) do
     ingest_params = TestIngestParams.new(ingest_params_path)
     ingest_params.update_ingest_manifest(ingest_manifest)
-    ingest_params.update_collection_manifest(collection_manifest)
+    ingest_params.update_collection_manifest(storage_manifest_filename)
     ingest_params.update_asset_source(data)
     ingest_params
+  end
+  let(:wasabi_manager) do
+    local_root = File.join(File.dirname(__FILE__), 'resources', 'cloud')
+    LocalManager.new(local_root:, type: TYPE_WASABI)
+  end
+
+  before(:each) do
+    key = "#{depositor}/#{collection}/#{storage_manifest_filename}"
+    wasabi_manager.upload_file(key, storage_manifest)
   end
 
   after do
     FileUtils.remove_dir(dir_to_clean)
+    wasabi_manager.cleanup
   end
 
   context 'when initializing ingest env' do
     it 'creates ingest env' do
-      env_initializer = Preingest::IngestEnvInitializer.new(ingest_root:, sfs_root:,
-                                                            manifest_validator:,
-                                                            file_identifier:)
+      env_initializer = Preingest::IngestEnvInitializer.new(
+        ingest_root:, sfs_root:, manifest_validator:, file_identifier:, wasabi_manager:)
       # env_initializer.initialize_ingest_env(data:, cmf: collection_manifest, imf: ingest_manifest,
       #                                       sfs_location:, ticket_id:,
       #                                       depositor:, collection_id: collection)

@@ -49,12 +49,7 @@ module Manifests
     end
 
     def to_hash
-      mom = []
-      manifest_of_manifests.each do |m_def|
-        mom << m_def.to_hash
-      end
-
-      mom
+      manifest_of_manifests.map(&:to_hash)
     end
 
     def save(dest: nil)

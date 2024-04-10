@@ -15,13 +15,14 @@ require 'yaml'
 
 module Preingest
   class IngestEnvInitializer < BaseEnvInitializer
-    attr_reader :file_identifier, :manifest_validator
+    attr_reader :file_identifier, :manifest_validator, :wasabi_manager
 
-    def initialize(ingest_root:, sfs_root:, manifest_validator:, file_identifier:)
+    def initialize(ingest_root:, sfs_root:, manifest_validator:, file_identifier:, wasabi_manager:)
       super(ingest_root:, sfs_root:)
 
       @file_identifier = file_identifier
       @manifest_validator = manifest_validator
+      @wasabi_manager = wasabi_manager
     end
 
     # We need to run initialize_env first to populate depositor/collection from ingest manifest
@@ -47,13 +48,12 @@ module Preingest
     def initialize_ingest_env_from_params_obj(ingest_params:)
       initialize_env_from_params_obj(ingest_params:)
 
-      unless depositor == ingest_params.depositor &&
-             collection_id == ingest_params.collection
-        msg = "Depositor/Collection mismatch!\n  " \
-              "Given values: #{ingest_params.depositor}/#{ingest_params.collection_id}  " \
-              "Manifest values: #{@depositor}/#{@collection_id}"
-        raise IngestException, msg
-      end
+      return if depositor == ingest_params.depositor && collection_id == ingest_params.collection
+
+      msg = "Depositor/Collection mismatch!\n  " \
+            "Given values: #{ingest_params.depositor}/#{ingest_params.collection_id}  " \
+            "Manifest values: #{@depositor}/#{@collection_id}"
+      raise IngestException, msg
     end
 
     # Add data integrity check after copying ingest manifest to correct place
@@ -89,8 +89,7 @@ module Preingest
       manifest = if ingest_params.new_collection?
                    _create_collection_manifest(im_path:, sfs_location: ingest_params.sfsbucket)
                  else
-                   _merge_ingest_manifest_to_collection_manifest(imf: im_path, sfs_loc: ingest_params.sfsbucket,
-                                                                 cmf: ingest_params.existing_storage_manifest)
+                   _merge_ingest_manifest_to_collection_manifest(imf: im_path, sfs_loc: ingest_params.sfsbucket)
                  end
       _store_collection_manifest(manifest:)
     end
@@ -108,14 +107,21 @@ module Preingest
       manifest
     end
 
-    def _merge_ingest_manifest_to_collection_manifest(imf:, sfs_loc:, cmf:)
-      cm = Manifests.read_manifest(filename: cmf)
+    def _merge_ingest_manifest_to_collection_manifest(imf:, sfs_loc:)
+      cm = _get_storage_manifest
       im = Manifests.read_manifest(filename: imf)
-      mm = Manifests::ManifestMerger.new
-      merged = mm.merge_manifests(storage_manifest: cm, ingest_manifest: im)
-      update_locations(storage_manifest: merged,
-                       s3_location: full_s3_location,
+      merged = Manifests.merge_manifests(storage_manifest: cm, ingest_manifest: im)
+      update_locations(storage_manifest: merged, s3_location: full_s3_location,
                        sfs_location: full_sfs_location(sfs_location: sfs_loc))
+    end
+
+    def _get_storage_manifest
+      file = Tempfile.new('storage_manifest')
+      key = "#{ingest_params.depositor}/#{ingest_params.collection}/#{ingest_params.existing_storage_manifest}"
+      manifest_str = wasabi_manager.retrieve_file(key)
+      manifest = Manifests.read_manifest_io(json_io: manifest_str)
+      file.unlink
+      manifest
     end
 
     def update_locations(storage_manifest:, s3_location:, sfs_location:)

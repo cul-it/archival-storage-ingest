@@ -75,11 +75,11 @@ class LocalManager
   end
 
   def retrieve_file(s3_key)
-    File.read(File.join(@working_dir, s3_key))
+    File.new(File.join(@working_dir, s3_key))
   end
 
   def download_file(s3_key:, dest_path:)
-    # Download not allowed for now
+    upload_file(s3_key, dest_path)
   end
 
   # used to download m2m zip package

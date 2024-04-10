@@ -53,11 +53,10 @@ module Preingest
     end
 
     def dest_path(sfs_location:)
-      dest_paths = []
       sfs_location = sfs_location.split(FixityWorker::PeriodicFixitySFSGenerator::DEST_PATH_DELIMITER) unless
         sfs_location.respond_to?('each')
-      sfs_location.each do |sfs|
-        dest_paths << File.join(sfs_root, sfs, depositor, collection_id).to_s
+      dest_paths = sfs_location.map do |sfs|
+        File.join(sfs_root, sfs, depositor, collection_id).to_s
       end
       dest_paths.join(FixityWorker::PeriodicFixitySFSGenerator::DEST_PATH_DELIMITER)
     end

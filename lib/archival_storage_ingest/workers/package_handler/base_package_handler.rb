@@ -63,11 +63,9 @@ module M2MWorker
     # do we get sha1, size from ecommons metadata?
     def populate_files(path:)
       files = list_files(path:)
-      populated = []
-      files.each do |file|
-        populated << Manifests::FileEntry.new(file: { filepath: IngestUtils.relative_path(file, path) })
+      files.map do |file|
+        Manifests::FileEntry.new(file: { filepath: IngestUtils.relative_path(file, path) })
       end
-      populated
     end
 
     def list_files(path:)

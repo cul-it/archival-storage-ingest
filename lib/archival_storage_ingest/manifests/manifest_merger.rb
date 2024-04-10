@@ -3,6 +3,10 @@
 require 'archival_storage_ingest/manifests/manifests'
 
 module Manifests
+  def self.merge_manifests(storage_manifest:, ingest_manifest:)
+    ManifestMerger.new.merge_manifests(storage_manifest:, ingest_manifest:)
+  end
+
   class ManifestMerger
     # Merges packages of ingest manifest to storage manifest
     def merge_manifest_files(storage_manifest:, ingest_manifest:)

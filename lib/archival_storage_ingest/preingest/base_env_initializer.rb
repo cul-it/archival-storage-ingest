@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/ingest_utils/ingest_params'
+require 'fileutils'
 require 'yaml'
 
 module Preingest

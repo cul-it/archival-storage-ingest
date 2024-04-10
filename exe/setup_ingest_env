@@ -9,26 +9,34 @@ require 'archival_storage_ingest/preingest/ingest_env_initializer'
 require 'archival_storage_ingest/ticket/ticket_handler'
 require 'mail'
 
-options = CommandParser::SetupIngestEnvCommandParser.new
+options = CommandParser::IngestParamsCommandParser.new
 options.parse!(ARGV)
 
-sfs_prefix = if ENV['asi_develop'] || ENV['asi_deploy_manifest_develop']
-               '/cul/app/archival_storage_ingest/test/deploy'
-             else
-               Manifests::DEFAULT_SFS_PREFIX
-             end
-file_identifier = Manifests::FileIdentifier.new(sfs_prefix:, java_path: options.java_path,
-                                                tika_path: options.tika_path)
-manifest_validator = Manifests::ManifestValidator.new(storage_schema: options.storage_manifest_schema,
-                                                      ingest_schema: options.ingest_manifest_schema)
-env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: options.ingest_root,
-                                                      sfs_root: options.sfs_root,
+JAVA_PATH = ENV['JAVA_PATH'] || Manifests::FileIdentifier::DEFAULT_JAVA_PATH
+TIKA_PATH = ENV['TIKA_PATH'] || Manifests::FileIdentifier::DEFAULT_TIKA_PATH
+STORAGE_MANIFEST_SCHEMA = ENV['STORAGE_MANIFEST_SCHEMA'] || Manifests::ManifestValidator::DEFAULT_STORAGE_SCHEMA
+INGEST_MANIFEST_SCHEMA = ENV['INGEST_MANIFEST_SCHEMA'] || Manifests::ManifestValidator::DEFAULT_INGEST_SCHEMA
+INGEST_ROOT = ENV['INGEST_ROOT'] || '/cul/app/archival_storage_ingest/ingest'
+WASABI_BUCKET = ENV['WASABI_BUCKET'] || 'wasabi-cular'
+SFS_PREFIX = ENV.fetch('SFS_PREFIX', nil)
+unless SFS_PREFIX
+  SFS_PREFIX = if ENV['asi_develop'] || ENV['asi_deploy_manifest_develop']
+                 '/cul/app/archival_storage_ingest/test/deploy'
+               else
+                 Manifests::DEFAULT_SFS_PREFIX
+               end
+end
+file_identifier = Manifests::FileIdentifier.new(sfs_prefix:, java_path: JAVA_PATH,
+                                                tika_path: TIKA_PATH)
+manifest_validator = Manifests::ManifestValidator.new(storage_schema: STORAGE_MANIFEST_SCHEMA,
+                                                      ingest_schema: INGEST_MANIFEST_SCHEMA)
+wasabi_manager = WasabiManager.new(WASABI_BUCKET)
+env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: INGEST_ROOT,
+                                                      sfs_root: options.ingest_params.sfsbucket,
                                                       file_identifier:,
-                                                      manifest_validator:)
-env_initializer.initialize_ingest_env(data: options.data_path,
-                                      depositor: options.depositor, collection_id: options.collection_id,
-                                      cmf: options.storage_manifest, imf: options.ingest_manifest,
-                                      sfs_location: options.sfs_bucket, ticket_id: options.ticket_id)
+                                                      manifest_validator:,
+                                                      wasabi_manager:)
+env_initializer.initialize_ingest_env_from_params_obj(ingest_params: options.ingest_params)
 
 if env_initializer.size_mismatch.empty?
   puts "Total size of assets: #{env_initializer.total_size}\n"

@@ -4,6 +4,7 @@ require 'spec_helper'
 require 'rspec/mocks'
 require 'pathname'
 require 'archival_storage_ingest/manifests/manifests'
+require 'archival_storage_ingest/workers/transfer_state_manager'
 require 'archival_storage_ingest/workers/transfer_worker'
 
 RSpec.shared_context 'transfer_worker_shared_examples' do
@@ -44,6 +45,10 @@ RSpec.shared_context 'transfer_worker_shared_examples' do
   let(:symlink_ingest_manifest) do
     File.join(File.dirname(__FILE__), 'resources', 'transfer_workers', 'symlink', 'manifest.json')
   end
+
+  let(:transfer_staet_manager) do
+    TransferStateManager::TestTransferStateManager.new
+  end
 end
 
 def ingest_manifest_io(manifest_path:, replace_path:)
@@ -58,7 +63,7 @@ RSpec.describe 'S3TransferWorker' do
     @s3_bucket = spy('s3_bucket')
     @s3_manager = spy('s3_manager')
     @application_logger = spy('application_logger')
-    @s3_worker = TransferWorker::S3Transferer.new(@application_logger, @s3_manager)
+    @s3_worker = TransferWorker::S3Transferer.new(@application_logger, transfer_staet_manager, @s3_manager)
 
     allow(@s3_manager).to receive(:upload_file)
       .with("#{depositor}/#{collection}/1/resource1.txt", anything).and_return(true)
@@ -159,7 +164,7 @@ RSpec.describe 'SFSTransferWorker' do
     @s3_bucket = spy('s3_bucket')
     @s3_manager = spy('s3_manager')
     @application_logger = spy('application_logger')
-    @sfs_worker = TransferWorker::SFSTransferer.new(@application_logger, @s3_manager)
+    @sfs_worker = TransferWorker::SFSTransferer.new(@application_logger, transfer_staet_manager, @s3_manager)
 
     allow(@s3_manager).to receive(:upload_file)
       .with(any_args)

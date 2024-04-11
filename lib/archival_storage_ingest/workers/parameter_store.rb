@@ -6,7 +6,7 @@ module ParameterStore
   class BaseParameterStore
     attr_reader :stage
 
-    def initialize(stage)
+    def initialize(stage:)
       @stage = stage
     end
 
@@ -24,39 +24,43 @@ module ParameterStore
   end
 
   class SSMParameterStore < BaseParameterStore
-    def initialize(stage)
-      super(stage)
+    def initialize(stage:)
+      super(stage:)
       @ssm = Aws::SSM::Client.new
     end
 
     def get_parameter(name:, with_decryption:)
-      resp = @ssm.get_parameter(name: full_param_name(name), with_decryption:)
+      resp = @ssm.get_parameter(name: full_param_name(name:), with_decryption:)
       resp.parameter.value
     end
 
     def get_parameters(names:, with_decryption:)
-      resp = @ssm.get_parameters(names: names.map { |n| full_param_name(n) }, with_decryption:)
+      resp = @ssm.get_parameters(names: names.map { |name| full_param_name(name:) }, with_decryption:)
       resp.parameters.map(&:value)
     end
   end
 
   class TestParameterStore < BaseParameterStore
-    def initialize(stage)
-      super(stage)
+    def initialize(stage:)
+      super(stage:)
       @store = {}
     end
 
+    def key(name:, with_decryption:)
+      "#{name}_#{with_decryption}"
+    end
+
     def add_parameter(name:, value:, with_decryption:)
-      @store["#{name}_#{with_decryption}"] = value
+      @store[key(name:, with_decryption:)] = value
     end
 
     def get_parameter(name:, with_decryption:)
-      @store["#{name}_#{with_decryption}"]
+      @store[key(name:, with_decryption:)]
     end
 
     def get_parameters(names:, with_decryption:)
-      names.map do |n|
-        @store["#{n}_#{with_decryption}"]
+      names.map do |name|
+        @store[key(name:, with_decryption:)]
       end
     end
   end

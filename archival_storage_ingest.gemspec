@@ -50,6 +50,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'json_schemer'
   spec.add_runtime_dependency 'mail'
   spec.add_runtime_dependency 'opensearch-ruby'
+  spec.add_runtime_dependency 'pg'
   spec.add_runtime_dependency 'rubyzip'
   spec.metadata['rubygems_mfa_required'] = 'true'
 end

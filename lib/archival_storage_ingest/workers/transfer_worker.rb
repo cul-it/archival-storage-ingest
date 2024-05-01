@@ -20,12 +20,11 @@ module TransferWorker
       @wasabi_manager = wasabi_manager || ArchivalStorageIngest.configuration.wasabi_manager
     end
 
-    # Add new transfer state to the database with state 'in_progress' for this job_id and platform
     # Transfer all files in the ingest manifest
     # Update transfer state to 'complete' for this job_id and platform
     # Return true if all transfer for this job_id are complete
     def _work(msg)
-      add_transfer_state(job_id: msg.job_id)
+      # add_transfer_state(job_id: msg.job_id)
       ingest_manifest = fetch_ingest_manifest(msg)
       ingest_manifest.walk_packages do |package|
         process_package(package:, msg:)

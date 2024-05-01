@@ -94,6 +94,12 @@ module TransferStateManager
     def transfer_complete?(job_id:)
       @state[job_id].values.all? { |v| v == TransferStateManager::TRANSFER_STATE_COMPLETE }
     end
+
+    def get_transfer_state(job_id:, platform:)
+      return nil unless @state[job_id]
+
+      @state[job_id][platform]
+    end
   end
 end
 

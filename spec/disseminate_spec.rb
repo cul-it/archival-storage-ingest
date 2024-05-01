@@ -7,6 +7,7 @@ require 'archival_storage_ingest/disseminate/transferer'
 require 'archival_storage_ingest/disseminate/fixity_checker'
 require 'archival_storage_ingest/disseminate/packager'
 require 'archival_storage_ingest/disseminate/disseminator'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'zip'
 
 RSpec.describe 'Disseminator' do
@@ -141,7 +142,7 @@ RSpec.describe 'Disseminator' do
 
     context 'When disseminating request' do
       it 'checks input, transfers assets, runs fixity and packages into zip' do
-        disseminator = Disseminate::Disseminator.new(cloud_platform: 'Local', local_file_prefix: ,  default_manager: manager)
+        disseminator = Disseminate::Disseminator.new(cloud_platform: IngestUtils::PLATFORM_LOCAL, local_file_prefix: ,  default_manager: manager)
         dissemination = disseminator.disseminate(manifest: manifest_file, csv: csv_file,
                                                  depositor:, collection:, zip_filepath:)
         expect(dissemination).to eq(zip_filepath)

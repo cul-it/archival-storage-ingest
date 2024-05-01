@@ -67,7 +67,8 @@ RSpec.describe 'FixityCheckWorker' do
       setup_manifests(full10, nil)
 
       expect(worker.work(msg)).to be_falsey
-      expect(s3_manager).to have_received(:retrieve_file).with('.manifest/test_1234_s3.json')
+      # S3 fixity check is handled by lambda now
+      # expect(s3_manager).to have_received(:retrieve_file).with('.manifest/test_1234_s3.json')
       expect(s3_manager).to have_received(:retrieve_file).with('.manifest/test_1234_sfs.json')
     end
   end
@@ -103,15 +104,16 @@ RSpec.describe 'FixityCheckWorker' do
       expect(exception.message).to start_with('Ingest and SFS manifests do not match:')
     end
 
-    it 'throws exception if S3 manifest short' do
-      setup_manifests(flat9, flat10)
+    # S3 fixity check is handled by lambda now
+    # it 'throws exception if S3 manifest short' do
+    #   setup_manifests(flat9, flat10)
 
-      exception = nil
-      expect { worker.work(msg) }.to(raise_error { |ex| exception = ex })
+    #   exception = nil
+    #   expect { worker.work(msg) }.to(raise_error { |ex| exception = ex })
 
-      expect(exception).to be_instance_of(IngestException)
-      expect(exception.message).to start_with('Ingest and S3 manifests do not match')
-    end
+    #   expect(exception).to be_instance_of(IngestException)
+    #   expect(exception.message).to start_with('Ingest and S3 manifests do not match')
+    # end
 
     it 'throws exception if Ingest and SFS manifests have different SHAs' do
       setup_manifests(full10, flat10error)

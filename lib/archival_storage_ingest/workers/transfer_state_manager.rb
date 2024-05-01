@@ -45,7 +45,7 @@ module TransferStateManager
 
     def add_transfer_state(job_id:, platform:, state:)
       query = 'INSERT INTO transfer_state (job_id, platform, state) VALUES ($1, $2, $3) ' \
-              'ON CONFLICT DO UPDATE SET state = $3'
+              'ON CONFLICT (job_id, platform) DO UPDATE SET state = $3'
       trans_execute(query:, params: [job_id, platform, state])
     end
 

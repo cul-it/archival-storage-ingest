@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/workers/worker'
 
 class IngestWorker < Workers::Worker
@@ -15,13 +16,15 @@ class IngestWorker < Workers::Worker
     'Ingest Initiator'
   end
 
-  # Deploy ingest manifest to S3 and update transfer state to 'in_progress' for this job_id and each platform
+  # Deploy ingest manifest to S3 and update transfer state to 'in_progress' for this job_id and each cloud platform
   def _work(msg)
     s3_key = @s3_manager.manifest_key(msg.job_id, Workers::TYPE_INGEST)
     @s3_manager.upload_file(s3_key, msg.ingest_manifest)
     @platforms.each do |platform|
+      next if platform == IngestUtils::PLATFORM_SFS
+
       @transfer_state_manager.add_transfer_state(
-        job_id: msg.job_id, platform:, state: TransferStateManager::TRANSFER_STATE_IN_PROGRESS
+        job_id: msg.job_id, platform:, state: IngestUtils::TRANSFER_STATE_IN_PROGRESS
       )
     end
     @application_logger.log(log_msg(msg, s3_key))

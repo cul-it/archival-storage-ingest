@@ -1,13 +1,11 @@
 # frozen_string_literal: true
 
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/workers/parameter_store'
 require 'aws-sdk-ssm'
 require 'pg'
 
 module TransferStateManager
-  TRANSFER_STATE_IN_PROGRESS = 'in_progress'
-  TRANSFER_STATE_COMPLETE = 'complete'
-
   class BaseTransferStateManager
     def add_transfer_state(job_id:, platform:, state:)
       raise "Not implemented add_transfer_state(#{job_id}, #{platform}, #{state})"
@@ -67,7 +65,7 @@ module TransferStateManager
       query = 'SELECT * FROM transfer_state WHERE job_id = $1 and state = $2'
       complete = false
       conn.transaction do |trans|
-        complete = trans.exec_params(query, [job_id, TransferStateManager::TRANSFER_STATE_IN_PROGRESS]).num_tuples.zero?
+        complete = trans.exec_params(query, [job_id, IngestUtils::TRANSFER_STATE_IN_PROGRESS]).num_tuples.zero?
       end
       conn.close
       complete
@@ -92,7 +90,7 @@ module TransferStateManager
     end
 
     def transfer_complete?(job_id:)
-      @state[job_id].values.all? { |v| v == TransferStateManager::TRANSFER_STATE_COMPLETE }
+      @state[job_id].values.all? { |v| v == IngestUtils::TRANSFER_STATE_COMPLETE }
     end
 
     def get_transfer_state(job_id:, platform:)

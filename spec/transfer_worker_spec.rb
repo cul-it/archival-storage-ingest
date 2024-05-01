@@ -51,7 +51,7 @@ RSpec.shared_context 'transfer_worker_shared_examples' do
     state_manager = TransferStateManager::TestTransferStateManager.new
     state_manager.add_transfer_state(
       job_id:, platform: IngestUtils::PLATFORM_S3,
-      state: TransferStateManager::TRANSFER_STATE_IN_PROGRESS
+      state: IngestUtils::TRANSFER_STATE_IN_PROGRESS
     )
     state_manager
   end
@@ -71,7 +71,7 @@ RSpec.describe 'S3TransferWorker' do
     @application_logger = spy('application_logger')
     transfer_state_manager.set_transfer_state(
       job_id:, platform: IngestUtils::PLATFORM_S3,
-      state: TransferStateManager::TRANSFER_STATE_IN_PROGRESS
+      state: IngestUtils::TRANSFER_STATE_IN_PROGRESS
     )
     @s3_worker = TransferWorker::S3Transferer.new(@application_logger, transfer_state_manager, @s3_manager)
 
@@ -174,15 +174,7 @@ RSpec.describe 'SFSTransferWorker' do
     @s3_bucket = spy('s3_bucket')
     @s3_manager = spy('s3_manager')
     @application_logger = spy('application_logger')
-    transfer_state_manager.set_transfer_state(
-      job_id:, platform: IngestUtils::PLATFORM_SFS,
-      state: TransferStateManager::TRANSFER_STATE_IN_PROGRESS
-    )
-    transfer_state_manager.set_transfer_state(
-      job_id:, platform: IngestUtils::PLATFORM_S3,
-      state: TransferStateManager::TRANSFER_STATE_COMPLETE
-    )
-    @sfs_worker = TransferWorker::SFSTransferer.new(@application_logger, transfer_state_manager, @s3_manager)
+    @sfs_worker = TransferWorker::SFSTransferer.new(@application_logger, @s3_manager)
 
     allow(@s3_manager).to receive(:upload_file)
       .with(any_args)

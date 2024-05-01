@@ -13,15 +13,15 @@ RSpec.describe TransferStateManager do
 
   describe '#add_transfer_state' do
     it 'adds the correct state' do
-      transfer_state_manager.add_transfer_state(job_id:, platform:, state: TransferStateManager::TRANSFER_STATE_IN_PROGRESS)
+      transfer_state_manager.add_transfer_state(job_id:, platform:, state: IngestUtils::TRANSFER_STATE_IN_PROGRESS)
       expect(transfer_state_manager.transfer_complete?(job_id:)).to be_falsey
     end
   end
 
   describe '#set_transfer_state' do
     it 'executes the query with the correct parameters' do
-      transfer_state_manager.add_transfer_state(job_id:, platform:, state: TransferStateManager::TRANSFER_STATE_IN_PROGRESS)
-      transfer_state_manager.set_transfer_state(job_id:, platform:, state: TransferStateManager::TRANSFER_STATE_COMPLETE)
+      transfer_state_manager.add_transfer_state(job_id:, platform:, state: IngestUtils::TRANSFER_STATE_IN_PROGRESS)
+      transfer_state_manager.set_transfer_state(job_id:, platform:, state: IngestUtils::TRANSFER_STATE_COMPLETE)
       expect(transfer_state_manager.transfer_complete?(job_id:)).to be_truthy
     end
   end

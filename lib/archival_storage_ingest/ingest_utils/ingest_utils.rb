@@ -32,6 +32,8 @@ module IngestUtils
     PLATFORM_S3_WEST => S3_WEST_BUCKET,
     PLATFORM_WASABI => WASABI_BUCKET
   }.freeze
+  TRANSFER_STATE_IN_PROGRESS = 'in_progress'
+  TRANSFER_STATE_COMPLETE = 'complete'
 
   def self.relativize(file, path_to_trim)
     Pathname.new(file).relative_path_from(path_to_trim).to_s

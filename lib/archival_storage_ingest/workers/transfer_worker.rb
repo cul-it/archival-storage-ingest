@@ -10,36 +10,23 @@ require 'pathname'
 
 module TransferWorker
   class TransferWorker < Workers::Worker
-    attr_reader :s3_manager, :wasabi_manager, :transfer_state_manager
+    attr_reader :s3_manager, :wasabi_manager
 
     # Pass s3_manager or wasabi_manager only for tests.
-    def initialize(application_logger, transfer_state_manager, s3_manager = nil, wasabi_manager = nil)
+    def initialize(application_logger, s3_manager = nil, wasabi_manager = nil)
       super(application_logger)
-      @transfer_state_manager = transfer_state_manager
       @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
       @wasabi_manager = wasabi_manager || ArchivalStorageIngest.configuration.wasabi_manager
     end
 
     # Transfer all files in the ingest manifest
-    # Update transfer state to 'complete' for this job_id and platform
-    # Return true if all transfer for this job_id are complete
     def _work(msg)
-      # add_transfer_state(job_id: msg.job_id)
       ingest_manifest = fetch_ingest_manifest(msg)
       ingest_manifest.walk_packages do |package|
         process_package(package:, msg:)
       end
-      update_transfer_state_complete(job_id: msg.job_id)
 
-      transfer_state_manager.transfer_complete?(job_id: msg.job_id)
-    end
-
-    # Add new transfer state to the database with state 'in_progress' for this job_id and platform
-    def add_transfer_state(job_id:)
-      transfer_state_manager.add_transfer_state(
-        job_id:, platform: _platform,
-        state: TransferStateManager::TRANSFER_STATE_IN_PROGRESS
-      )
+      true
     end
 
     # Update transfer state to 'complete' for this job_id and platform
@@ -100,12 +87,38 @@ module TransferWorker
   end
 
   class S3Transferer < TransferWorker
+    attr_reader :transfer_state_manager
+
+    def initialize(application_logger, transfer_state_manager, s3_manager = nil, wasabi_manager = nil)
+      super(application_logger, s3_manager, wasabi_manager)
+      @transfer_state_manager = transfer_state_manager
+    end
+
     def _name
       'S3 Transferer'
     end
 
     def _platform
       IngestUtils::PLATFORM_S3
+    end
+
+    # Transfer all files in the ingest manifest
+    # Update transfer state to 'complete' for this job_id and platform
+    # Return true if all transfer for this job_id are complete
+    def _work(msg)
+      super(msg)
+
+      update_transfer_state_complete(job_id: msg.job_id)
+
+      transfer_state_manager.transfer_complete?(job_id: msg.job_id)
+    end
+
+    # Update transfer state to 'complete' for this job_id and platform
+    def update_transfer_state_complete(job_id:)
+      transfer_state_manager.set_transfer_state(
+        job_id:, platform: _platform,
+        state: IngestUtils::TRANSFER_STATE_COMPLETE
+      )
     end
 
     # source is absolute file path of the asset

@@ -26,14 +26,13 @@ SFS_PREFIX = if ENV['SFS_PREFIX']
              else
                Manifests::DEFAULT_SFS_PREFIX
              end
-sfs_root = File.join(SFS_PREFIX, options.ingest_params.sfsbucket)
 file_identifier = Manifests::FileIdentifier.new(sfs_prefix: SFS_PREFIX, java_path: JAVA_PATH,
                                                 tika_path: TIKA_PATH)
 manifest_validator = Manifests::ManifestValidator.new(storage_schema: STORAGE_MANIFEST_SCHEMA,
                                                       ingest_schema: INGEST_MANIFEST_SCHEMA)
 wasabi_manager = WasabiManager.new(WASABI_BUCKET)
 env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: INGEST_ROOT,
-                                                      sfs_root:,
+                                                      sfs_root: SFS_PREFIX,
                                                       file_identifier:,
                                                       manifest_validator:,
                                                       wasabi_manager:)

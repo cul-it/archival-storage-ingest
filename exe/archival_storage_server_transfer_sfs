@@ -6,8 +6,6 @@ require 'archival_storage_ingest/ingest_utils/configure_helper'
 require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
 require 'archival_storage_ingest/messages/queues'
-require 'archival_storage_ingest/workers/parameter_store'
-require 'archival_storage_ingest/workers/transfer_state_manager'
 require 'archival_storage_ingest/workers/transfer_worker'
 require 'archival_storage_ingest/logs/application_logger'
 
@@ -36,9 +34,7 @@ ArchivalStorageIngest.configure do |config|
     stage: config.stage, index_type:,
     use_lambda_logger: IngestUtils.env_boolean_from_param(param: 'use_lambda_logger', default: true)
   )
-  parameter_store = ParameterStore::SSMParameterStore.new(stage: config.stage)
-  transfer_state_manager = TransferStateManager::DBTransferStateManager.new(parameter_store:)
-  config.worker = TransferWorker::SFSTransferer.new(application_logger, transfer_state_manager)
+  config.worker = TransferWorker::SFSTransferer.new(application_logger)
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

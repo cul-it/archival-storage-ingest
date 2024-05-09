@@ -1,72 +1,73 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'archival_storage_ingest'
-require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
-require 'archival_storage_ingest/manifests/manifests'
-require 'archival_storage_ingest/messages/queues'
-require 'archival_storage_ingest/preingest/base_env_initializer'
-require 'archival_storage_ingest/workers/m2m_initiate_worker'
+# Depreacated
+# require 'archival_storage_ingest'
+# require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
+# require 'archival_storage_ingest/manifests/manifests'
+# require 'archival_storage_ingest/messages/queues'
+# require 'archival_storage_ingest/preingest/base_env_initializer'
+# require 'archival_storage_ingest/workers/m2m_initiate_worker'
 
-ingest_schema = ENV['asi_ingest_schema'] || '/cul/app/cular-metadata/manifest_schema_ingest.json'
-storage_schema = ENV['asi_storage_schema'] || '/cul/app/cular-metadata/manifest_schema_storage.json'
+# ingest_schema = ENV['asi_ingest_schema'] || '/cul/app/cular-metadata/manifest_schema_ingest.json'
+# storage_schema = ENV['asi_storage_schema'] || '/cul/app/cular-metadata/manifest_schema_storage.json'
 
-ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLength
-  config.log_path = ENV['asi_ingest_m2m_log_path'] ||
-                    "#{ENV.fetch('default_cular_log_path', nil)}/ingest_m2m.log"
-  config.dry_run = ENV['asi_ingest_m2m_dry_run'] || false
-  config.polling_interval = ENV['asi_ingest_m2m_polling_interval'].to_i if
-                            ENV['asi_ingest_m2m_polling_interval']
-  config.inhibit_file = ENV['asi_ingest_m2m_inhibit_file'] ||
-                        '/cul/app/archival_storage_ingest/control/ingest_m2m.inhibit'
-  config.global_inhibit_file = ENV['asi_global_inhibit_file'] ||
-                               '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
+# ArchivalStorageIngest.configure do |config| # Xrubocop:disable Metrics/BlockLength
+#   config.log_path = ENV['asi_ingest_m2m_log_path'] ||
+#                     "#{ENV.fetch('default_cular_log_path', nil)}/ingest_m2m.log"
+#   config.dry_run = ENV['asi_ingest_m2m_dry_run'] || false
+#   config.polling_interval = ENV['asi_ingest_m2m_polling_interval'].to_i if
+#                             ENV['asi_ingest_m2m_polling_interval']
+#   config.inhibit_file = ENV['asi_ingest_m2m_inhibit_file'] ||
+#                         '/cul/app/archival_storage_ingest/control/ingest_m2m.inhibit'
+#   config.global_inhibit_file = ENV['asi_global_inhibit_file'] ||
+#                                '/cul/app/archival_storage_ingest/control/archival_storage.inhibit'
 
-  package_zip_dir = ENV['asi_ingest_m2m_zip_dir'] ||
-                    '/cul/app/archival_storage_ingest/m2m_package_zip'
-  package_extract_dir = ENV['asi_ingest_m2m_extract_dir'] ||
-                        '/cul/app/archival_storage_ingest/m2m_package_extract'
-  ingest_root = ENV['asi_ingest_m2m_inhibit_file'] ||
-                Preingest::DEFAULT_INGEST_ROOT
-  sfs_root = ENV['asi_ingest_m2m_inhibit_file'] ||
-             Preingest::DEFAULT_SFS_ROOT
-  s3_bucket = 's3-cular'
-  s3_m2m_bucket = 's3-cular-ecommons-integration-prod'
-  if ENV['asi_develop'] || ENV['asi_ingest_m2m_develop']
-    config.s3_bucket = 's3-cular-dev'
-    config.debug = true
-    config.develop = true
-    config.message_queue_name = Queues::DEV_QUEUE_ECOMMONS_INTEGRATION
-    config.in_progress_queue_name = Queues::DEV_QUEUE_ECOMMONS_INTEGRATION_IN_PROGRESS
-    config.dest_queue_names = [Queues::DEV_QUEUE_INGEST]
-    package_zip_dir = "#{package_zip_dir}_dev"
-    package_extract_dir = "#{package_extract_dir}_dev"
-    ingest_root = '/cul/app/archival_storage_ingest/test/integration_test/ingest_root'
-    sfs_root = '/cul/app/archival_storage_ingest/test/integration_test/sfs_root'
-    s3_bucket = 's3-cular-dev'
-    s3_m2m_bucket = 's3-cular-ecommons-integration-dev'
-  else
-    config.s3_bucket = 's3-cular'
-    config.debug = ENV['asi_ingest_m2m_debug'] ? true : false
-    config.develop = false
-    config.message_queue_name = Queues::QUEUE_ECOMMONS_INTEGRATION
-    config.in_progress_queue_name = Queues::QUEUE_ECOMMONS_INTEGRATION_IN_PROGRESS
-    config.dest_queue_names = [Queues::QUEUE_INGEST]
-  end
+#   package_zip_dir = ENV['asi_ingest_m2m_zip_dir'] ||
+#                     '/cul/app/archival_storage_ingest/m2m_package_zip'
+#   package_extract_dir = ENV['asi_ingest_m2m_extract_dir'] ||
+#                         '/cul/app/archival_storage_ingest/m2m_package_extract'
+#   ingest_root = ENV['asi_ingest_m2m_inhibit_file'] ||
+#                 Preingest::DEFAULT_INGEST_ROOT
+#   sfs_root = ENV['asi_ingest_m2m_inhibit_file'] ||
+#              Preingest::DEFAULT_SFS_ROOT
+#   s3_bucket = 's3-cular'
+#   s3_m2m_bucket = 's3-cular-ecommons-integration-prod'
+#   if ENV['asi_develop'] || ENV['asi_ingest_m2m_develop']
+#     config.s3_bucket = 's3-cular-dev'
+#     config.debug = true
+#     config.develop = true
+#     config.message_queue_name = Queues::DEV_QUEUE_ECOMMONS_INTEGRATION
+#     config.in_progress_queue_name = Queues::DEV_QUEUE_ECOMMONS_INTEGRATION_IN_PROGRESS
+#     config.dest_queue_names = [Queues::DEV_QUEUE_INGEST]
+#     package_zip_dir = "#{package_zip_dir}_dev"
+#     package_extract_dir = "#{package_extract_dir}_dev"
+#     ingest_root = '/cul/app/archival_storage_ingest/test/integration_test/ingest_root'
+#     sfs_root = '/cul/app/archival_storage_ingest/test/integration_test/sfs_root'
+#     s3_bucket = 's3-cular-dev'
+#     s3_m2m_bucket = 's3-cular-ecommons-integration-dev'
+#   else
+#     config.s3_bucket = 's3-cular'
+#     config.debug = ENV['asi_ingest_m2m_debug'] ? true : false
+#     config.develop = false
+#     config.message_queue_name = Queues::QUEUE_ECOMMONS_INTEGRATION
+#     config.in_progress_queue_name = Queues::QUEUE_ECOMMONS_INTEGRATION_IN_PROGRESS
+#     config.dest_queue_names = [Queues::QUEUE_INGEST]
+#   end
 
-  s3_manager = S3Manager.new(s3_bucket, 'invalid-asif-bucket',
-                             'invalid-size-bucket', s3_m2m_bucket)
-  manifest_validator = Manifests::ManifestValidator.new(ingest_schema:,
-                                                        storage_schema:)
-  config.worker = M2MInitiateWorker.new({
-                                          package_zip_dir:,
-                                          package_extract_dir:,
-                                          ingest_root:,
-                                          sfs_root:,
-                                          s3_manager:,
-                                          manifest_validator:
-                                        })
-end
+#   s3_manager = S3Manager.new(s3_bucket, 'invalid-asif-bucket',
+#                              'invalid-size-bucket', s3_m2m_bucket)
+#   manifest_validator = Manifests::ManifestValidator.new(ingest_schema:,
+#                                                         storage_schema:)
+#   config.worker = M2MInitiateWorker.new({
+#                                           package_zip_dir:,
+#                                           package_extract_dir:,
+#                                           ingest_root:,
+#                                           sfs_root:,
+#                                           s3_manager:,
+#                                           manifest_validator:
+#                                         })
+# end
 
-ingest_manager = ArchivalStorageIngest::IngestManager.new
-ingest_manager.start_server
+# ingest_manager = ArchivalStorageIngest::IngestManager.new
+# ingest_manager.start_server

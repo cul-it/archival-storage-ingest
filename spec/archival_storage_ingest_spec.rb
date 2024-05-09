@@ -110,24 +110,24 @@ RSpec.describe ArchivalStorageIngest do
       resp
     end
 
-    let(:queue_ingest_fixity_s3) do
-      Queues.resolve_queue_name(queue: Queues::QUEUE_INGEST_FIXITY_S3, stage: ArchivalStorageIngest::STAGE_PROD)
+    let(:queue_ingest_fixity) do
+      Queues.resolve_queue_name(queue: Queues::QUEUE_INGEST_FIXITY, stage: ArchivalStorageIngest::STAGE_PROD)
     end
-    let(:queue_ingest_fixity_s3_in_progress) do
-      Queues.resolve_in_progress_queue_name(queue: Queues::QUEUE_INGEST_FIXITY_S3,
+    let(:queue_ingest_fixity_in_progress) do
+      Queues.resolve_in_progress_queue_name(queue: Queues::QUEUE_INGEST_FIXITY,
                                             stage: ArchivalStorageIngest::STAGE_PROD)
     end
 
     context 'when moving message' do
       it 'removes from source queue and add to target queue' do
         allow(queuer).to receive(:retrieve_single_message)
-          .with(queue_ingest_fixity_s3_in_progress).and_return(message_response)
+          .with(queue_ingest_fixity_in_progress).and_return(message_response)
         allow(queuer).to receive(:delete_message)
-          .with(anything, queue_ingest_fixity_s3_in_progress).and_return(1)
+          .with(anything, queue_ingest_fixity_in_progress).and_return(1)
         allow(queuer).to receive(:put_message)
-          .with(queue_ingest_fixity_s3, anything).and_return(1)
-        message_mover.move_message(source: queue_ingest_fixity_s3_in_progress,
-                                   target: queue_ingest_fixity_s3)
+          .with(queue_ingest_fixity, anything).and_return(1)
+        message_mover.move_message(source: queue_ingest_fixity_in_progress,
+                                   target: queue_ingest_fixity)
         expect(queuer).to have_received(:retrieve_single_message).exactly(1).times
         expect(queuer).to have_received(:delete_message).exactly(1).times
         expect(queuer).to have_received(:put_message).exactly(1).times

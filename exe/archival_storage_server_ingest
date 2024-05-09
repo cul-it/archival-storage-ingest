@@ -4,8 +4,11 @@
 require 'archival_storage_ingest'
 require 'archival_storage_ingest/ingest_utils/configure_helper'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/workers/ingest_worker'
+require 'archival_storage_ingest/workers/parameter_store'
+require 'archival_storage_ingest/workers/transfer_state_manager'
 require 'archival_storage_ingest/logs/application_logger'
 
 ArchivalStorageIngest.configure do |config|
@@ -29,9 +32,13 @@ ArchivalStorageIngest.configure do |config|
   index_type = ArchivalStorageIngestLogger::INDEX_TYPE_INGEST
   application_logger = ArchivalStorageIngestLogger.get_application_logger(
     stage: config.stage, index_type:,
-    use_lambda_logger: IngestUtils.boolean_from_param(param: ENV.fetch('use_lambda_logger'), default: true)
+    use_lambda_logger: IngestUtils.env_boolean_from_param(param: 'use_lambda_logger', default: true)
   )
-  config.worker = IngestWorker.new(application_logger)
+  parameter_store = ParameterStore::SSMParameterStore.new(stage: config.stage)
+  transfer_state_manager = TransferStateManager::DBTransferStateManager.new(parameter_store:)
+  platforms = [IngestUtils::PLATFORM_S3, IngestUtils::PLATFORM_S3_WEST,
+               IngestUtils::PLATFORM_SFS, IngestUtils::PLATFORM_WASABI]
+  config.worker = IngestWorker.new(application_logger, transfer_state_manager, platforms)
 end
 
 ingest_manager = ArchivalStorageIngest::IngestManager.new

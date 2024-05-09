@@ -32,7 +32,7 @@ manifest_validator = Manifests::ManifestValidator.new(storage_schema: STORAGE_MA
                                                       ingest_schema: INGEST_MANIFEST_SCHEMA)
 wasabi_manager = WasabiManager.new(WASABI_BUCKET)
 env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: INGEST_ROOT,
-                                                      sfs_root: options.ingest_params.sfsbucket,
+                                                      sfs_root: SFS_PREFIX,
                                                       file_identifier:,
                                                       manifest_validator:,
                                                       wasabi_manager:)

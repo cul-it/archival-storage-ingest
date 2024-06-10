@@ -59,7 +59,9 @@ module Preingest
     # Add data integrity check after copying ingest manifest to correct place
     def _initialize_ingest_manifest
       im_path = super
-      manifest = _populate_missing_attribute(ingest_manifest: im_path, source_path: ingest_params.asset_source)
+
+      manifest = _resolve_source_path(ingest_manifest_path: im_path)
+      manifest = _populate_missing_attribute(ingest_manifest: manifest, write_target: im_path)
       raise IngestException, 'Asset mismatch' unless _compare_asset_existence(ingest_manifest: manifest)
 
       other_checksum_checker = Manifests::ManifestNonDefaultChecksumChecker.new
@@ -72,10 +74,31 @@ module Preingest
       im_path
     end
 
-    def _populate_missing_attribute(ingest_manifest:, source_path:)
+    def _resolve_source_path(ingest_manifest_path:)
+      manifest = Manifests.read_manifest(filename: ingest_manifest_path)
+      manifest.walk_packages do |package|
+        package.source_path = ingest_params.asset_source
+      end
+      if ingest_params.doc_source != IngestUtils::IngestParams::DOC_SOURCE_NOT_APPLICABLE
+        manifest = _setup_doc_source(ingest_manifest: manifest)
+      end
+      manifest
+    end
+
+    def _setup_doc_source(ingest_manifest:)
+      doc_package_id = manifest.documentation
+      doc_package = manifest.get_package(package_id: doc_package_id)
+      doc_source_path = File.join(collection_root, 'data', '_Documentation')
+      FileUtils.ln_s ingest_params.doc_source, doc_source_path
+      doc_package.source_path = doc_source_path
+
+      ingest_manifest
+    end
+
+    def _populate_missing_attribute(ingest_manifest:, write_target:)
       mmap = Manifests::ManifestMissingAttributePopulator.new(file_identifier:)
-      manifest = mmap.populate_missing_attribute_from_file(manifest: ingest_manifest, source_path:)
-      File.write(ingest_manifest, JSON.pretty_generate(manifest.to_json_ingest_hash))
+      manifest = mmap.populate_missing_attribute(manifest: ingest_manifest)
+      File.write(write_target, JSON.pretty_generate(manifest.to_json_ingest_hash))
 
       manifest
     end

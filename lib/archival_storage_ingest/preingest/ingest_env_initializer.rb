@@ -14,7 +14,7 @@ require 'json'
 require 'yaml'
 
 module Preingest
-  class IngestEnvInitializer < BaseEnvInitializer
+  class IngestEnvInitializer < BaseEnvInitializer # rubocop:disable Metrics/ClassLength
     attr_reader :file_identifier, :manifest_validator, :wasabi_manager
 
     def initialize(ingest_root:, sfs_root:, manifest_validator:, file_identifier:, wasabi_manager:)
@@ -86,8 +86,8 @@ module Preingest
     end
 
     def _setup_doc_source(ingest_manifest:)
-      doc_package_id = manifest.documentation
-      doc_package = manifest.get_package(package_id: doc_package_id)
+      doc_package_id = ingest_manifest.documentation
+      doc_package = ingest_manifest.get_package(package_id: doc_package_id)
       doc_source_path = File.join(collection_root, 'data', '_Documentation')
       FileUtils.ln_s ingest_params.doc_source, doc_source_path
       doc_package.source_path = doc_source_path

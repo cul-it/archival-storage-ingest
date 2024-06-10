@@ -88,8 +88,10 @@ module Preingest
     def _setup_doc_source(ingest_manifest:)
       doc_package_id = ingest_manifest.documentation
       doc_package = ingest_manifest.get_package(package_id: doc_package_id)
-      doc_source_path = File.join(collection_root, 'data', '_Documentation')
-      FileUtils.ln_s ingest_params.doc_source, doc_source_path
+      doc_source_path = File.join(collection_root, 'data')
+      doc_ln_target = File.join(doc_source_path, '_Documentation')
+      system('ln', '-s', ingest_params.doc_source, doc_ln_target)
+      # FileUtils.ln_s ingest_params.doc_source, doc_source_path
       doc_package.source_path = doc_source_path
 
       ingest_manifest

@@ -106,7 +106,7 @@ module TransferWorker
     # Update transfer state to 'complete' for this job_id and platform
     # Return true if all transfer for this job_id are complete
     def _work(msg)
-      super(msg)
+      super
 
       update_transfer_state_complete(job_id: msg.job_id)
 

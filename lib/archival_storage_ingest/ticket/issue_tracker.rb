@@ -139,13 +139,13 @@ module TicketHandler
     def notify_worker_skipped(ingest_msg); end
 
     def notify_error(error_msg)
-      super(error_msg)
+      super
       subject = "#{worker} service has terminated due to fatal error."
       slack_handler.update_issue_tracker(subject:, body: error_msg)
     end
 
     def notify_worker_error(ingest_msg:, error_msg:)
-      super(ingest_msg:, error_msg:)
+      super
       subject = "#{worker} service has terminated due to fatal error."
       slack_handler.update_issue_tracker(subject:, body: error_msg)
     end

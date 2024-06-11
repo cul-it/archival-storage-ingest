@@ -21,8 +21,7 @@ module Manifests
 
   class M2MCollectionManifestDeployer < CollectionManifestDeployer
     def initialize(manifests_path:, s3_manager:, file_identifier:, sfs_prefix:, manifest_validator: nil)
-      super(manifests_path:, s3_manager:, file_identifier:,
-            sfs_prefix:, manifest_validator:)
+      super
     end
 
     # def m2m_deploy_collection_manifest(m2m_manifest_parameters:)
@@ -45,7 +44,7 @@ module Manifests
     attr_reader :s3_manager, :depositor, :collection, :local_manifest_store, :populate_date
 
     def initialize(named_params)
-      super(named_params)
+      super
       @s3_manager = named_params.fetch(:s3_manager)
       @depositor = named_params.fetch(:depositor)
       @collection = named_params.fetch(:collection)

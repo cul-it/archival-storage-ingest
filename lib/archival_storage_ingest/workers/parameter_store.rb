@@ -25,7 +25,7 @@ module ParameterStore
 
   class SSMParameterStore < BaseParameterStore
     def initialize(stage:)
-      super(stage:)
+      super
       @ssm = Aws::SSM::Client.new
     end
 
@@ -42,7 +42,7 @@ module ParameterStore
 
   class TestParameterStore < BaseParameterStore
     def initialize(stage:)
-      super(stage:)
+      super
       @store = {}
     end
 

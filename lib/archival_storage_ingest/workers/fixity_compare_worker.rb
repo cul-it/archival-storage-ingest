@@ -141,7 +141,7 @@ module FixityCompareWorker
     end
 
     def _work(msg)
-      return false unless super(msg)
+      return false unless super
 
       next_work_msg = queue_next_collection(msg)
       if next_work_msg

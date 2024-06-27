@@ -69,7 +69,8 @@ RSpec.describe 'IngestManager' do
         IngestMessage::SQSMessage.new(
           job_id: 'test_id',
           depositor: 'TestDepositor',
-          collection: 'TestCollection'
+          collection: 'TestCollection',
+          worker: @manager.worker.name
         )
       end
 

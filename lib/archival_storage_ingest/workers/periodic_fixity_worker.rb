@@ -5,12 +5,10 @@ require 'archival_storage_ingest/workers/worker'
 
 class PeriodicFixityWorker < Workers::Worker
   # Pass s3_manager only for tests.
-  # def initialize(application_logger, transfer_state_manager, platforms, s3_manager = nil)
-  #   super(application_logger)
-  #   @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
-  #   @transfer_state_manager = transfer_state_manager
-  #   @platforms = platforms
-  # end
+  def initialize(application_logger, s3_manager = nil)
+    super(application_logger)
+    @s3_manager = s3_manager || ArchivalStorageIngest.configuration.s3_manager
+  end
 
   def _name
     'Periodic Fixity Initiator'

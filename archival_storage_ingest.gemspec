@@ -45,12 +45,12 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop-rspec'
   # rubocop:enable Gemspec/DevelopmentDependencies
 
-  spec.add_runtime_dependency 'aws-sdk'
-  spec.add_runtime_dependency 'inifile'
-  spec.add_runtime_dependency 'json_schemer'
-  spec.add_runtime_dependency 'mail'
-  spec.add_runtime_dependency 'opensearch-ruby'
-  spec.add_runtime_dependency 'pg'
-  spec.add_runtime_dependency 'rubyzip'
+  spec.add_dependency 'aws-sdk'
+  spec.add_dependency 'inifile'
+  spec.add_dependency 'json_schemer'
+  spec.add_dependency 'mail'
+  spec.add_dependency 'opensearch-ruby'
+  spec.add_dependency 'pg'
+  spec.add_dependency 'rubyzip'
   spec.metadata['rubygems_mfa_required'] = 'true'
 end

@@ -79,7 +79,7 @@ module Preingest
       manifest.walk_packages do |package|
         package.source_path = ingest_params.asset_source
       end
-      if ingest_params.doc_source != IngestUtils::IngestParams::DOC_SOURCE_NOT_APPLICABLE
+      if ingest_params.doc_source != IngestUtils::IngestParams::SOURCE_NOT_APPLICABLE
         manifest = _setup_doc_source(ingest_manifest: manifest)
       end
       manifest

@@ -2,24 +2,27 @@
 # frozen_string_literal: true
 
 require 'archival_storage_ingest/disseminate/disseminator'
+require 'archival_storage_ingest/ingest_utils/ingest_utils'
 
 depositor = ARGV[0]
 collection = ARGV[1]
 manifest = ARGV[2]
 csv = ARGV[3]
-target_dir = ARGV[4]
+local_file_prefix = ARGV[4]
 zip_filepath = ARGV[5]
 sfs_bucket = ARGV[6]
+cloud_platform = ARGV[7] || IngestUtils::PLATFORM_WASABI
 
 puts "Depositor: #{depositor}"
 puts "Collection: #{collection}"
 puts "Manifest: #{manifest}"
 puts "CSV: #{csv}"
-puts "Target Directory: #{target_dir}"
+puts "Local file prefix: #{local_file_prefix}"
 puts "ZIP Filepath: #{zip_filepath}"
 puts "SFS Bucket: #{sfs_bucket}"
+puts "Cloud Platform: #{cloud_platform}"
 
-disseminator = Disseminate::Disseminator.new(target_dir:)
+disseminator = Disseminate::Disseminator.new(local_file_prefix:, cloud_platform:)
 disseminator.disseminate(manifest:, csv:, depositor:, collection:, zip_filepath:)
 
 puts 'Dissemination complete'

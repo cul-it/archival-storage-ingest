@@ -49,6 +49,8 @@ module TransferWorker
         source = source(source_path:, file:)
         target = target(msg:, file:)
         @application_logger.log(process_file_start_msg(msg:, target:))
+        raise IngestException, "#{target} already exists in #{_platform}" if File.exist?(target)
+
         process_file(source:, target:)
         @application_logger.log(process_file_complete_msg(msg:, target:))
       end

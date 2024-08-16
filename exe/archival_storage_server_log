@@ -3,6 +3,7 @@
 
 require 'archival_storage_ingest'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
+require 'archival_storage_ingest/messages/ingest_queue'
 require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/ticket/issue_tracker'
 require 'archival_storage_ingest/ticket/ticket_handler'
@@ -33,6 +34,8 @@ ArchivalStorageIngest.configure do |config| # rubocop:disable Metrics/BlockLengt
   else
     config.issue_logger = TicketHandler::NoopIssueTracker.new
   end
+  region = ENV['asi_ingest_logger_region'] || 'us-east-1'
+  config.queuer = IngestQueue::SQSQueuer.new(config.logger, region)
 
   ticket_handler = TicketHandler::JiraHandler.new
   issue_tracker = TicketHandler::IssueTracker.new(ticket_handler:)

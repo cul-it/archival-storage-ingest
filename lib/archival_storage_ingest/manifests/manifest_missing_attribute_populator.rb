@@ -16,13 +16,25 @@ module Manifests
     end
 
     def populate_missing_attribute_from_file(manifest:, source_path:)
+      # This function assumes the source paths are not resolved.
       manifest = Manifests.read_manifest(filename: manifest)
-      populate_missing_attribute(manifest:, source_path:)
+      _populate_missing_attribute(manifest:, source_path:)
     end
 
-    def populate_missing_attribute(manifest:, source_path:)
+    def _populate_missing_attribute(manifest:, source_path:)
       manifest.walk_packages do |package|
         package.source_path = source_path
+        package.walk_files do |file|
+          populate_missing_attribute_for_file(package:, file:)
+        end
+      end
+
+      manifest
+    end
+
+    def populate_missing_attribute(manifest:)
+      # This function assumes the source paths are resolved.
+      manifest.walk_packages do |package|
         package.walk_files do |file|
           populate_missing_attribute_for_file(package:, file:)
         end

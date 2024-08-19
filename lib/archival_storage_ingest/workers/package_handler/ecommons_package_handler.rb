@@ -7,8 +7,7 @@ module M2MWorker
     attr_reader :mets_schema
 
     def initialize(ingest_root:, sfs_root:, queuer:, file_identifier:, manifest_validator:)
-      super(ingest_root:, sfs_root:, queuer:,
-            file_identifier:, manifest_validator:)
+      super
       @mets_schema = File.join(__FILE__, 'schema', 'mets.xsd')
     end
 

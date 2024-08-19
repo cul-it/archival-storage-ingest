@@ -49,6 +49,8 @@ module TransferWorker
         source = source(source_path:, file:)
         target = target(msg:, file:)
         @application_logger.log(process_file_start_msg(msg:, target:))
+        raise IngestException, "#{target} already exists in #{_platform}" if File.exist?(target)
+
         process_file(source:, target:)
         @application_logger.log(process_file_complete_msg(msg:, target:))
       end
@@ -106,7 +108,7 @@ module TransferWorker
     # Update transfer state to 'complete' for this job_id and platform
     # Return true if all transfer for this job_id are complete
     def _work(msg)
-      super(msg)
+      super
 
       update_transfer_state_complete(job_id: msg.job_id)
 

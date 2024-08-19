@@ -51,7 +51,7 @@ module WorkQueuer
     attr_accessor :ingest_manifest
 
     def check_input(ingest_config)
-      super(ingest_config)
+      super
 
       ingest_manifest = ingest_config[:ingest_manifest].to_s.strip
       if File.exist?(ingest_manifest)

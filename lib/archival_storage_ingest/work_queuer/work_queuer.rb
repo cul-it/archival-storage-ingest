@@ -59,8 +59,8 @@ module WorkQueuer
         type: work_type, ticket_id: ingest_config[:ticket_id],
         job_id: ingest_config[:job_id].nil? ? SecureRandom.uuid : ingest_config[:job_id],
         depositor: ingest_config[:depositor], collection: ingest_config[:collection],
-        dest_path: ingest_config[:dest_path],
-        ingest_manifest: ingest_config[:ingest_manifest]
+        dest_path: ingest_config[:dest_path], ingest_manifest: ingest_config[:ingest_manifest],
+        worker: 'Ingest Queuer'
       )
       q_name = ingest_config[:queue_name].nil? ? @queue_name : ingest_config[:queue_name]
       @queuer.put_message(q_name, msg)

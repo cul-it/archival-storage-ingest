@@ -98,8 +98,11 @@ RSpec.describe 'ManifestMissingAttributePopulator' do
   context 'manifest contains all attributes' do
     it 'does nothing' do
       manifest = Manifests::Manifest.new(json_text: expected_ingest_manifest_hash.to_json)
+      manifest.walk_packages do |package|
+        package.source_path = source_path
+      end
       populator = Manifests::ManifestMissingAttributePopulator.new(file_identifier:)
-      populator.populate_missing_attribute(manifest:, source_path:)
+      populator.populate_missing_attribute(manifest:)
       expect(manifest.get_package(package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID).to_json_ingest)
         .to eq(expected_ingest_manifest_hash[:packages][0])
     end
@@ -108,8 +111,11 @@ RSpec.describe 'ManifestMissingAttributePopulator' do
   context 'manifest is missing attributes' do
     it 'fills in missing attributes' do
       manifest = Manifests::Manifest.new(json_text: ingest_manifest_hash.to_json)
+      manifest.walk_packages do |package|
+        package.source_path = source_path
+      end
       populator = Manifests::ManifestMissingAttributePopulator.new(file_identifier:)
-      converted_manifest = populator.populate_missing_attribute(manifest:, source_path:)
+      converted_manifest = populator.populate_missing_attribute(manifest:)
       expect(converted_manifest.get_package(package_id: FixityWorker::FIXITY_TEMPORARY_PACKAGE_ID).to_json_ingest)
         .to eq(expected_ingest_manifest_hash[:packages][0])
       expect(manifest.packages[1].source_path).to eq(source_path)

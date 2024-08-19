@@ -8,7 +8,7 @@ module IngestUtils
     attr_reader :depositor, :collection, :sfsbucket, :ticketid, :ingest_manifest,
                 :asset_source, :doc_source, :existing_storage_manifest
 
-    DOC_SOURCE_NOT_APPLICABLE = 'NA'
+    SOURCE_NOT_APPLICABLE = 'NA'
     NO_COLLECTION_MANIFEST = 'none'
 
     def initialize(config_file)
@@ -20,12 +20,16 @@ module IngestUtils
       @ticketid = cularingest_section['ticketid']
       @ingest_manifest = cularingest_section['ingest_manifest']
       @asset_source = cularingest_section['asset_source']
-      @doc_source = cularingest_section['doc_source'] || DOC_SOURCE_NOT_APPLICABLE
+      @doc_source = cularingest_section['doc_source'] || SOURCE_NOT_APPLICABLE
       @existing_storage_manifest = cularingest_section['existing_storage_manifest'] || NO_COLLECTION_MANIFEST
     end
 
+    def process_asset?
+      @asset_source != SOURCE_NOT_APPLICABLE
+    end
+
     def process_doc?
-      @doc_source != DOC_SOURCE_NOT_APPLICABLE
+      @doc_source != SOURCE_NOT_APPLICABLE
     end
 
     def new_collection?

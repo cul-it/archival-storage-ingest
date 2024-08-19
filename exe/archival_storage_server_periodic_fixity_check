@@ -5,7 +5,7 @@ require 'archival_storage_ingest'
 require 'archival_storage_ingest/ingest_utils/configure_helper'
 require 'archival_storage_ingest/logs/archival_storage_ingest_logger'
 require 'archival_storage_ingest/messages/queues'
-require 'archival_storage_ingest/workers/ingest_worker'
+require 'archival_storage_ingest/workers/periodic_fixity_worker'
 require 'archival_storage_ingest/ticket/ticket_handler'
 require 'archival_storage_ingest/ticket/issue_tracker'
 require 'archival_storage_ingest/logs/application_logger'
@@ -42,7 +42,7 @@ ArchivalStorageIngest.configure do |config|
     stage: config.stage, index_type:,
     use_lambda_logger: IngestUtils.env_boolean_from_param(param: 'use_lambda_logger', default: true)
   )
-  config.worker = IngestWorker.new(application_logger)
+  config.worker = PeriodicFixityWorker.new(application_logger)
   slack_handler = TicketHandler::SlackHandler.new(web_hook: ENV.fetch('asi_periodic_fixity_slack_web_hook', nil))
   config.issue_logger = TicketHandler::PeriodicFixityTracker.new(worker: config.worker.name,
                                                                  queue: config.log_queue,

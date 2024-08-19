@@ -3,14 +3,18 @@
 require 'aws-sdk-sqs'
 require 'archival_storage_ingest/messages/ingest_message'
 
+REGION_US_EAST_1 = 'us-east-1'
+REGION_US_WEST_2 = 'us-west-2'
+
 # Message queuer implementations, currently supports SQS
 module IngestQueue
   # SQS message queuer implementation
   class SQSQueuer
-    def initialize(logger)
+    def initialize(logger, region = REGION_US_EAST_1)
       @known_queues = {}
       @logger = logger
-      @sqs = Aws::SQS::Client.new
+      @region = region
+      @sqs = Aws::SQS::Client.new(region: @region)
     end
 
     def put_message(queue_name, msg)

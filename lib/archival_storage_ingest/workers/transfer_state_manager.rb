@@ -76,7 +76,7 @@ module TransferStateManager
     attr_reader :state
 
     def initialize
-      super()
+      super
       @state = {}
     end
 

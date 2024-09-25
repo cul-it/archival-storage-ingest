@@ -2,7 +2,6 @@
   "depositor": "MATH",
   "collection_id": "LecturesEvents",
   "rights": "TBD",
-  "locations": [],
   "packages": [
     {
       "package_id": "urn:uuid:f58d4426-9931-429d-8255-81e4e358fcfa",

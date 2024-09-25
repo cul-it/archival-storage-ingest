@@ -3,10 +3,6 @@
   "depositor": "MATH",
   "collection_id": "LecturesEvents",
   "rights": "TBD",
-  "locations": [
-    "s3://s3-cular/MATH/LecturesEvents",
-    "smb://files.cornell.edu/lib/archival01/MATH/LecturesEvents"
-  ],
   "packages": [
     {
       "package_id": "urn:uuid:8532eee6-81ce-4e6e-9fd5-f6457abfba62",

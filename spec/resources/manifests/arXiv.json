@@ -2,10 +2,6 @@
   "depositor": "arXiv",
   "collection_id": "arXiv",
   "steward": "oyr1",
-  "locations": [
-    "s3://s3-cular/arXiv/arXiv",
-    "smb://files.cornell.edu/lib/archival02/arXiv/arXiv"
-  ],
   "number_packages": 4,
   "packages": [
     {

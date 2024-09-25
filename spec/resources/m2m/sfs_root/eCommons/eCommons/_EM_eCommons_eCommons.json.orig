@@ -3,10 +3,6 @@
   "collection_id": "test_collection",
   "steward": "sk274",
   "documentation": "cular:xxxxx",
-  "locations": [
-    "s3://s3-cular-test/test_depositor/test_collection",
-    "smb://files.cornell.edu/lib/archival0x/test_depositor/test_collection"
-  ],
   "number_packages": 1,
   "packages": [
     {

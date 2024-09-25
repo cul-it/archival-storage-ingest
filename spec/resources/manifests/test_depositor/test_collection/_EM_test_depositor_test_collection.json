@@ -3,9 +3,6 @@
   "collection_id": "test_collection",
   "steward": "t123",
   "documentation": "cular:test",
-  "locations": [
-    "s3://bogus-bucket/test_depositor/test_collection"
-  ],
   "number_packages": 2,
   "packages": [
     {

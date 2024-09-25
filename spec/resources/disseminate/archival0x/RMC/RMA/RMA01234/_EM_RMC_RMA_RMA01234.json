@@ -3,10 +3,6 @@
   "collection_id": "RMA01234",
   "steward": "eef46",
   "documentation": "cular:1234",
-  "locations": [
-    "s3://s3-cular/RMC/RMA/RMM01234",
-    "smb://files.cornell.edu/lib/archvial04/RMC/RMA/RMA01234"
-  ],
   "number_packages": 1,
   "packages": [
     {

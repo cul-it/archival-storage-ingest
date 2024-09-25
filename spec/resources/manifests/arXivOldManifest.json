@@ -2,18 +2,6 @@
   "arXiv/arXiv": {
     "steward": "oyr1",
     "number_files": 636,
-    "locations": {
-      "s3": [
-        {
-          "uri": "s3://s3-cular/arXiv/arXiv"
-        }
-      ],
-      "sfs": [
-        {
-          "uri": "smb://files.cornell.edu/lib/archival02/arXiv/arXiv"
-        }
-      ]
-    },
     "items": {
       "9107": {
         "2017-11-22": {

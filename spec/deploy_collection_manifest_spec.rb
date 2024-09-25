@@ -18,6 +18,7 @@ def get_mom(mom)
   f = File.open(mom, 'r')
   mom_text = f.read
   f.close
+  puts "mom-parsed: #{JSON.parse(mom_text, symbolize_names: true)}"
   JSON.parse(mom_text, symbolize_names: true)
 end
 
@@ -41,7 +42,7 @@ RSpec.describe 'CollectionManifestDeployer' do
   let(:man_of_man_source) { resolve_filename(%w[manifests manifest_of_manifest.json]) }
   let(:man_of_man) { resolve_filename(%w[manifests manifest_of_manifest_copy.json]) }
   let(:old_manifest_sha1) { 'deadbeef' }
-  let(:new_manifest_sha1) { '921d09399fdba978bb0863c98f372c9c211f8573' }
+  let(:new_manifest_sha1) { '1d2fcfde749ba5c0c04458e88544d5f935a120f8' }
   let(:asif_bucket) { 's3-cular-invalid' }
   let(:s3_manager) do
     local_root = File.join(File.dirname(__FILE__), 'resources', 'cloud')

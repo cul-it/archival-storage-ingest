@@ -3,18 +3,6 @@
     "phys_coll_id": "RMA00507_Dexter_Simpson_Kimball_papers",
     "steward": "eef46",
     "number_files": 4,
-    "locations": {
-      "s3": [
-        {
-          "uri": "s3://s3-cular/RMC/RMA/RMA00507_Dexter_Simpson_Kimball_papers"
-        }
-      ],
-      "sfs": [
-        {
-          "uri": "smb://files.cornell.edu/lib/archival02/RMC/RMA/RMA00507_Dexter_Simpson_Kimball_papers"
-        }
-      ]
-    },
     "items": {
       "RMA00507_WR001": {
         "RMA00507_WR001_wav_exiftool.xml": {

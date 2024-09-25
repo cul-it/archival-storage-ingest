@@ -68,10 +68,6 @@ module Preingest
       "s3://s3-cular/#{depositor}/#{collection_id}"
     end
 
-    def full_sfs_location(sfs_location:)
-      "smb://files.cornell.edu/lib/#{sfs_location}/#{depositor}/#{collection_id}"
-    end
-
     def _initialize_config(im_path:)
       ingest_params = generate_config(ingest_manifest_path: im_path)
       ingest_params_file = prepare_config_path

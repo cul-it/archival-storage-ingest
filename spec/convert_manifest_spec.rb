@@ -34,25 +34,6 @@ RSpec.describe 'ConvertManifest' do
       it 'gets the documentation' do
         expect(@manifest['documentation']).to eq('cular:1')
       end
-
-      it 'gets the locations' do
-        expect(@manifest['locations']).to contain_exactly(
-          's3://s3-cular/MATH/LecturesEvents',
-          'smb://files.cornell.edu/lib/archival01/MATH/LecturesEvents'
-        )
-      end
-
-      it 'gets the locations in new format' do
-        manifest_json = JSON.pretty_generate(
-          convert_manifest.convert_manifest_to_new_hash(filename: resource('4ItemsFull.json'), depth: 1)
-        )
-        manifest = JSON.parse(manifest_json)
-
-        expect(manifest['locations']).to contain_exactly(
-          's3://s3-cular/RMC/RMA/RMA00507_Dexter_Simpson_Kimball_papers',
-          'smb://files.cornell.edu/lib/archival02/RMC/RMA/RMA00507_Dexter_Simpson_Kimball_papers'
-        )
-      end
     end
 
     context 'when looking at packages' do

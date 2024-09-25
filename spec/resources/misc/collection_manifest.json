@@ -3,18 +3,6 @@
     "phys_coll_id": "RMA02471",
     "steward": "eef46",
     "number_files": 2,
-    "locations": {
-      "s3": [
-        {
-          "uri": "s3://s3-cular/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records"
-        }
-      ],
-      "sfs": [
-        {
-          "uri": "smb://files.cornell.edu/lib/archival02/RMC/RMA/RMA03487_Cornell_University_Facilities_Construction_Records"
-        }
-      ]
-    },
     "items": {
       "1001_Barton Hall": {
         "SUCF 161001 10069_2016_Flooring System Replacement": {

@@ -2,14 +2,6 @@
   "MATH/LecturesEvents": {
     "steward": "swr1",
     "number_files": 10,
-    "locations": {
-      "s3://s3-cular/MATH/LecturesEvents": {
-        "date_ingest": "2017-04-05"
-      },
-      "smb://files.cornell.edu/lib/archival01/MATH/LecturesEvents": {
-        "date_ingest": "2017-05-01"
-      }
-    },
     "items": {
       "MATH_2726859_V0098": {
         "MATH_2726859_V0098.mov": {

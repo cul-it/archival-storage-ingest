@@ -3,10 +3,6 @@
   "collection_id": "test_collection",
   "steward": "sk274",
   "documentation": "?",
-  "locations": [
-    "s3://s3-cular/test_depositor/test_collection",
-    "smb://files.cornell.edu/lib//Users/sk274/cul/app/archival_storage_ingest/archival-storage-ingest/spec/resources/m2m/sfs_root/test_depositor/test_collection"
-  ],
   "number_packages": 1,
   "packages": [
     {

@@ -37,9 +37,6 @@ module ConvertManifest
       col = depcolsplit[-1]
       dep = depcolsplit[0..-2].join('/')
       documentation = documentation_pid(filename:)
-
-      locations = populate_locations(collection['locations'])
-
       items = collection['items']
       packs = convert_packages(items, depth, nil)
 
@@ -47,23 +44,10 @@ module ConvertManifest
         steward: collection['steward'],
         depositor: dep,
         collection_id: col,
-        locations:,
         documentation:,
         number_packages: packs.length,
         packages: packs
       }.compact
-    end
-
-    def populate_locations(locations)
-      return (locations || {}).keys if (locations['s3']).nil?
-
-      locs = []
-      locations.each_key do |storage_type|
-        locations[storage_type].each do |loc|
-          locs << loc['uri']
-        end
-      end
-      locs
     end
 
     def convert_manifest(filename:, csv:, data_root:, depth: 1)

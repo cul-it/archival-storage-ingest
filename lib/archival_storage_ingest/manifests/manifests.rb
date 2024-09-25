@@ -8,7 +8,7 @@ require 'open3'
 require 'pathname'
 
 module Manifests
-  BLANK_JSON_TEXT = '{"locations":[],"packages":[]}'
+  BLANK_JSON_TEXT = '{"packages":[]}'
   IDENTIFY_TOOL = 'Apache Tika 2.1.0'
   MANIFEST_TYPE_INGEST = 'ingest_manifest'
   MANIFEST_TYPE_STORAGE = 'storage_manifest'
@@ -40,8 +40,8 @@ module Manifests
     "_EM_#{dep}_#{col}.json"
   end
 
-  class Manifest # rubocop:disable Metrics/ClassLength
-    attr_accessor :collection_id, :depositor, :steward, :locations, :packages, :documentation
+  class Manifest
+    attr_accessor :collection_id, :depositor, :steward, :packages, :documentation
 
     # initialize from the json string
     def initialize(json_text: BLANK_JSON_TEXT) # rubocop:disable Metrics/MethodLength
@@ -50,8 +50,6 @@ module Manifests
       @depositor = json_hash[:depositor]
       @documentation = json_hash[:documentation]
       @steward = json_hash[:steward]
-      @locations = json_hash[:locations]
-      @locations = [] if @locations.nil?
       @packages = if json_hash[:packages]
                     json_hash[:packages].map do |package|
                       Manifests::Package.new(package:)
@@ -155,7 +153,7 @@ module Manifests
       IngestUtils.compact_blank({
                                   depositor:, collection_id:,
                                   steward:, documentation:,
-                                  locations:, number_packages:,
+                                  number_packages:,
                                   packages: packages.map(&:to_json_hash_storage)
                                 })
     end

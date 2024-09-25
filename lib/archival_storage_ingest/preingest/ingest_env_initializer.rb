@@ -112,32 +112,23 @@ module Preingest
 
     def _initialize_collection_manifest(im_path:)
       manifest = if ingest_params.new_collection?
-                   _create_collection_manifest(im_path:, sfs_location: ingest_params.sfsbucket)
+                   _create_collection_manifest(im_path:)
                  else
-                   _merge_ingest_manifest_to_collection_manifest(imf: im_path, sfs_loc: ingest_params.sfsbucket)
+                   _merge_ingest_manifest_to_collection_manifest(imf: im_path)
                  end
       _store_collection_manifest(manifest:)
     end
 
-    def _create_collection_manifest(im_path:, sfs_location:)
+    def _create_collection_manifest(im_path:)
       manifest = Manifests.read_manifest(filename: im_path)
-
-      if manifest.locations.count.zero?
-        update_locations(storage_manifest: manifest, s3_location: full_s3_location,
-                         sfs_location: full_sfs_location(sfs_location:))
-      end
-
       manifest.walk_packages { |package| package.source_path = nil }
-
       manifest
     end
 
-    def _merge_ingest_manifest_to_collection_manifest(imf:, sfs_loc:)
+    def _merge_ingest_manifest_to_collection_manifest(imf:)
       cm = _get_storage_manifest
       im = Manifests.read_manifest(filename: imf)
-      merged = Manifests.merge_manifests(storage_manifest: cm, ingest_manifest: im)
-      update_locations(storage_manifest: merged, s3_location: full_s3_location,
-                       sfs_location: full_sfs_location(sfs_location: sfs_loc))
+      Manifests.merge_manifests(storage_manifest: cm, ingest_manifest: im)
     end
 
     def _get_storage_manifest
@@ -147,12 +138,6 @@ module Preingest
       manifest = Manifests.read_manifest_io(json_io: manifest_str)
       file.unlink
       manifest
-    end
-
-    def update_locations(storage_manifest:, s3_location:, sfs_location:)
-      storage_manifest.locations << s3_location unless storage_manifest.locations.include? s3_location
-      storage_manifest.locations << sfs_location unless storage_manifest.locations.include? sfs_location
-      storage_manifest
     end
 
     def _store_collection_manifest(manifest:)

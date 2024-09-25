@@ -14,7 +14,6 @@ require 'pathname'
 module FixityWorker
   FIXITY_TEMPORARY_PACKAGE_ID = 'fixity_temporary_package'
   FIXITY_MANIFEST_TEMPLATE = {
-    locations: [],
     packages: [
       {
         package_id: FIXITY_TEMPORARY_PACKAGE_ID,

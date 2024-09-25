@@ -38,7 +38,6 @@ RSpec.describe 'IngestEnvInitializer' do
   let(:merged_manifest) { File.join(source_data, '_EM_merged_collection_manifest.json') }
   let(:expected_ingest_config) { File.join(source_data, 'expected_ingest_config.yaml') }
   let(:data) { File.join(source_data, depositor, collection) }
-  let(:sfs_location) { 'archival0x' }
   let(:ticket_id) { 'CULAR-xxxx' }
   let(:dir_to_clean) { File.join(ingest_root, depositor) }
   let(:storage_schema) { File.join(base_dir, 'resources', 'schema', 'manifest_schema_storage.json') }

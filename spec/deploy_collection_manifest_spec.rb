@@ -18,7 +18,6 @@ def get_mom(mom)
   f = File.open(mom, 'r')
   mom_text = f.read
   f.close
-  puts "mom-parsed: #{JSON.parse(mom_text, symbolize_names: true)}"
   JSON.parse(mom_text, symbolize_names: true)
 end
 

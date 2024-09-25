@@ -40,7 +40,7 @@ module Manifests
     "_EM_#{dep}_#{col}.json"
   end
 
-  class Manifest # rubocop:disable Metrics/ClassLength
+  class Manifest
     attr_accessor :collection_id, :depositor, :steward, :packages, :documentation
 
     # initialize from the json string

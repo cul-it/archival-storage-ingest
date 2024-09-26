@@ -21,8 +21,6 @@ class IngestWorker < Workers::Worker
     s3_key = @s3_manager.manifest_key(msg.job_id, Workers::TYPE_INGEST)
     @s3_manager.upload_file(s3_key, msg.ingest_manifest)
     @platforms.each do |platform|
-      next if platform == IngestUtils::PLATFORM_SFS
-
       @transfer_state_manager.add_transfer_state(
         job_id: msg.job_id, platform:, state: IngestUtils::TRANSFER_STATE_IN_PROGRESS
       )

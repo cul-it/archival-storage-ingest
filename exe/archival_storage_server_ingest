@@ -22,7 +22,7 @@ ArchivalStorageIngest.configure do |config|
   config_params = {
     queue_name: Queues::QUEUE_INGEST,
     dest_queue_names: [Queues::QUEUE_TRANSFER_S3, Queues::QUEUE_TRANSFER_S3_WEST,
-                       Queues::QUEUE_TRANSFER_SFS, Queues::QUEUE_TRANSFER_WASABI],
+                       Queues::QUEUE_TRANSFER_WASABI],
     asi_develop: ENV['asi_develop'] || ENV.fetch('asi_ingest_develop', false),
     asi_sandbox: ENV['asi_sandbox'] || ENV.fetch('asi_ingest_sandbox', false)
   }
@@ -37,7 +37,7 @@ ArchivalStorageIngest.configure do |config|
   parameter_store = ParameterStore::SSMParameterStore.new(stage: config.stage)
   transfer_state_manager = TransferStateManager::DBTransferStateManager.new(parameter_store:)
   platforms = [IngestUtils::PLATFORM_S3, IngestUtils::PLATFORM_S3_WEST,
-               IngestUtils::PLATFORM_SFS, IngestUtils::PLATFORM_WASABI]
+               IngestUtils::PLATFORM_WASABI]
   config.worker = IngestWorker.new(application_logger, transfer_state_manager, platforms)
 end
 

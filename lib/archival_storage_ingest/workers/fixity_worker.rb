@@ -10,7 +10,6 @@ require 'pathname'
 # We don't expect to encounter symlinks on fixity checker!
 # We will store JSON on memory while generating it.
 # If memory usage becomes an issue, then we will try sax-like approach.
-# SFS workers expect dest_path/filepath to be the absolute path of an asset.
 module FixityWorker
   FIXITY_TEMPORARY_PACKAGE_ID = 'fixity_temporary_package'
   FIXITY_MANIFEST_TEMPLATE = {
@@ -197,55 +196,6 @@ module FixityWorker
     def calculate_checksum(object_path, msg)
       s3_key = "#{msg.collection_s3_prefix}/#{object_path}"
       @wasabi_manager.calculate_checksum(s3_key)
-    end
-  end
-
-  class IngestFixitySFSGenerator < IngestFixityGenerator
-    def _name
-      'SFS Fixity Generator'
-    end
-
-    def worker_type
-      Workers::TYPE_SFS
-    end
-
-    def calculate_checksum(object_path, msg)
-      full_path = File.join(msg.dest_path, object_path).to_s
-      IngestUtils.calculate_checksum(filepath: full_path)
-    end
-  end
-
-  class PeriodicFixitySFSGenerator < FixityGenerator
-    DEST_PATH_DELIMITER = ','
-
-    def _name
-      'Periodic SFS Fixity Generator'
-    end
-
-    def worker_type
-      Workers::TYPE_SFS
-    end
-
-    def calculate_checksum(file_path, msg)
-      checksum = ''
-      msg.dest_path.split(DEST_PATH_DELIMITER).each do |dest_path|
-        full_path = File.join(dest_path, file_path).to_s
-        next unless File.exist?(full_path)
-
-        checksum = IngestUtils.calculate_checksum(filepath: full_path)
-        break
-      end
-      checksum
-    end
-
-    def object_paths(msg)
-      obj_paths = []
-      msg.dest_path.split(DEST_PATH_DELIMITER).each do |dest_path|
-        obj_paths += Find.find(dest_path)
-                         .reject { |path| File.directory?(path) }
-                         .map { |path| Pathname.new(path).relative_path_from(dest_path).to_s }
-      end
-      obj_paths
     end
   end
 end

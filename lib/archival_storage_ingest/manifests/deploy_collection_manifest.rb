@@ -90,20 +90,12 @@ module Manifests
     end
 
     def deploy_collection_manifest(manifest_def:, collection_manifest:, dest: nil)
-      deploy_sfs(cm_path: collection_manifest, manifest_def:)
       deploy_s3(cm_path: collection_manifest, manifest_def:)
       deploy_s3_west(cm_path: collection_manifest, manifest_def:)
       deploy_wasabi(cm_path: collection_manifest, manifest_def:)
       deploy_asif(cm_path: collection_manifest, manifest_def:)
       deploy_manifest_definition(dest:)
       deploy_temp_manifest_version(cm_path: collection_manifest, manifest_def:)
-    end
-
-    def deploy_sfs(cm_path:, manifest_def:)
-      manifest_def.sfs.each do |sfs|
-        target = File.join(@sfs_prefix, sfs, manifest_def.depositor, manifest_def.collection, manifest_def.path)
-        FileUtils.copy(cm_path, target)
-      end
     end
 
     def deploy_s3(cm_path:, manifest_def:)
@@ -164,7 +156,6 @@ module Manifests
       if dry_run
         File.foreach(collection_manifest) { |each_line| puts each_line }
       else
-        deploy_sfs(cm_path: collection_manifest, manifest_def:)
         deploy_s3(cm_path: collection_manifest, manifest_def:)
         deploy_asif(cm_path: collection_manifest, manifest_def:)
         deploy_manifest_definition(dest:)

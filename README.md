@@ -151,7 +151,6 @@ There is a global develop environment variable and specific environment variable
 - asi_ingest_transfer_s3_develop
 - asi_ingest_transfer_sfs_develop
 - asi_ingest_fixity_s3_develop
-- asi_ingest_fixity_sfs_develop
 - asi_ingest_fixity_comparison_develop
 
 There are environment variables for periodic fixity services but we currently do not have develop queues for these and will use production queues.

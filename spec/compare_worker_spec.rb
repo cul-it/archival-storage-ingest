@@ -8,6 +8,8 @@ require 'archival_storage_ingest/messages/queues'
 require 'archival_storage_ingest/workers/fixity_compare_worker'
 
 RSpec.describe 'FixityCheckWorker' do
+  before { skip 'Skip this test because FixityCheckWorker is disabled.' }
+
   subject(:worker) { FixityCompareWorker::ManifestComparator.new(application_logger, s3_manager) }
 
   let(:application_logger) { spy('application_logger') }
@@ -244,6 +246,7 @@ RSpec.describe 'PeriodicFixityComparator' do
 
   context 'when completing successfully' do
     it 'queues next collection in man of mans for periodic fixity check' do
+      skip 'Skip this test because FixityCheckWorker is disabled.'
       setup_manifests
       worker.work(msg)
 

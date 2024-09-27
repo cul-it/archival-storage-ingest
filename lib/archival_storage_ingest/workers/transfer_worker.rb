@@ -177,24 +177,4 @@ module TransferWorker
       "s3://#{@wasabi_manager.s3_bucket}/#{target}"
     end
   end
-
-  class SFSTransferer < TransferWorker
-    def _name
-      'SFS Transferer'
-    end
-
-    def _platform
-      IngestUtils::PLATFORM_SFS
-    end
-
-    def process_file(source:, target:)
-      FileUtils.mkdir_p(File.dirname(target))
-      FileUtils.copy(source, target)
-    end
-
-    # needs to be updated when we adopt OCFL
-    def target(msg:, file:)
-      File.join(msg.dest_path, file.filepath)
-    end
-  end
 end

@@ -74,19 +74,20 @@ module WorkQueuer
     end
   end
 
-  class FixityInputChecker < InputChecker
-    def dest_path_ok?(dest_path)
-      dest_paths = dest_path.split(FixityWorker::PeriodicFixitySFSGenerator::DEST_PATH_DELIMITER)
-      status = true
-      dest_paths.each do |path|
-        unless super(path)
-          status = false
-          break
-        end
-      end
-      status
-    end
-  end
+  # NOTE: Disabled because of reliance on SFS
+  # class FixityInputChecker < InputChecker
+  #   def dest_path_ok?(dest_path)
+  #     dest_paths = dest_path.split(FixityWorker::PeriodicFixitySFSGenerator::DEST_PATH_DELIMITER)
+  #     status = true
+  #     dest_paths.each do |path|
+  #       unless super(path)
+  #         status = false
+  #         break
+  #       end
+  #     end
+  #     status
+  #   end
+  # end
 
   # Use this class in tests where you want to bypass input check ONLY!
   class YesManInputChecker < InputChecker

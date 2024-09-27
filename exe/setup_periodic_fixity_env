@@ -1,26 +1,28 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
+#
+# NOTE: Disabled because PeriodicFixityEnvInitializer relies on SFS.
 
-require 'archival_storage_ingest/ingest_utils/ingest_utils'
-require 'archival_storage_ingest/options/command_parser'
-require 'archival_storage_ingest/preingest/base_env_initializer'
-require 'archival_storage_ingest/preingest/periodic_fixity_env_initializer'
+# require 'archival_storage_ingest/ingest_utils/ingest_utils'
+# require 'archival_storage_ingest/options/command_parser'
+# require 'archival_storage_ingest/preingest/base_env_initializer'
+# require 'archival_storage_ingest/preingest/periodic_fixity_env_initializer'
 
-options = CommandParser::SetupPeriodicFixityEnvCommandParser.new
-options.parse!(ARGV)
+# options = CommandParser::SetupPeriodicFixityEnvCommandParser.new
+# options.parse!(ARGV)
 
-# it expect data to be in the form /.../depositor/collection
-# cmf = ARGV[0]
-# sfs = ARGV[1]
-# ticket_id = ARGV[2]
-# periodic_fixity_root = ARGV[3]
-# periodic_fixity_root = Preingest::DEFAULT_FIXITY_ROOT if IngestUtils.blank?(periodic_fixity_root)
-# sfs_root = ARGV[4]
-# sfs_root = Preingest::DEFAULT_SFS_ROOT if IngestUtils.blank?(sfs_root)
+# # it expect data to be in the form /.../depositor/collection
+# # cmf = ARGV[0]
+# # sfs = ARGV[1]
+# # ticket_id = ARGV[2]
+# # periodic_fixity_root = ARGV[3]
+# # periodic_fixity_root = Preingest::DEFAULT_FIXITY_ROOT if IngestUtils.blank?(periodic_fixity_root)
+# # sfs_root = ARGV[4]
+# # sfs_root = Preingest::DEFAULT_SFS_ROOT if IngestUtils.blank?(sfs_root)
 
-env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: options.periodic_fixity_root,
-                                                              sfs_root: options.sfs_root)
-env_initializer.initialize_periodic_fixity_env(cmf: options.storage_manifest, sfs_location: options.sfs_bucket,
-                                               ticket_id: options.ticket_id)
+# env_initializer = Preingest::PeriodicFixityEnvInitializer.new(periodic_fixity_root: options.periodic_fixity_root,
+#                                                               sfs_root: options.sfs_root)
+# env_initializer.initialize_periodic_fixity_env(cmf: options.storage_manifest, sfs_location: options.sfs_bucket,
+#                                                ticket_id: options.ticket_id)
 
-puts "Command to run:\narchival_storage_periodic_fixity_check -i #{env_initializer.config_path}\n"
+# puts "Command to run:\narchival_storage_periodic_fixity_check -i #{env_initializer.config_path}\n"

@@ -43,7 +43,7 @@ RSpec.describe 'IngestWorker' do
   let(:platforms) do
     [
       IngestUtils::PLATFORM_S3, IngestUtils::PLATFORM_S3_WEST,
-      IngestUtils::PLATFORM_SFS, IngestUtils::PLATFORM_WASABI
+      IngestUtils::PLATFORM_WASABI
     ]
   end
 
@@ -78,12 +78,9 @@ RSpec.describe 'IngestWorker' do
       expect(@s3_manager).to have_received(:upload_file).exactly(1).times
 
       platforms.each do |platform|
-        next if platform == IngestUtils::PLATFORM_SFS
-
         got = transfer_state_manager.get_transfer_state(job_id: success_msg.job_id, platform:)
         expect(got).to eq(IngestUtils::TRANSFER_STATE_IN_PROGRESS)
       end
-      expect(transfer_state_manager.get_transfer_state(job_id: success_msg.job_id, platform: IngestUtils::PLATFORM_SFS)).to be(nil)
       expect(transfer_state_manager.transfer_complete?(job_id: success_msg.job_id)).to be(false)
     end
   end

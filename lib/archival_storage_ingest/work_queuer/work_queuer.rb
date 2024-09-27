@@ -166,35 +166,36 @@ module WorkQueuer
     end
   end
 
-  class PeriodicFixityQueuer < WorkQueuer
-    # alias for better readability
-    def queue_periodic_fixity_check(ingest_config)
-      queue_work(ingest_config)
-    end
+  # NOTE: Disabled because FixityInputChecker relies on SFS
+  # class PeriodicFixityQueuer < WorkQueuer
+  #   # alias for better readability
+  #   def queue_periodic_fixity_check(ingest_config)
+  #     queue_work(ingest_config)
+  #   end
 
-    def worker_name
-      'Periodic Fixity Queuer'
-    end
+  #   def worker_name
+  #     'Periodic Fixity Queuer'
+  #   end
 
-    def work_type
-      IngestMessage::TYPE_PERIODIC_FIXITY
-    end
+  #   def work_type
+  #     IngestMessage::TYPE_PERIODIC_FIXITY
+  #   end
 
-    def input_checker_impl
-      FixityInputChecker.new
-    end
+  #   def input_checker_impl
+  #     FixityInputChecker.new
+  #   end
 
-    def work_notification_message(work_msg)
-      "New periodic fixity check queued.\n" \
-        "Fixity Check Info\n#{work_msg.to_pretty_json}"
-    end
+  #   def work_notification_message(work_msg)
+  #     "New periodic fixity check queued.\n" \
+  #       "Fixity Check Info\n#{work_msg.to_pretty_json}"
+  #   end
 
-    def confirm_work(ingest_config, _input_checker)
-      puts "S3 bucket: #{@configuration.s3_bucket}"
-      puts "Destination Queue: #{@queue_name}"
-      print_config_settings(ingest_config)
-      puts 'Queue fixity check? (Y/N)'
-      'y'.casecmp(gets.chomp).zero?
-    end
-  end
+  #   def confirm_work(ingest_config, _input_checker)
+  #     puts "S3 bucket: #{@configuration.s3_bucket}"
+  #     puts "Destination Queue: #{@queue_name}"
+  #     print_config_settings(ingest_config)
+  #     puts 'Queue fixity check? (Y/N)'
+  #     'y'.casecmp(gets.chomp).zero?
+  #   end
+  # end
 end

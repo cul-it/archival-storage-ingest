@@ -21,7 +21,6 @@ module IngestUtils
   PLATFORM_S3_WEST = 's3-west'
   PLATFORM_WASABI = 'wasabi'
   PLATFORM_LOCAL = 'local'
-  PLATFORM_SFS = 'sfs'
   S3_BUCKET = 's3-cular'
   S3_WEST_BUCKET = 's3-cular-west'
   WASABI_BUCKET = 'wasabi-cular'
@@ -66,7 +65,7 @@ module IngestUtils
       sleep(retry_interval)
     end
 
-    raise IngestException, "SFS calculate_checksum failed for #{filepath}:\n".errors.join("\n")
+    raise IngestException, "calculate_checksum failed for #{filepath}:\n".errors.join("\n")
   end
 
   def self._calculate_checksum(filepath:, algorithm:)

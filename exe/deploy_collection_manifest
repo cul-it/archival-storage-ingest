@@ -23,7 +23,7 @@ end
 new_collection_manifest = ARGV.shift
 ingest_manifest = ARGV.shift
 sfs = ARGV.shift
-# TODO: archives_list is no longer used, so this should be removed. It's being kept for the moment to ensure
+# TODO:  archives_list is no longer used, so this should be removed. It's being kept for the moment to ensure
 # that the script doesn't break because of the missing ARGV.shift.
 archives_list = ARGV.shift || 'archival01,archival02,archival03,archival04,archival05,archival06,archival07'
 

@@ -13,7 +13,7 @@ class StorageManifestDeployer < BaseManifestDeployer
   def _manifest_deployer
     Manifests::CollectionManifestDeployer.new(
       manifests_path: manifest_of_manifests, s3_manager:, s3_west_manager:, wasabi_manager:,
-      sfs_prefix:, manifest_validator:, file_identifier:, manifest_storage_manager:
+      manifest_validator:, file_identifier:, manifest_storage_manager:
     )
   end
 end
@@ -22,7 +22,6 @@ end
 # https://www.ruby-forum.com/t/argv-stdin-and-gets/166427/3
 new_collection_manifest = ARGV.shift
 ingest_manifest = ARGV.shift
-sfs = ARGV.shift
 
 skip_data_addition = ARGV.shift
 skip_data_addition = !(skip_data_addition.nil? || skip_data_addition != 'true')
@@ -30,7 +29,7 @@ skip_data_addition = !(skip_data_addition.nil? || skip_data_addition != 'true')
 manifest_deployer = StorageManifestDeployer.new
 manifest_parameters = Manifests::ManifestParameters.new(
   storage_manifest_path: new_collection_manifest,
-  ingest_manifest_path: ingest_manifest, sfs:, skip_data_addition:
+  ingest_manifest_path: ingest_manifest, skip_data_addition:
 )
 
 # puts 'Deployment Summary'

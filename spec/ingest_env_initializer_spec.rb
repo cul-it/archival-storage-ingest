@@ -125,7 +125,6 @@ RSpec.describe 'IngestEnvInitializer' do
       expect(got_yaml[:type]).to eq(expected_yaml[:type])
       expect(got_yaml[:depositor]).to eq(expected_yaml[:depositor])
       expect(got_yaml[:collection]).to eq(expected_yaml[:collection])
-      expect(got_yaml[:dest_path]).to eq(expected_yaml[:dest_path])
       expect(got_yaml[:ingest_manifest]).to eq(expected_yaml[:ingest_manifest])
       expect(got_yaml[:ticket_id]).to eq(expected_yaml[:ticket_id])
     end

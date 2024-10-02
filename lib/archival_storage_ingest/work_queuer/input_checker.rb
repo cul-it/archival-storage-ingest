@@ -14,30 +14,10 @@ module WorkQueuer
     # Check whether path/files in ingest_config are actual path/files.
     # Override this method if additional checks are required.
     def check_input(ingest_config)
-      # if dest_path is blank, use empty string '' to avoid errors printing it
-      dest_path = IngestUtils.if_empty(ingest_config[:dest_path], '')
-      @errors << "dest_path '#{dest_path}' does not exist!" unless
-        dest_path_ok?(dest_path)
-
       @errors << "Queue name #{ingest_config[:queue_name]} is not valid!" unless
         valid_queue_name?(ingest_config[:queue_name])
 
       @errors.empty?
-    end
-
-    def dest_path_ok?(dest_path)
-      return true if File.exist?(dest_path)
-
-      # We store data under /cul/data/archivalxx/DEPOSITOR/COLLECTION
-      # If we can find up to archivalxx, we should be OK.
-      # We may need to change this behavior when we adopt OCFL.
-      without_collection = File.dirname(dest_path)
-      without_depositor  = File.dirname(without_collection)
-
-      # The most likely case for '.' is when dest_path is blank.
-      return false if without_depositor == '.'
-
-      File.exist?(without_depositor)
     end
 
     def valid_queue_name?(queue_name)

@@ -73,18 +73,18 @@ $ cp PROJECT_DIR/systemd/service/*.service /etc/systemd/system/
 
 Testing
 ```bash
-$ systemctl status fixity_check_sfs
+$ systemctl status fixity_check_s3
 ```
 
 Above command should display message similar to the following.
 ```bash
-● fixity_check_sfs.service - Archival Storage Fixity Check SFS Server
-   Loaded: loaded (/etc/systemd/system/fixity_check_sfs.service; disabled; vendor preset: disabled)
+● fixity_check_s3.service - Archival Storage Fixity Check S3 Server
+   Loaded: loaded (/etc/systemd/system/fixity_check_s3.service; disabled; vendor preset: disabled)
    Active: inactive (dead)
    ...
 ```
 
-If you get "Unit fixity_check_sfs could not be found.", check for your OS systemd manual for where to put the service files.
+If you get "Unit fixity_check_s3 could not be found.", check for your OS systemd manual for where to put the service files.
 
 Enabling service
 ```bash
@@ -92,14 +92,10 @@ $ systemctl enable SERVICE
 ```
 
 On cular-ingest server, you should enable the following services.
-- fixity_check_sfs
-- fixity_comparison
 - ingest
 - transfer_s3
-- transfer_sfs
-
-On S3 fixity checking VM, enable the following service.
-- fixity_check_s3
+- transfer_s3_west
+- transfer_wasabi
 
 #### Graceful shutdown of the service
 
@@ -128,8 +124,6 @@ The _EM_DEPOSITOR_COLLECTION.json must be conforming to the new ingest JSON form
 
 It requires that by combining the source_path and filepath from the ingest manifest, you get the absolute path of the asset.
 
-Also, by combining the dest_path from the ingest config and the filepath from the ingest manifest, you get the absolute path of the SFS destination.
-
 It still relies on the depositor and collection attributes to generate the S3 keys.
 
 ## Development
@@ -149,9 +143,9 @@ There is a global develop environment variable and specific environment variable
 - asi_queue_develop
 - asi_ingest_develop
 - asi_ingest_transfer_s3_develop
-- asi_ingest_transfer_sfs_develop
 - asi_ingest_fixity_s3_develop
-- asi_ingest_fixity_comparison_develop
+- asi_ingest_fixity_s3_west_develop
+- asi_ingest_fixity_wasabi_develop
 
 There are environment variables for periodic fixity services but we currently do not have develop queues for these and will use production queues.
 
@@ -202,9 +196,9 @@ Status: Started
 * Each service works on a dedicated queue.
 * Each service will try to poll one message from its designated queue periodically.
 * Each service is set to restart on failures. This means that if the service exits normally, systemd won't restart it automatically.
-* cular-ingest server uses ingest, transfer s3, transfer sfs, fixity check sfs and fixity comparison services.
-* AWS fixity checking VM uses fixity check s3 service only.
+* cular-ingest server uses ingest, transfer s3, transfer s3 west, transfer wasabi services.
 * Each services as well as the queuer will update the JIRA ticket specified in the ingest message its progress.
+* Fixity service utilizes Lambda and is run from cular-archival-storage project.
 
 <a name="Workflow"/>
 
@@ -236,9 +230,7 @@ With the new ingest JSON format update (https://github.com/cul-it/cular-metadata
 
 In the previous version of the application, the expectation was that by combining the data_path, depositor, collection and filepath attributes, you would get the absolute path of the source asset and dest_path, depositor, collection and filepath attributes for the target SFS location. (The filepath was generated on the fly by combining keys in the old ingest manifest.)
 
-The new format requires each package in the ingest manifest to specify source_path attribute. The expectation is that by combining the source_path and the filepath attributes for each file in the package, you would get the absolute path of the source asset. Thus, the data_path attribute is deprecated and not supported. By the same token, combining the dest_path and filepath would give you the target SFS location.
-
-Please note that the S3 key generation still relies on depositor and collection attributes.
+The new format requires each package in the ingest manifest to specify source_path attribute. The expectation is that by combining the source_path and the filepath attributes for each file in the package, you would get the absolute path of the source asset. Thus, the data_path attribute is deprecated and not supported. We no longer use SFS.
 
 ### Ingest queuer
 
@@ -307,4 +299,4 @@ The above example ingest manifest would result in the following two assets to be
 /PATH_TO_ASSETS_ROOT/USUALLY/DEPOSITOR/COLLECTION/foo/bar.xml
 ```
 
-The SFS transfer worker would combine the dest_path and filepath to find the target location while S3 transfer worker would combine depositor, collection and filepath attributes to generate the S3 key.
+The S3 transfer worker would combine depositor, collection and filepath attributes to generate the S3 key.

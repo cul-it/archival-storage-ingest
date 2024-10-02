@@ -80,7 +80,7 @@ RSpec.describe 'CollectionManifestDeployer' do
     FileUtils.mkdir_p File.join(sfs_prefix, 'archivalyy', 'test_depositor_2', 'test_collection')
     @deployer = Manifests::CollectionManifestDeployer.new(
       manifests_path: man_of_man, s3_manager:, s3_west_manager:, manifest_validator:,
-      file_identifier:, sfs_prefix:, wasabi_manager:, manifest_storage_manager:
+      file_identifier:, wasabi_manager:, manifest_storage_manager:
     )
   end
 
@@ -107,23 +107,10 @@ RSpec.describe 'CollectionManifestDeployer' do
     it 'returns added definition when not found' do
       manifest_params = Manifests::ManifestParameters.new(storage_manifest_path: td2_storage_manifest_path,
                                                           ingest_manifest_path: td2_ingest_manifest_path,
-                                                          ingest_date:,
-                                                          sfs: 'archivalyy')
+                                                          ingest_date:)
       puts manifest_params.storage_manifest.depositor
       manifest_def = @deployer.prepare_manifest_definition(manifest_parameters: manifest_params)
-      expect(manifest_def.sfs[0]).to eq('archivalyy')
-    end
-
-    it 'aborts if sfs is not supplied for new collection' do
-      manifest_params = Manifests::ManifestParameters.new(storage_manifest_path: td2_storage_manifest_path,
-                                                          ingest_manifest_path: td2_ingest_manifest_path,
-                                                          ingest_date:)
-      expect do
-        manifest_params = Manifests::ManifestParameters.new(storage_manifest_path: td2_storage_manifest_path,
-                                                            ingest_manifest_path: td2_storage_manifest_path,
-                                                            ingest_date:)
-        @deployer.prepare_manifest_definition(manifest_parameters: manifest_params)
-      end.to raise_error(SystemExit)
+      expect(manifest_def.s3_key).to eq('test_depositor_2/test_collection/_EM_test_depositor_2_test_collection.json')
     end
   end
 
@@ -149,8 +136,7 @@ RSpec.describe 'CollectionManifestDeployer' do
       expect(mom.size).to eq(1)
       manifest_params = Manifests::ManifestParameters.new(storage_manifest_path: td2_storage_manifest_path,
                                                           ingest_manifest_path: td2_ingest_manifest_path,
-                                                          ingest_date:,
-                                                          sfs: 'archivalyy')
+                                                          ingest_date:)
       manifest_definition = @deployer.prepare_manifest_definition(manifest_parameters: manifest_params)
       @deployer.deploy_collection_manifest(manifest_def: manifest_definition,
                                            collection_manifest: td2_storage_manifest_path)
@@ -159,7 +145,6 @@ RSpec.describe 'CollectionManifestDeployer' do
       expect(File.file? expected_file).to be_truthy
       mom = get_mom(man_of_man)
       expect(mom.size).to eq(2)
-      expect(mom[1][:sfs][0]).to eq('archivalyy')
     end
   end
 end

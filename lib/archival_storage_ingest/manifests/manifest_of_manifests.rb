@@ -4,14 +4,12 @@ require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'json'
 
 module Manifests
-  def self.create_manifest_definition(storage_manifest_path:, sfs:)
-    abort 'sfs must be provided for new collection!' if IngestUtils.blank?(sfs)
-
+  def self.create_manifest_definition(storage_manifest_path:)
     storage_manifest = Manifests.read_manifest(filename: storage_manifest_path)
     depositor = storage_manifest.depositor
     collection = storage_manifest.collection_id
     params = { depositor:, collection:, path: File.basename(storage_manifest_path),
-               sha1: IngestUtils.calculate_checksum(filepath: storage_manifest_path)[0], sfs: [sfs],
+               sha1: IngestUtils.calculate_checksum(filepath: storage_manifest_path)[0],
                s3_key: "#{depositor}/#{collection}/#{File.basename(storage_manifest_path)}",
                depcol: "#{depositor}/#{collection}" }
     ManifestDefinition.new(params)
@@ -41,8 +39,8 @@ module Manifests
       manifest_of_manifests[index + 1]
     end
 
-    def add_manifest_definition(storage_manifest_path:, sfs:)
-      new_manifest_def = Manifests.create_manifest_definition(storage_manifest_path:, sfs:)
+    def add_manifest_definition(storage_manifest_path:)
+      new_manifest_def = Manifests.create_manifest_definition(storage_manifest_path:)
       @manifest_of_manifests << new_manifest_def
 
       new_manifest_def
@@ -65,13 +63,12 @@ module Manifests
   end
 
   class ManifestDefinition
-    attr_accessor :depositor, :collection, :sha1, :sfs, :depcol, :path, :s3_key
+    attr_accessor :depositor, :collection, :sha1, :depcol, :path, :s3_key
 
     def initialize(manifest_def_hash)
       @depositor = manifest_def_hash[:depositor]
       @collection = manifest_def_hash[:collection]
       @sha1 = manifest_def_hash[:sha1]
-      @sfs = manifest_def_hash[:sfs]
       @depcol = manifest_def_hash[:depcol]
       @path = manifest_def_hash[:path]
       @s3_key = manifest_def_hash[:s3_key]
@@ -79,7 +76,7 @@ module Manifests
 
     def to_hash
       {
-        depositor:, collection:, sha1:, sfs:,
+        depositor:, collection:, sha1:,
         depcol:, path:, s3_key:
       }.compact
     end

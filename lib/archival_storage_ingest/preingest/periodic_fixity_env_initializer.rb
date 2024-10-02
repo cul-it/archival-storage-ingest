@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # # frozen_string_literal: true
 
 # NOTE: PeriodicFixityEnvInitializer disabled because it relies on SFS.

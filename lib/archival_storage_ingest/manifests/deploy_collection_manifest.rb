@@ -10,16 +10,16 @@ module Manifests
   # collection manifest is old term for storage manifest
   # in the future, we may refactor reference to collection manifest to storage manifest
   class CollectionManifestDeployer
-    attr_reader :file_identifier, :manifest_of_manifests, :manifest_validator, :sfs_prefix
+    attr_reader :file_identifier, :manifest_of_manifests, :manifest_validator
 
     # initialize accepts these keys:
     # manifest_path, s3_manager, s3_west_manager, wasabi_manager, manifest_storage_manager
     # manifest_validator - uses default one in production, specify one for testing
-    # sfs_prefix, java_path, tika_path - uses default values in production, specify them for testing
+    # java_path, tika_path - uses default values in production, specify them for testing
     #                                    these are used to initialize FileIdentifier
     # rubocop:disable Metrics/ParameterLists
     def initialize(manifests_path:, s3_manager:, s3_west_manager:, wasabi_manager:, manifest_storage_manager:,
-                   file_identifier:, sfs_prefix:, manifest_validator: Manifests::ManifestValidator.new)
+                   file_identifier:, manifest_validator: Manifests::ManifestValidator.new)
       @mom_path = manifests_path
       @manifest_of_manifests = Manifests::ManifestOfManifests.new(manifests_path)
 
@@ -29,7 +29,6 @@ module Manifests
       @manifest_storage_manager = manifest_storage_manager
       @file_identifier = file_identifier
       @manifest_validator = manifest_validator
-      @sfs_prefix = sfs_prefix
     end
     # rubocop:enable Metrics/ParameterLists
 
@@ -39,8 +38,7 @@ module Manifests
                                                                collection: manifest_parameters.collection_id)
 
       if manifest_def.nil?
-        manifest_of_manifests.add_manifest_definition(storage_manifest_path: manifest_parameters.storage_manifest_path,
-                                                      sfs: manifest_parameters.sfs)
+        manifest_of_manifests.add_manifest_definition(storage_manifest_path: manifest_parameters.storage_manifest_path)
       else
         manifest_def.sha1 = IngestUtils.calculate_checksum(filepath: manifest_parameters.storage_manifest_path)[0]
         manifest_def
@@ -163,11 +161,11 @@ module Manifests
     end
   end
 
-  # storage_manifest_path:, ingest_manifest_path:, sfs: nil, ingest_date: nil,
+  # storage_manifest_path:, ingest_manifest_path:, ingest_date: nil,
   # skip_data_addition: false
   class ManifestParameters
     attr_reader :storage_manifest_path, :ingest_manifest_path,
-                :ingest_manifest, :sfs, :skip_data_addition, :ingest_date
+                :ingest_manifest, :skip_data_addition, :ingest_date
     attr_accessor :storage_manifest
 
     def initialize(named_params)
@@ -176,7 +174,6 @@ module Manifests
       @ingest_manifest_path = resolve_ingest_manifest_path(named_params)
       @ingest_manifest = resolve_ingest_manifest(source: @ingest_manifest_path)
       @ingest_date = named_params.fetch(:ingest_date, nil)
-      @sfs = named_params.fetch(:sfs, nil)
       @skip_data_addition = named_params.fetch(:skip_data_addition, false)
     end
 

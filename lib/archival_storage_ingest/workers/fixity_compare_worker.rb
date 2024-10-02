@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # # frozen_string_literal: true
 #
 # NOTE: ManifestComparator is premised on making comparisons to the SFS manifest. Since SFS storage

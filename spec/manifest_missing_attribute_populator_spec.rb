@@ -59,14 +59,14 @@ RSpec.describe 'ManifestMissingAttributePopulator' do
               filepath: '1/one.txt',
               sha1: 'ef72cf86c1599c80612317fdd2f50f4863c3efb0',
               size: 10,
-              tool_version: 'Apache Tika 2.1.0',
+              tool_version: 'Apache Tika 2.9.2',
               media_type: 'text/plain'
             },
             {
               filepath: '2/two.txt',
               sha1: '158481d59505dedf144ec5e4b87e92043f48ab68',
               size: 10,
-              tool_version: 'Apache Tika 2.1.0',
+              tool_version: 'Apache Tika 2.9.2',
               media_type: 'text/plain'
             }
           ]
@@ -80,7 +80,7 @@ RSpec.describe 'ManifestMissingAttributePopulator' do
               filepath: '1/one.txt',
               sha1: 'ef72cf86c1599c80612317fdd2f50f4863c3efb0',
               size: 10,
-              tool_version: 'Apache Tika 2.1.0',
+              tool_version: 'Apache Tika 2.9.2',
               media_type: 'text/plain'
             }
           ]
@@ -89,9 +89,8 @@ RSpec.describe 'ManifestMissingAttributePopulator' do
     }
   end
   let(:file_identifier) do
-    fi = Manifests::FileIdentifier.new(sfs_prefix: 'bogus')
+    fi = Manifests::FileIdentifier.new
     allow(fi).to receive(:identify_from_source).with(any_args).and_return('text/plain')
-    allow(fi).to receive(:identify_from_storage).with(any_args).and_return('text/plain')
     fi
   end
 

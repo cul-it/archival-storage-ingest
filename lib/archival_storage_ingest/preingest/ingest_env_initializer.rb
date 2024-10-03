@@ -17,8 +17,8 @@ module Preingest
   class IngestEnvInitializer < BaseEnvInitializer # rubocop:disable Metrics/ClassLength
     attr_reader :file_identifier, :manifest_validator, :wasabi_manager
 
-    def initialize(ingest_root:, sfs_root:, manifest_validator:, file_identifier:, wasabi_manager:)
-      super(ingest_root:, sfs_root:)
+    def initialize(ingest_root:, manifest_validator:, file_identifier:, wasabi_manager:)
+      super(ingest_root:)
 
       @file_identifier = file_identifier
       @manifest_validator = manifest_validator

@@ -41,7 +41,7 @@ RSpec.describe 'CollectionManifestDeployer' do
   let(:man_of_man_source) { resolve_filename(%w[manifests manifest_of_manifest.json]) }
   let(:man_of_man) { resolve_filename(%w[manifests manifest_of_manifest_copy.json]) }
   let(:old_manifest_sha1) { 'deadbeef' }
-  let(:new_manifest_sha1) { '1d2fcfde749ba5c0c04458e88544d5f935a120f8' }
+  let(:new_manifest_sha1) { 'c0c0af5c300491abde9aa8a8678d44bf99c90121' }
   let(:asif_bucket) { 's3-cular-invalid' }
   let(:s3_manager) do
     local_root = File.join(File.dirname(__FILE__), 'resources', 'cloud')
@@ -60,12 +60,12 @@ RSpec.describe 'CollectionManifestDeployer' do
     LocalManager.new(local_root:, type: TYPE_VERSIONED_MANIFEST)
   end
   let(:ingest_date) { '2020-09-08' }
+  # sfs_prefix is still used as temporary storage for the collection manifests
   let(:sfs_prefix) { File.join(File.dirname(__FILE__), 'resources', 'manifests', 'manifest_deployer', 'sfs') }
   let(:source_path) { File.join(File.dirname(__FILE__), 'resources', 'data', 'test_depositor', 'test_collection') }
   let(:file_identifier) do
-    fi = Manifests::FileIdentifier.new(sfs_prefix: 'bogus')
+    fi = Manifests::FileIdentifier.new
     allow(fi).to receive(:identify_from_source).with(any_args).and_return('text/plain')
-    allow(fi).to receive(:identify_from_storage).with(any_args).and_return('text/plain')
     fi
   end
   let(:manifest_validator) do

@@ -6,18 +6,15 @@ require 'yaml'
 
 module Preingest
   DEFAULT_INGEST_ROOT = '/cul/app/archival_storage_ingest/ingest'
-  DEFAULT_FIXITY_ROOT = '/cul/app/archival_storage_ingest/periodic_fixity'
-  DEFAULT_SFS_ROOT    = '/cul/data'
   NO_COLLECTION_MANIFEST = 'none'
 
   class BaseEnvInitializer
     attr_accessor :total_size, :size_mismatch
-    attr_reader :ingest_root, :sfs_root, :depositor, :collection_id, :ingest_params,
+    attr_reader :ingest_root, :depositor, :collection_id, :ingest_params,
                 :collection_root, :data_root
 
-    def initialize(ingest_root:, sfs_root:)
+    def initialize(ingest_root:)
       @ingest_root   = ingest_root
-      @sfs_root      = sfs_root
       @ingest_params = nil
       @total_size    = 0
       @size_mismatch = {}
@@ -76,10 +73,6 @@ module Preingest
     end
 
     def generate_config(ingest_manifest_path:); end
-
-    def dest_path(sfs_location:)
-      raise "Do something with #{sfs_location}!"
-    end
 
     def work_type; end
 

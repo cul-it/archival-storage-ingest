@@ -9,11 +9,10 @@ require 'pathname'
 
 module Manifests
   BLANK_JSON_TEXT = '{"packages":[]}'
-  IDENTIFY_TOOL = 'Apache Tika 2.1.0'
+  IDENTIFY_TOOL = 'Apache Tika 2.9.2'
   MANIFEST_TYPE_INGEST = 'ingest_manifest'
   MANIFEST_TYPE_STORAGE = 'storage_manifest'
   MANIFEST_TYPE_FIXITY = 'fixity_manifest'
-  DEFAULT_SFS_PREFIX = '/cul/data'
 
   def self.read_manifest(filename:)
     json_io = File.open(filename)
@@ -435,52 +434,27 @@ module Manifests
   end
 
   class FileIdentifier
-    attr_reader :java_path, :sfs_prefix, :tika_path, :identify_tool
+    attr_reader :java_path, :tika_path, :identify_tool
 
     DEFAULT_JAVA_PATH = 'java'
-    DEFAULT_TIKA_PATH = '/cul/app/tika/tika-app-2.1.0.jar'
-    SFS_TRIM_PREFIX = 'smb://files.cornell.edu/lib/'
+    # It assumes tika-app.jar is symlinked to the latest version
+    DEFAULT_TIKA_PATH = '/cul/app/tika/tika-app.jar'
 
-    def initialize(sfs_prefix: nil, java_path: DEFAULT_JAVA_PATH, tika_path: DEFAULT_TIKA_PATH,
+    def initialize(java_path: DEFAULT_JAVA_PATH, tika_path: DEFAULT_TIKA_PATH,
                    identify_tool: IDENTIFY_TOOL)
       @java_path = java_path
       @tika_path = tika_path
-      @sfs_prefix = sfs_prefix
       @identify_tool = identify_tool
-    end
-
-    def resolve_filepath(manifest:, file:)
-      raise IngestException, 'SFS prefix not specified' if sfs_prefix.nil?
-
-      location = nil
-      manifest.locations.each do |loc|
-        next if loc.start_with?('s3')
-
-        relative_path = IngestUtils.relative_path(loc, SFS_TRIM_PREFIX)
-        path = File.join(sfs_prefix, relative_path, file.filepath)
-        location = path if File.exist?(path)
-      end
-
-      location
     end
 
     def identify_from_source(ingest_package:, file:)
       abs_path = File.join(ingest_package.source_path, file.filepath)
       raise IngestException, "Failed to identify file #{file.filepath}" unless File.exist?(abs_path)
 
-      _identify(abs_path:)
-    end
-
-    def identify_from_storage(manifest:, file:)
-      abs_path = resolve_filepath(manifest:, file:)
-      # resolve_filepath only returns valid abs_path if file exists
-      raise IngestException, "Failed to identify file #{file.filepath}" if abs_path.nil?
-
-      _identify(abs_path:)
-    end
-
-    def _identify(abs_path:)
       stdout, _stderr, status = Open3.capture3(java_path, '-jar', tika_path, '-x', '-d', abs_path)
+
+      puts "#{java_path} -jar #{tika_path} -x -d #{abs_path} : #{status.success}"
+
       return stdout.chomp if status.success?
 
       'application/octet-stream'

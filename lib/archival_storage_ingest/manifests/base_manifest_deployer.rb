@@ -9,7 +9,7 @@ require 'archival_storage_ingest/wasabi/wasabi_manager'
 
 class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
   attr_writer :storage_schema, :ingest_schema, :java_path, :tika_path, :file_identifier, :manifest_of_manifests,
-              :s3_bucket, :asif_bucket, :asif_archive_size_bucket, :s3_manager, :sfs_prefix,
+              :s3_bucket, :asif_bucket, :asif_archive_size_bucket, :s3_manager,
               :manifest_validator, :skip_data_addition, :manifest_deployer, :archives, :archive_size
 
   def storage_schema
@@ -49,8 +49,7 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
   end
 
   def _file_identifier
-    Manifests::FileIdentifier.new(java_path:, tika_path:,
-                                  sfs_prefix:)
+    Manifests::FileIdentifier.new(java_path:, tika_path:)
   end
 
   def manifest_of_manifests
@@ -136,18 +135,6 @@ class BaseManifestDeployer # rubocop:disable Metrics/ClassLength
 
   def _wasabi_manager
     WasabiManager.new(wasabi_bucket)
-  end
-
-  def sfs_prefix
-    @sfs_prefix ||= _sfs_prefix
-  end
-
-  def _sfs_prefix
-    if ENV['asi_develop'] || ENV['asi_deploy_manifest_develop']
-      '/cul/app/archival_storage_ingest/test/deploy'
-    else
-      Manifests::DEFAULT_SFS_PREFIX
-    end
   end
 
   def manifest_storage_manager

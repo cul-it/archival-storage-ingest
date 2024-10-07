@@ -453,8 +453,6 @@ module Manifests
 
       stdout, _stderr, status = Open3.capture3(java_path, '-jar', tika_path, '-x', '-d', abs_path)
 
-      puts "#{java_path} -jar #{tika_path} -x -d #{abs_path} : #{status.success}"
-
       return stdout.chomp if status.success?
 
       'application/octet-stream'

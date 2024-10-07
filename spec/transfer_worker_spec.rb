@@ -9,9 +9,6 @@ require 'archival_storage_ingest/workers/transfer_state_manager'
 require 'archival_storage_ingest/workers/transfer_worker'
 
 RSpec.shared_context 'transfer_worker_shared_examples' do
-  let(:dest_path) do
-    File.join(File.dirname(__FILE__), 'resources', 'fixity_workers', 'sfs', 'archival01', 'RMC', 'RMA', 'RMA0001234')
-  end
   let(:job_id) { 'test_1234' }
   let(:depositor) { 'RMC/RMA' }
   let(:collection) { 'RMA0001234' }
@@ -24,13 +21,16 @@ RSpec.shared_context 'transfer_worker_shared_examples' do
   let(:success_msg) do
     IngestMessage::SQSMessage.new(
       job_id:,
-      dest_path: dest_path.to_s,
       depositor:,
       collection:,
       ingest_manifest: success_ingest_manifest
     )
   end
-  let(:expected_s3_key) { 'RMC/RMA/RMA0001234/1/resource1.txt' }
+  let(:expected_s3_key_one) { 'RMC/RMA/RMA0001234/1/resource1.txt' }
+  let(:expected_s3_key_two) { 'RMC/RMA/RMA0001234/2/resource2.txt' }
+  let(:expected_s3_key_three) { 'RMC/RMA/RMA0001234/3/resource3.txt' }
+  let(:expected_s3_key_four) { 'RMC/RMA/RMA0001234/4/resource4.txt' }
+  let(:expected_s3_key_existing) { 'RMC/RMA/RMA0001234/x/resourcex.txt' }
   let(:ingest_manifest_s3_key) { ".manifest/#{job_id}_#{Workers::TYPE_INGEST}.json" }
 
   let(:fail_dir) do
@@ -89,6 +89,16 @@ RSpec.describe 'S3TransferWorker' do
       .and_raise(IngestException, 'upload_string must not be called in this test!')
     allow(@s3_manager).to receive(:manifest_key)
       .with(job_id, Workers::TYPE_INGEST) { ingest_manifest_s3_key }
+    allow(@s3_manager).to receive(:exists?)
+      .with(key: expected_s3_key_one) { false }
+    allow(@s3_manager).to receive(:exists?)
+      .with(key: expected_s3_key_two) { false }
+    allow(@s3_manager).to receive(:exists?)
+      .with(key: expected_s3_key_three) { false }
+      allow(@s3_manager).to receive(:exists?)
+      .with(key: expected_s3_key_four) { false }
+    allow(@s3_manager).to receive(:exists?)
+      .with(key: expected_s3_key_existing) { true }
   end
 
   include_examples 'transfer_worker_shared_examples'
@@ -102,7 +112,7 @@ RSpec.describe 'S3TransferWorker' do
           size: 10
         }
       )
-      expect(@s3_worker.target(msg: success_msg, file:)).to eq(expected_s3_key)
+      expect(@s3_worker.target(msg: success_msg, file:)).to eq(expected_s3_key_one)
     end
   end
 
@@ -110,7 +120,7 @@ RSpec.describe 'S3TransferWorker' do
     it 'uploads file' do
       path = File.join(File.dirname(__FILE__),
                        'resources', 'transfer_workers', 'success', depositor, collection, '1', 'resource1.txt')
-      @s3_worker.process_file(source: path, target: expected_s3_key)
+      @s3_worker.process_file(source: path, target: expected_s3_key_one)
       expect(@s3_manager).to have_received(:upload_file).once
     end
   end
@@ -130,7 +140,6 @@ RSpec.describe 'S3TransferWorker' do
     it 'raises error' do
       fail_msg = IngestMessage::SQSMessage.new(
         job_id:,
-        dest_path: dest_path.to_s,
         depositor:,
         collection:,
         ingest_manifest: fail_ingest_manifest
@@ -167,5 +176,12 @@ RSpec.describe 'S3TransferWorker' do
       expect(@s3_manager).to have_received(:upload_file).exactly(3).times
     end
   end
-end
 
+  context 'when transferring existing asset' do
+    it 'raises error' do
+      expect do
+        @s3_worker.process_file(source: 'bogus', target: expected_s3_key_existing)
+      end.to raise_error(IngestException, 'RMC/RMA/RMA0001234/x/resourcex.txt already exists in s3')
+    end
+  end
+end

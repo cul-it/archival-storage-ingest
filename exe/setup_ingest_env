@@ -19,20 +19,12 @@ STORAGE_MANIFEST_SCHEMA = ENV['STORAGE_MANIFEST_SCHEMA'] || Manifests::ManifestV
 INGEST_MANIFEST_SCHEMA = ENV['INGEST_MANIFEST_SCHEMA'] || Manifests::ManifestValidator::DEFAULT_INGEST_SCHEMA
 INGEST_ROOT = ENV['INGEST_ROOT'] || '/cul/app/archival_storage_ingest/ingest'
 WASABI_BUCKET = ENV['WASABI_BUCKET'] || 'wasabi-cular'
-SFS_PREFIX = if ENV['SFS_PREFIX']
-               ENV['SFS_PREFIX']
-             elsif ENV['asi_develop'] || ENV['asi_deploy_manifest_develop']
-               '/cul/app/archival_storage_ingest/test/deploy'
-             else
-               Manifests::DEFAULT_SFS_PREFIX
-             end
-file_identifier = Manifests::FileIdentifier.new(sfs_prefix: SFS_PREFIX, java_path: JAVA_PATH,
-                                                tika_path: TIKA_PATH)
+
+file_identifier = Manifests::FileIdentifier.new(java_path: JAVA_PATH, tika_path: TIKA_PATH)
 manifest_validator = Manifests::ManifestValidator.new(storage_schema: STORAGE_MANIFEST_SCHEMA,
                                                       ingest_schema: INGEST_MANIFEST_SCHEMA)
 wasabi_manager = WasabiManager.new(WASABI_BUCKET)
 env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: INGEST_ROOT,
-                                                      sfs_root: SFS_PREFIX,
                                                       file_identifier:,
                                                       manifest_validator:,
                                                       wasabi_manager:)

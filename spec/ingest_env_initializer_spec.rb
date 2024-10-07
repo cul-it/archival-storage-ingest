@@ -30,7 +30,6 @@ RSpec.describe 'IngestEnvInitializer' do
   let(:base_dir) { File.dirname(__FILE__) }
 
   let(:ingest_root) { File.join(base_dir, 'resources', 'preingest', 'ingest_root') }
-  let(:sfs_root) { File.join(base_dir, 'resources', 'preingest', 'sfs_root') }
   let(:source_data) { File.join(base_dir, 'resources', 'preingest', 'source_data') }
   let(:storage_manifest_filename) { '_EM_test_depositor_test_collection.json' }
   let(:storage_manifest) { File.join(source_data, '_EM_collection_manifest.json') }
@@ -44,9 +43,8 @@ RSpec.describe 'IngestEnvInitializer' do
   let(:ingest_schema) { File.join(base_dir, 'resources', 'schema', 'manifest_schema_ingest.json') }
   let(:manifest_validator) { Manifests::ManifestValidator.new(ingest_schema:, storage_schema:) }
   let(:file_identifier) do
-    fi = Manifests::FileIdentifier.new(sfs_prefix: 'bogus')
+    fi = Manifests::FileIdentifier.new
     allow(fi).to receive(:identify_from_source).with(any_args).and_return('text/plain')
-    allow(fi).to receive(:identify_from_storage).with(any_args).and_return('text/plain')
     fi
   end
   let(:ingest_params_path) { File.join(source_data, 'ingest.conf') }
@@ -75,7 +73,7 @@ RSpec.describe 'IngestEnvInitializer' do
   context 'when initializing ingest env' do
     it 'creates ingest env' do
       env_initializer = Preingest::IngestEnvInitializer.new(
-        ingest_root:, sfs_root:, manifest_validator:, file_identifier:, wasabi_manager:)
+        ingest_root:, manifest_validator:, file_identifier:, wasabi_manager:)
       # env_initializer.initialize_ingest_env(data:, cmf: collection_manifest, imf: ingest_manifest,
       #                                       sfs_location:, ticket_id:,
       #                                       depositor:, collection_id: collection)
@@ -118,14 +116,12 @@ RSpec.describe 'IngestEnvInitializer' do
       expect(got_mm.number_packages).to eq(expected_mm.number_packages)
 
       expected_yaml = YAML.load_file(expected_ingest_config)
-      expected_yaml[:dest_path] = File.join(sfs_root, expected_yaml[:dest_path])
       expected_yaml[:ingest_manifest] = File.join(got_manifest_path, 'ingest_manifest', expected_yaml[:ingest_manifest])
       got_yaml_path = File.join(got_path, 'config', 'ingest_config.yaml')
       got_yaml = YAML.load_file(got_yaml_path)
       expect(got_yaml[:type]).to eq(expected_yaml[:type])
       expect(got_yaml[:depositor]).to eq(expected_yaml[:depositor])
       expect(got_yaml[:collection]).to eq(expected_yaml[:collection])
-      expect(got_yaml[:dest_path]).to eq(expected_yaml[:dest_path])
       expect(got_yaml[:ingest_manifest]).to eq(expected_yaml[:ingest_manifest])
       expect(got_yaml[:ticket_id]).to eq(expected_yaml[:ticket_id])
     end

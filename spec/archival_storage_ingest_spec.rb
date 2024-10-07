@@ -50,17 +50,11 @@ RSpec.describe ArchivalStorageIngest do
     context 'when not supplying required fields' do
       it 'returns errors' do
         input_checker = WorkQueuer::IngestInputChecker.new
-        empty_dest_path = input_checker.check_input(job_id: 'test_id',
-                                                    ingest_manifest: 'bogus_path')
-        expect(empty_dest_path).to be(false)
-        expect(input_checker.errors.size).to eq(2)
-
-        input_checker = WorkQueuer::IngestInputChecker.new
         invalid_dest_path = input_checker.check_input(job_id: 'test_id',
                                                       dest_path: 'bogus_path',
                                                       ingest_manifest: 'bogus_path')
         expect(invalid_dest_path).to be(false)
-        expect(input_checker.errors.size).to eq(2)
+        expect(input_checker.errors.size).to eq(1)
 
         # Both of these errors are invalid source_path errors.
         # I don't know how to efficiently test the success case as the test ingest manifest FILE

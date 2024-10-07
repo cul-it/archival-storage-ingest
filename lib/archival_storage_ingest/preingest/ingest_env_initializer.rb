@@ -17,8 +17,8 @@ module Preingest
   class IngestEnvInitializer < BaseEnvInitializer # rubocop:disable Metrics/ClassLength
     attr_reader :file_identifier, :manifest_validator, :wasabi_manager
 
-    def initialize(ingest_root:, sfs_root:, manifest_validator:, file_identifier:, wasabi_manager:)
-      super(ingest_root:, sfs_root:)
+    def initialize(ingest_root:, manifest_validator:, file_identifier:, wasabi_manager:)
+      super(ingest_root:)
 
       @file_identifier = file_identifier
       @manifest_validator = manifest_validator
@@ -153,12 +153,7 @@ module Preingest
 
     def generate_config(ingest_manifest_path:)
       { type: work_type, depositor:, collection: collection_id,
-        dest_path: dest_path(sfs_location: ingest_params.sfsbucket),
         ingest_manifest: ingest_manifest_path, ticket_id: ingest_params.ticketid }
-    end
-
-    def dest_path(sfs_location:)
-      File.join(sfs_root, sfs_location, depositor, collection_id)
     end
 
     def work_type

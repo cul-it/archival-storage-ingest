@@ -14,7 +14,7 @@
           "sha1": "c7059bb19433cc3cabaa6236c83d56668a843dd2",
           "size": 4,
           "ingest_date": "2020-09-08",
-          "tool_version": "Apache Tika 2.1.0",
+          "tool_version": "Apache Tika 2.9.2",
           "media_type": "text/plain"
         },
         {
@@ -22,7 +22,7 @@
           "sha1": "f7aa11a22a605d4655e1d1ae122ceb43ddcfe5a9",
           "size": 16,
           "ingest_date": "2020-09-08",
-          "tool_version": "Apache Tika 2.1.0",
+          "tool_version": "Apache Tika 2.9.2",
           "media_type": "text/plain"
         },
         {
@@ -30,7 +30,7 @@
           "sha1": "6662c3da403be36f1b24a6e8c3fa42f7f4215066",
           "size": 16,
           "ingest_date": "2020-09-08",
-          "tool_version": "Apache Tika 2.1.0",
+          "tool_version": "Apache Tika 2.9.2",
           "media_type": "text/plain"
         }
       ]
@@ -44,7 +44,7 @@
           "sha1": "7bbef45b3bc70855010e02460717643125c3beca",
           "size": 4,
           "ingest_date": "2020-09-08",
-          "tool_version": "Apache Tika 2.1.0",
+          "tool_version": "Apache Tika 2.9.2",
           "media_type": "text/plain"
         },
         {
@@ -52,7 +52,7 @@
           "sha1": "5d64b71392b1e00a3ad893db02d381d58262c2d6",
           "size": 7,
           "ingest_date": "2020-09-08",
-          "tool_version": "Apache Tika 2.1.0",
+          "tool_version": "Apache Tika 2.9.2",
           "media_type": "text/plain"
         },
         {
@@ -60,7 +60,7 @@
           "sha1": "c5d84736ba451747dd5f0eb9d17e104f3697ef47",
           "size": 5,
           "ingest_date": "2020-09-08",
-          "tool_version": "Apache Tika 2.1.0",
+          "tool_version": "Apache Tika 2.9.2",
           "media_type": "text/plain"
         }
       ]

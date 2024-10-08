@@ -89,15 +89,15 @@ RSpec.describe 'S3TransferWorker' do
       .and_raise(IngestException, 'upload_string must not be called in this test!')
     allow(@s3_manager).to receive(:manifest_key)
       .with(job_id, Workers::TYPE_INGEST) { ingest_manifest_s3_key }
-    allow(@s3_manager).to receive(:exists?)
+    allow(@s3_manager).to receive(:exist?)
       .with(key: expected_s3_key_one) { false }
-    allow(@s3_manager).to receive(:exists?)
+    allow(@s3_manager).to receive(:exist?)
       .with(key: expected_s3_key_two) { false }
-    allow(@s3_manager).to receive(:exists?)
+    allow(@s3_manager).to receive(:exist?)
       .with(key: expected_s3_key_three) { false }
-      allow(@s3_manager).to receive(:exists?)
+      allow(@s3_manager).to receive(:exist?)
       .with(key: expected_s3_key_four) { false }
-    allow(@s3_manager).to receive(:exists?)
+    allow(@s3_manager).to receive(:exist?)
       .with(key: expected_s3_key_existing) { true }
   end
 

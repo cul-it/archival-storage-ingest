@@ -55,10 +55,14 @@ RSpec.describe 'IngestEnvInitializer' do
     ingest_params.update_asset_source(data)
     ingest_params
   end
+  let(:local_root) { File.join(base_dir, 'resources', 'cloud') }
   let(:wasabi_manager) do
-    local_root = File.join(File.dirname(__FILE__), 'resources', 'cloud')
     LocalManager.new(local_root:, type: TYPE_WASABI)
   end
+  let(:overwrite_checker) {
+    s3_manager = LocalManager.new(local_root:, type: TYPE_S3)
+    Manifests::OverwriteChecker.new(s3_manager:)
+  }
 
   before(:each) do
     key = "#{depositor}/#{collection}/#{storage_manifest_filename}"
@@ -73,7 +77,8 @@ RSpec.describe 'IngestEnvInitializer' do
   context 'when initializing ingest env' do
     it 'creates ingest env' do
       env_initializer = Preingest::IngestEnvInitializer.new(
-        ingest_root:, manifest_validator:, file_identifier:, wasabi_manager:)
+        ingest_root:, manifest_validator:, file_identifier:,
+        wasabi_manager:, overwrite_checker:)
       # env_initializer.initialize_ingest_env(data:, cmf: collection_manifest, imf: ingest_manifest,
       #                                       sfs_location:, ticket_id:,
       #                                       depositor:, collection_id: collection)

@@ -126,7 +126,7 @@ module TransferWorker
     # source is absolute file path of the asset
     # target is s3_key
     def process_file(source:, target:)
-      raise IngestException, "#{target} already exists in #{_platform}" if s3_manager.exists?(key: target)
+      raise IngestException, "#{target} already exists in #{_platform}" if s3_manager.exist?(key: target)
 
       s3_manager.upload_file(target, source)
     end
@@ -172,7 +172,7 @@ module TransferWorker
     # source is absolute file path of the asset
     # target is s3_key
     def process_file(source:, target:)
-      raise IngestException, "#{target} already exists in #{_platform}" if wasabi_manager.exists?(key: target)
+      raise IngestException, "#{target} already exists in #{_platform}" if wasabi_manager.exist?(key: target)
 
       wasabi_manager.upload_file(target, source)
     end

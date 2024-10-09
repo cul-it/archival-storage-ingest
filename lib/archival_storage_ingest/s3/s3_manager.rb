@@ -172,7 +172,7 @@ class S3Manager # rubocop:disable Metrics/ClassLength
   end
 
   def exist?(key:)
-    s3.head_object(bucket: @s3_bucket, key:)
+    s3.client.head_object(bucket: @s3_bucket, key:)
     true
   rescue Aws::S3::Errors::NotFound
     false

@@ -130,13 +130,15 @@ module Preingest
     def _merge_ingest_manifest_to_collection_manifest(imf:)
       cm = _get_storage_manifest
       im = Manifests.read_manifest(filename: imf)
+      manifest = Manifests.merge_manifests(storage_manifest: cm, ingest_manifest: im)
+
       overwrites = overwrite_checker.check_overwrites(ingest_manifest: im)
       if overwrites.any?
         msg = overwrites.join("\n")
         raise IngestException, "Overwrite detected:\n#{msg}"
       end
 
-      Manifests.merge_manifests(storage_manifest: cm, ingest_manifest: im)
+      manifest
     end
 
     def _get_storage_manifest

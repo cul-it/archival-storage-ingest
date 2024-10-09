@@ -112,13 +112,17 @@ module Preingest
       mfc.compare_manifest_to_filesystem(manifest: ingest_manifest)
     end
 
+    # We need to halt the preparation if there is any overwrites.
+    # For IPP, we need the merged storage manifest when overwrites are detected.
     def _initialize_collection_manifest(im_path:)
       manifest = if ingest_params.new_collection?
                    _create_collection_manifest(im_path:)
                  else
                    _merge_ingest_manifest_to_collection_manifest(imf: im_path)
                  end
-      _store_collection_manifest(manifest:)
+      manifest = _store_collection_manifest(manifest:)
+      _check_overwrite(imf: im_path)
+      manifest
     end
 
     def _create_collection_manifest(im_path:)
@@ -130,13 +134,16 @@ module Preingest
     def _merge_ingest_manifest_to_collection_manifest(imf:)
       cm = _get_storage_manifest
       im = Manifests.read_manifest(filename: imf)
-      overwrites = overwrite_checker.check_overwrites(ingest_manifest: im)
-      if overwrites.any?
-        msg = overwrites.join("\n")
-        raise IngestException, "Overwrite detected:\n#{msg}"
-      end
-
       Manifests.merge_manifests(storage_manifest: cm, ingest_manifest: im)
+    end
+
+    def _check_overwrite(imf:)
+      ingest_manifest = Manifests.read_manifest(filename: imf)
+      overwrites = overwrite_checker.check_overwrites(ingest_manifest:)
+      return unless overwrites.any?
+
+      msg = overwrites.join("\n")
+      raise IngestException, "Overwrite detected:\n#{msg}"
     end
 
     def _get_storage_manifest

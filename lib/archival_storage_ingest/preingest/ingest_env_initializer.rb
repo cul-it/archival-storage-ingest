@@ -7,6 +7,7 @@ require 'archival_storage_ingest/manifests/manifest_merger'
 require 'archival_storage_ingest/manifests/manifest_missing_attribute_populator'
 require 'archival_storage_ingest/manifests/manifest_to_filesystem_comparator'
 require 'archival_storage_ingest/manifests/manifest_checker'
+require 'archival_storage_ingest/manifests/overwrite_checker'
 require 'archival_storage_ingest/messages/ingest_message'
 require 'archival_storage_ingest/preingest/base_env_initializer'
 require 'fileutils'
@@ -15,14 +16,15 @@ require 'yaml'
 
 module Preingest
   class IngestEnvInitializer < BaseEnvInitializer # rubocop:disable Metrics/ClassLength
-    attr_reader :file_identifier, :manifest_validator, :wasabi_manager
+    attr_reader :file_identifier, :manifest_validator, :wasabi_manager, :overwrite_checker
 
-    def initialize(ingest_root:, manifest_validator:, file_identifier:, wasabi_manager:)
+    def initialize(ingest_root:, manifest_validator:, file_identifier:, wasabi_manager:, overwrite_checker:)
       super(ingest_root:)
 
       @file_identifier = file_identifier
       @manifest_validator = manifest_validator
       @wasabi_manager = wasabi_manager
+      @overwrite_checker = overwrite_checker
     end
 
     # We need to run initialize_env first to populate depositor/collection from ingest manifest
@@ -128,6 +130,12 @@ module Preingest
     def _merge_ingest_manifest_to_collection_manifest(imf:)
       cm = _get_storage_manifest
       im = Manifests.read_manifest(filename: imf)
+      overwrites = overwrite_checker.check_overwrites(ingest_manifest: im)
+      if overwrites.any?
+        msg = overwrites.join("\n")
+        raise IngestException, "Overwrite detected:\n#{msg}"
+      end
+
       Manifests.merge_manifests(storage_manifest: cm, ingest_manifest: im)
     end
 

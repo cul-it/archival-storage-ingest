@@ -3,6 +3,7 @@
 
 require 'archival_storage_ingest/ingest_utils/ingest_utils'
 require 'archival_storage_ingest/manifests/manifests'
+require 'archival_storage_ingest/manifests/overwrite_checker'
 require 'archival_storage_ingest/options/command_parser'
 require 'archival_storage_ingest/preingest/base_env_initializer'
 require 'archival_storage_ingest/preingest/ingest_env_initializer'
@@ -19,15 +20,19 @@ STORAGE_MANIFEST_SCHEMA = ENV['STORAGE_MANIFEST_SCHEMA'] || Manifests::ManifestV
 INGEST_MANIFEST_SCHEMA = ENV['INGEST_MANIFEST_SCHEMA'] || Manifests::ManifestValidator::DEFAULT_INGEST_SCHEMA
 INGEST_ROOT = ENV['INGEST_ROOT'] || '/cul/app/archival_storage_ingest/ingest'
 WASABI_BUCKET = ENV['WASABI_BUCKET'] || 'wasabi-cular'
+S3_BUCKET = ENV['S3_BUCKET'] || 's3-cular'
 
 file_identifier = Manifests::FileIdentifier.new(java_path: JAVA_PATH, tika_path: TIKA_PATH)
 manifest_validator = Manifests::ManifestValidator.new(storage_schema: STORAGE_MANIFEST_SCHEMA,
                                                       ingest_schema: INGEST_MANIFEST_SCHEMA)
 wasabi_manager = WasabiManager.new(WASABI_BUCKET)
+s3_manager = S3Manager.new(S3_BUCKET)
+overwrite_checker = Manifests::OverwriteChecker.new(s3_manager:)
 env_initializer = Preingest::IngestEnvInitializer.new(ingest_root: INGEST_ROOT,
                                                       file_identifier:,
                                                       manifest_validator:,
-                                                      wasabi_manager:)
+                                                      wasabi_manager:,
+                                                      overwrite_checker:)
 env_initializer.initialize_ingest_env_from_params_obj(ingest_params: options.ingest_params)
 
 if env_initializer.size_mismatch.empty?

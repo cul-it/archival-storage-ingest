@@ -96,6 +96,10 @@ class LocalManager
     File.delete(to_delete)
   end
 
+  def exist?(key:)
+    File.exist?(File.join(@working_dir, key))
+  end
+
   def cleanup
     [@working_dir, @asif_dir, @asif_archive_size_dir, @m2m_dir].each do |dir|
       FileUtils.rm_rf(dir, secure: true) if File.directory? dir

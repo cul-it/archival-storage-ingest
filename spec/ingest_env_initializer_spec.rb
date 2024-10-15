@@ -60,8 +60,7 @@ RSpec.describe 'IngestEnvInitializer' do
     LocalManager.new(local_root:, type: TYPE_WASABI)
   end
   let(:overwrite_checker) {
-    s3_manager = LocalManager.new(local_root:, type: TYPE_S3)
-    Manifests::OverwriteChecker.new(s3_manager:)
+    Manifests::OverwriteChecker.new(s3_manager: wasabi_manager)
   }
 
   before(:each) do
@@ -79,9 +78,6 @@ RSpec.describe 'IngestEnvInitializer' do
       env_initializer = Preingest::IngestEnvInitializer.new(
         ingest_root:, manifest_validator:, file_identifier:,
         wasabi_manager:, overwrite_checker:)
-      # env_initializer.initialize_ingest_env(data:, cmf: collection_manifest, imf: ingest_manifest,
-      #                                       sfs_location:, ticket_id:,
-      #                                       depositor:, collection_id: collection)
 
       env_initializer.initialize_ingest_env_from_params_obj(ingest_params:)
       got_path = File.join(ingest_root, depositor, collection)
@@ -132,16 +128,16 @@ RSpec.describe 'IngestEnvInitializer' do
     end
   end
 
-  # context 'when initializing ingest env without collection manifest' do
-  #   it 'creates ingest env without merged collection manifest' do
-  #     env_initializer = Preingest::IngestEnvInitializer.new(ingest_root:, sfs_root:,
-  #                                                           manifest_validator:,
-  #                                                           file_identifier:)
-  #     env_initializer.initialize_ingest_env(data:, cmf: 'none', imf: ingest_manifest,
-  #                                           sfs_location:, ticket_id:,
-  #                                           depositor:, collection_id: collection)
-  #     collection_manifest = File.join(ingest_root, 'manifest', 'collection_manifest', '_EM_collection_manifest.json')
-  #     expect(File.exist?(collection_manifest)).to be(false)
-  #   end
-  # end
+  context 'when preparing ingest with overwrites' do
+    it 'raises error' do
+      expect do
+        wasabi_manager.upload_string('test_depositor/test_collection/3/three.txt', 'test')
+        env_initializer = Preingest::IngestEnvInitializer.new(
+        ingest_root:, manifest_validator:, file_identifier:,
+        wasabi_manager:, overwrite_checker:)
+
+        env_initializer.initialize_ingest_env_from_params_obj(ingest_params:)
+      end.to raise_error(IngestException, "Overwrite detected:\n3/three.txt")
+    end
+  end
 end

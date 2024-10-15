@@ -49,8 +49,6 @@ module TransferWorker
         source = source(source_path:, file:)
         target = target(msg:, file:)
         @application_logger.log(process_file_start_msg(msg:, target:))
-        raise IngestException, "#{target} already exists in #{_platform}" if File.exist?(target)
-
         process_file(source:, target:)
         @application_logger.log(process_file_complete_msg(msg:, target:))
       end
@@ -126,8 +124,6 @@ module TransferWorker
     # source is absolute file path of the asset
     # target is s3_key
     def process_file(source:, target:)
-      raise IngestException, "#{target} already exists in #{_platform}" if s3_manager.exist?(key: target)
-
       s3_manager.upload_file(target, source)
     end
 
@@ -172,8 +168,6 @@ module TransferWorker
     # source is absolute file path of the asset
     # target is s3_key
     def process_file(source:, target:)
-      raise IngestException, "#{target} already exists in #{_platform}" if wasabi_manager.exist?(key: target)
-
       wasabi_manager.upload_file(target, source)
     end
 

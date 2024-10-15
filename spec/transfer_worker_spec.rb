@@ -176,12 +176,4 @@ RSpec.describe 'S3TransferWorker' do
       expect(@s3_manager).to have_received(:upload_file).exactly(3).times
     end
   end
-
-  context 'when transferring existing asset' do
-    it 'raises error' do
-      expect do
-        @s3_worker.process_file(source: 'bogus', target: expected_s3_key_existing)
-      end.to raise_error(IngestException, 'RMC/RMA/RMA0001234/x/resourcex.txt already exists in s3')
-    end
-  end
 end
